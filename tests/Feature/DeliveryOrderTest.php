@@ -54,6 +54,8 @@ test('staff fulfilling an order on credit updates stock and the customers balanc
         'customer_address' => 'Somewhere',
     ], $this->customer);
 
+    app(\App\Services\DeliveryService::class)->updateStatus($order, 'confirmed', $this->staffUser);
+
     $response = $this->actingAs($this->staffUser)->post(route('deliveries.fulfill', $order), [
         'payment_method' => 'loan',
     ]);

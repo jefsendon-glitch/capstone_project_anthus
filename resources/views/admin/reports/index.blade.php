@@ -47,7 +47,8 @@
             </div>
         </div>
 
-        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-5">
+            <x-stat-card label="Today's Revenue" value="₱{{ number_format($revenueToday, 2) }}" hint="{{ now()->format('M d, Y') }}" icon="dollar" color="delivery" variant="solid" />
             <x-stat-card label="Period Revenue" value="₱{{ number_format($reportRevenue, 2) }}" hint="Selected date range" icon="dollar" color="primary" variant="solid" />
             <x-stat-card label="Transactions" value="{{ number_format($reportTransactions) }}" hint="Sales transactions" icon="clipboard" color="secondary" variant="solid" />
             <x-stat-card label="Average Sale" value="₱{{ number_format($averageTransaction, 2) }}" hint="Per transaction" icon="chart" color="success" variant="solid" />

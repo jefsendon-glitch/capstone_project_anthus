@@ -23,21 +23,27 @@ class SalesService
             $lines = collect();
             $grandTotal = 0;
 
-            foreach ($data['items'] as $item) {
-                $product = Product::lockForUpdate()->findOrFail($item['product_id']);
+            // Merge duplicate product_id lines first so the stock check below sees the
+            // true combined quantity being requested, not each line checked in isolation.
+            $quantitiesByProduct = collect($data['items'])
+                ->groupBy('product_id')
+                ->map(fn (Collection $items) => $items->sum('quantity'));
 
-                if ($item['quantity'] > $product->stock_quantity) {
+            foreach ($quantitiesByProduct as $productId => $quantity) {
+                $product = Product::lockForUpdate()->findOrFail($productId);
+
+                if ($quantity > $product->stock_quantity) {
                     throw ValidationException::withMessages([
                         'items' => "Not enough stock for {$product->name} ({$product->size}). Only {$product->stock_quantity} {$product->stock_unit_label} left.",
                     ]);
                 }
 
-                $lineTotal = $product->unit_price * $item['quantity'];
+                $lineTotal = $product->unit_price * $quantity;
                 $grandTotal += $lineTotal;
 
                 $lines->push([
                     'product' => $product,
-                    'quantity' => $item['quantity'],
+                    'quantity' => $quantity,
                     'line_total' => $lineTotal,
                 ]);
             }

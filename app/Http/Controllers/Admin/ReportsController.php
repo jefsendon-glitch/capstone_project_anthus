@@ -28,6 +28,8 @@ class ReportsController extends Controller
         $sales = fn () => SalesTransaction::query()
             ->whereBetween('created_at', [$reportStart, $reportEnd]);
 
+        $revenueToday = (float) SalesTransaction::whereDate('created_at', Carbon::today())->sum('total_amount');
+
         $reportRevenue = (float) $sales()->sum('total_amount');
         $reportTransactions = $sales()->count();
         $averageTransaction = $reportTransactions > 0 ? $reportRevenue / $reportTransactions : 0;
@@ -69,6 +71,7 @@ class ReportsController extends Controller
             'business' => Setting::current(),
             'reportStart' => $reportStart,
             'reportEnd' => $reportEnd,
+            'revenueToday' => $revenueToday,
             'reportRevenue' => $reportRevenue,
             'reportTransactions' => $reportTransactions,
             'averageTransaction' => $averageTransaction,

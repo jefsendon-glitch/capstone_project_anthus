@@ -16,6 +16,7 @@ test('admin can create a staff account', function () {
         'email' => 'newstaff@example.com',
         'password' => 'Password123!',
         'role' => 'staff',
+        'status' => 'active',
         'employee_id' => 'EMP-9001',
         'position' => 'Delivery Driver',
     ]);
@@ -34,6 +35,7 @@ test('admin can create another admin account', function () {
         'email' => 'second-admin@example.com',
         'password' => 'Password123!',
         'role' => 'admin',
+        'status' => 'active',
     ]);
 
     $response->assertRedirect(route('admin.staff.index'));
@@ -91,6 +93,7 @@ test('admin can change a staff members role to admin', function () {
         'name' => $staffUser->name,
         'email' => $staffUser->email,
         'role' => 'admin',
+        'status' => 'active',
     ]);
 
     $response->assertRedirect(route('admin.staff.index'));

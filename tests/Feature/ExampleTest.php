@@ -1,7 +1,7 @@
 <?php
 
-test('guests are redirected to the login page', function () {
+test('guests can view the public welcome page', function () {
     $response = $this->get('/');
 
-    $response->assertRedirect(route('login'));
+    $response->assertOk();
 });

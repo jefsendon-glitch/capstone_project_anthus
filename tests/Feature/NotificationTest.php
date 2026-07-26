@@ -47,6 +47,7 @@ test('fulfilling a delivery order notifies the customer', function () {
 
     $this->customer->notifications()->delete();
 
+    app(DeliveryService::class)->updateStatus($order, 'confirmed', $this->staffUser);
     app(DeliveryService::class)->fulfill($order, 'cash', $this->staffUser);
 
     expect($this->customer->fresh()->unreadNotifications()->where('type', OrderStatusUpdated::class)->count())->toBe(1);
@@ -70,6 +71,7 @@ test('a sale that pushes stock below threshold notifies admin and staff exactly 
     $this->actingAs($this->staffUser)->post(route('pos.store'), [
         'transaction_type' => 'walk-in',
         'payment_method' => 'cash',
+        'tendered_amount' => 200,
         'items' => json_encode([['product_id' => $this->product->id, 'quantity' => 6]]),
     ]);
 
@@ -80,6 +82,7 @@ test('a sale that pushes stock below threshold notifies admin and staff exactly 
     $this->actingAs($this->staffUser)->post(route('pos.store'), [
         'transaction_type' => 'walk-in',
         'payment_method' => 'cash',
+        'tendered_amount' => 50,
         'items' => json_encode([['product_id' => $this->product->id, 'quantity' => 1]]),
     ]);
 
@@ -124,6 +127,7 @@ test('mark all as read clears every unread notification for the user', function 
     app(SalesService::class)->recordSale([
         'transaction_type' => 'walk-in',
         'payment_method' => 'cash',
+        'tendered_amount' => 200,
         'customer_id' => null,
         'customer_name' => 'Guest',
         'notes' => null,

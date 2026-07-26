@@ -21,6 +21,7 @@ test('recording a cash walk-in sale decrements stock and creates a transaction c
         'transaction_type' => 'walk-in',
         'payment_method' => 'cash',
         'customer_name' => 'Guest Buyer',
+        'tendered_amount' => 100,
         'items' => json_encode([['product_id' => $this->product->id, 'quantity' => 3]]),
     ]);
 
@@ -46,6 +47,7 @@ test('a cart with multiple products creates one transaction row per line item', 
     $this->actingAs($this->staffUser)->post(route('pos.store'), [
         'transaction_type' => 'walk-in',
         'payment_method' => 'cash',
+        'tendered_amount' => 100,
         'items' => json_encode([
             ['product_id' => $this->product->id, 'quantity' => 2],
             ['product_id' => $second->id, 'quantity' => 5],
@@ -97,6 +99,7 @@ test('attempting to sell more than the available stock is rejected and stock is 
     $this->actingAs($this->staffUser)->post(route('pos.store'), [
         'transaction_type' => 'walk-in',
         'payment_method' => 'cash',
+        'tendered_amount' => 10000,
         'items' => json_encode([['product_id' => $this->product->id, 'quantity' => 100]]),
     ])->assertSessionHasErrors('items');
 
@@ -111,6 +114,7 @@ test('an oversold line item in a multi-item cart rolls back the whole transactio
     $this->actingAs($this->staffUser)->post(route('pos.store'), [
         'transaction_type' => 'walk-in',
         'payment_method' => 'cash',
+        'tendered_amount' => 10000,
         'items' => json_encode([
             ['product_id' => $second->id, 'quantity' => 2],
             ['product_id' => $this->product->id, 'quantity' => 100],
@@ -129,6 +133,7 @@ test('a completed sale shows a printable receipt with all line items and the cor
         'transaction_type' => 'walk-in',
         'payment_method' => 'cash',
         'customer_name' => 'Guest Buyer',
+        'tendered_amount' => 100,
         'items' => json_encode([
             ['product_id' => $this->product->id, 'quantity' => 2],
             ['product_id' => $second->id, 'quantity' => 3],
@@ -154,6 +159,7 @@ test('a single historical transaction can still be reprinted from its own receip
     $this->actingAs($this->staffUser)->post(route('pos.store'), [
         'transaction_type' => 'walk-in',
         'payment_method' => 'cash',
+        'tendered_amount' => 50,
         'items' => json_encode([['product_id' => $this->product->id, 'quantity' => 1]]),
     ]);
 
