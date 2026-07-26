@@ -1,5 +1,5 @@
 {
-    "version": 2,
+    "$schema": "https://openapi.vercel.sh/vercel.json",
     "framework": null,
     "buildCommand": "npm run build",
     "outputDirectory": "public",
@@ -8,9 +8,8 @@
             "runtime": "vercel-php@0.8.0"
         }
     },
-    "routes": [
-        { "handle": "filesystem" },
-        { "src": "/(.*)", "dest": "/api/index.php" }
+    "rewrites": [
+        { "source": "/(.*)", "destination": "/api/index.php" }
     ],
     "env": {
         "APP_ENV": "production",
