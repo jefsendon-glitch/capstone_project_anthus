@@ -8,24 +8,32 @@ COPY vite.config.js ./
 RUN npm run build
 
 # ---- Application image ----
-FROM richarvey/nginx-php-fpm:3.1.6
+FROM php:8.4-fpm AS app
 
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        nginx \
+        libonig-dev \
+        unzip \
+        git \
+    && docker-php-ext-install pdo pdo_mysql mbstring bcmath \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+
+WORKDIR /var/www/html
 COPY . .
 COPY --from=assets /app/public/build ./public/build
 
-# Image config
-ENV SKIP_COMPOSER=1
-ENV WEBROOT=/var/www/html/public
-ENV PHP_ERRORS_STDERR=1
-ENV RUN_SCRIPTS=1
-ENV REAL_IP_HEADER=1
+RUN composer install --no-dev --optimize-autoloader --no-interaction \
+    && chown -R www-data:www-data storage bootstrap/cache
 
-# Laravel config
+COPY conf/nginx/nginx-site.conf /etc/nginx/sites-enabled/default
+COPY scripts/start.sh /start.sh
+RUN chmod +x /start.sh
+
 ENV APP_ENV=production
 ENV APP_DEBUG=false
 ENV LOG_CHANNEL=stderr
 
-# Allow composer to run as root
-ENV COMPOSER_ALLOW_SUPERUSER=1
-
+EXPOSE 80
 CMD ["/start.sh"]
