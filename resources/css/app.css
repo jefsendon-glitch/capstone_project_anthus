@@ -1,0 +1,160 @@
+@import 'tailwindcss';
+@import 'flatpickr/dist/flatpickr.css';
+@import 'tom-select/dist/css/tom-select.css';
+
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+@source '../../storage/framework/views/*.php';
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+    --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
+        'Segoe UI Symbol', 'Noto Color Emoji';
+    --font-heading: 'Outfit', 'Inter', ui-sans-serif, system-ui, sans-serif;
+    --font-mono: 'DM Mono', ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
+
+    /* Shaunti sky-blue palette */
+    --color-primary-50: #f0f9ff;
+    --color-primary-100: #e0f2fe;
+    --color-primary-200: #bae6fd;
+    --color-primary-300: #7dd3fc;
+    --color-primary-400: #38bdf8;
+    --color-primary-500: #0ea5e9;
+    --color-primary-600: #0369a1;
+    --color-primary-700: #075985;
+    --color-primary-800: #0c4a6e;
+    --color-primary-900: #082f49;
+
+    --color-secondary-50: #ecfeff;
+    --color-secondary-100: #cffafe;
+    --color-secondary-200: #a5f3fc;
+    --color-secondary-300: #67e8f9;
+    --color-secondary-400: #22d3ee;
+    --color-secondary-500: #06b6d4;
+    --color-secondary-600: #0891b2;
+    --color-secondary-700: #0e7490;
+    --color-secondary-800: #155e75;
+    --color-secondary-900: #164e63;
+
+    --color-success-50: #f0fdf4;
+    --color-success-500: #10b981;
+    --color-success-600: #059669;
+    --color-success-700: #047857;
+
+    --color-warning-50: #fffbeb;
+    --color-warning-500: #f59e0b;
+    --color-warning-600: #d97706;
+    --color-warning-700: #b45309;
+
+    --color-danger-50: #fef2f2;
+    --color-danger-500: #dc2626;
+    --color-danger-600: #b91c1c;
+    --color-danger-700: #991b1b;
+
+    --color-delivery-50: #f5f3ff;
+    --color-delivery-100: #ede9fe;
+    --color-delivery-500: #8b5cf6;
+    --color-delivery-600: #7c3aed;
+    --color-delivery-700: #6d28d9;
+
+    --color-surface: #f0f9ff;
+    --color-foreground: #0c1a2e;
+
+    --color-sidebar: #0c2340;
+    --color-sidebar-accent: #1e3a5f;
+
+    --radius-2xl: 1rem;
+    --radius-3xl: 1.25rem;
+}
+
+@layer base {
+    :root {
+        color-scheme: light;
+    }
+
+    :root.dark {
+        color-scheme: dark;
+    }
+
+    body {
+        @apply bg-surface text-slate-700 antialiased transition-colors duration-300 dark:bg-slate-950 dark:text-slate-200;
+        background-image: radial-gradient(circle at top right, rgb(186 230 253 / 0.48), transparent 30rem);
+    }
+
+    h1, h2, h3, h4, h5, h6 {
+        font-family: var(--font-heading);
+    }
+
+    [x-cloak] {
+        display: none !important;
+    }
+
+    ::selection {
+        @apply bg-primary-200 text-primary-900;
+    }
+
+    :focus-visible {
+        @apply outline-2 outline-offset-2 outline-primary-500;
+    }
+
+    input, select, textarea {
+        @apply transition duration-200;
+    }
+
+    input:not([type='checkbox']):not([type='radio']), select, textarea {
+        @apply shadow-sm focus:border-primary-400 focus:ring-4 focus:ring-primary-500/10;
+    }
+}
+
+@layer components {
+    .app-canvas {
+        @apply relative min-h-full;
+    }
+
+    .app-canvas::before {
+        content: '';
+        @apply pointer-events-none fixed inset-0 -z-10 opacity-70;
+        background-image: radial-gradient(circle at 85% 5%, rgb(14 165 233 / 0.12), transparent 23rem), radial-gradient(circle at 20% 100%, rgb(34 211 238 / 0.08), transparent 28rem);
+    }
+
+    .sidebar-nav-link {
+        @apply relative overflow-hidden transition-all duration-200;
+    }
+
+    .sidebar-nav-link:hover {
+        transform: translateX(2px);
+    }
+
+    .sidebar-nav-link.is-active {
+        box-shadow: 0 10px 22px rgb(2 132 199 / 0.25);
+    }
+
+    .table-shell {
+        @apply overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-[0_12px_32px_-22px_rgb(15_23_42/0.35)] dark:border-white/10 dark:bg-slate-900;
+    }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+    .animate-enter {
+        animation: enter 0.35s ease-out both;
+    }
+}
+
+@keyframes enter {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@media print {
+    aside, header, .no-print {
+        display: none !important;
+    }
+
+    main {
+        padding: 0 !important;
+    }
+
+    body {
+        background: #fff !important;
+    }
+}

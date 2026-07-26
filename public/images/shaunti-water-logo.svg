@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" role="img" aria-labelledby="title desc">
+  <title id="title">Shaunti Water Refilling Station</title>
+  <desc id="desc">Shaunti Water Refilling Station logo</desc>
+  <defs>
+    <linearGradient id="wave" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#02bde6"/>
+      <stop offset="1" stop-color="#168ad4"/>
+    </linearGradient>
+    <linearGradient id="drop" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#0783cd"/>
+      <stop offset=".58" stop-color="#29b8ed"/>
+      <stop offset="1" stop-color="#d6f6ff"/>
+    </linearGradient>
+  </defs>
+  <path fill="url(#wave)" d="M204 137c3 102-93 106-202 125C-58 273-62 350 51 366l104 14c-77-30-76-62 6-83 142-36 222-86 231-160 2-17 0-34-3-50-10 19-41 33-85 50-59 23-128 24-190 34 48-14 84-33 90-74Z"/>
+  <path fill="url(#wave)" d="M153 367c86 12 159 13 205 42 44 27 31 66-12 92-48 29-154 41-218 125-30 40-42 85-42 127 43-84 113-118 195-140 88-24 132-55 114-104-17-48-95-57-155-70-55-12-90-31-87-72Z"/>
+  <text x="420" y="438" fill="#063d68" font-family="Georgia, 'Times New Roman', serif" font-size="220" letter-spacing="5">SHAUNTi</text>
+  <path fill="url(#drop)" d="M1465 138c-22 37-31 57-31 78 0 25 19 43 43 43s43-18 43-43c0-21-9-41-32-78l-11-24-12 24Zm12 96c-13 0-24-10-24-24 0-9 4-22 18-47 15 25 19 38 19 47 0 14-11 24-24 24Z"/>
+  <text x="91" y="560" fill="#063d68" font-family="Arial, Helvetica, sans-serif" font-size="61" font-weight="600" letter-spacing="22">WATER REFILLING STATION</text>
+  <g fill="#0aa7da">
+    <rect x="94" y="620" width="445" height="5" rx="2.5"/>
+    <rect x="1115" y="620" width="390" height="5" rx="2.5"/>
+    <rect x="385" y="669" width="805" height="5" rx="2.5"/>
+    <rect x="465" y="698" width="645" height="5" rx="2.5"/>
+    <rect x="555" y="727" width="465" height="5" rx="2.5"/>
+    <rect x="645" y="756" width="285" height="5" rx="2.5"/>
+    <rect x="735" y="785" width="105" height="5" rx="2.5"/>
+  </g>
+  <text x="575" y="640" fill="#063d68" font-family="Arial, Helvetica, sans-serif" font-size="48" font-weight="600" letter-spacing="9">FRESH . WATER</text>
+</svg>
