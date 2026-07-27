@@ -21,6 +21,7 @@ class UpdateCustomerRequest extends FormRequest
             'contact_number' => ['nullable', 'string', 'max:30'],
             'address' => ['nullable', 'string', 'max:2000'],
             'status' => ['required', Rule::in(['active', 'inactive'])],
+            'credit_status' => ['required', Rule::in(['eligible', 'suspended'])],
         ];
     }
 }

@@ -128,6 +128,16 @@ php artisan route:list             # list all registered routes
 composer run test                  # clear config cache, then run tests
 ```
 
+## Scheduled credit monitoring
+
+Credit purchases are due 14 days after the sale. The hourly scheduler suspends accounts with an unpaid due credit and sends database notifications to the customer, admin, and staff. In development, keep it running with:
+
+```bash
+php artisan schedule:work
+```
+
+In production, configure the server scheduler to run `php artisan schedule:run` every minute.
+
 ## Troubleshooting
 
 - **"SQLSTATE[HY000] [1049] Unknown database"** — the database in `DB_DATABASE` hasn't been created yet; see step 4.

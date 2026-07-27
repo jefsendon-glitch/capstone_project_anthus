@@ -24,6 +24,10 @@
             <div class="flex items-center justify-between"><div><h2 class="font-heading text-base font-bold text-slate-900 dark:text-white">Credit Balance</h2><p class="text-xs text-slate-400">Current amount due</p></div><span class="rounded-xl bg-warning-50 p-2.5 text-warning-600 dark:bg-warning-500/10 dark:text-warning-500"><x-icon name="credit-card" class="size-5" /></span></div>
             <p class="mt-4 font-mono text-3xl font-bold {{ $customer->credit_balance > 0 ? 'text-warning-600 dark:text-warning-500' : 'text-success-600 dark:text-success-500' }}">₱{{ number_format($customer->credit_balance, 2) }}</p>
             <p class="mt-1 text-xs text-slate-400">Payments recorded: ₱{{ number_format($customerSummary['paymentTotal'], 2) }}</p>
+            <div class="mt-3">
+                <x-badge :color="$customer->credit_status === 'eligible' ? 'success' : 'danger'">{{ $customer->credit_status === 'eligible' ? 'Credit eligible' : 'Credit suspended — cash only' }}</x-badge>
+                @if($customer->credit_suspension_reason)<p class="mt-2 text-xs text-danger-600 dark:text-danger-400">{{ $customer->credit_suspension_reason }}</p>@endif
+            </div>
             <form method="POST" action="{{ route('payments.store', $customer) }}" class="mt-5 flex items-center gap-2">
                 @csrf
                 <x-text-input type="number" step="0.01" min="0.01" :max="$customer->credit_balance" name="amount" placeholder="Payment amount" required :disabled="$customer->credit_balance <= 0" />

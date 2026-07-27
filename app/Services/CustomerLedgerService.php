@@ -9,6 +9,10 @@ use Illuminate\Validation\ValidationException;
 
 class CustomerLedgerService
 {
+    public function __construct(private readonly CreditAccountService $creditAccounts)
+    {
+    }
+
     public function recordPayment(User $customer, float $amount, User $staff, ?string $notes = null): CustomerPayment
     {
         return DB::transaction(function () use ($customer, $amount, $staff, $notes) {
@@ -31,6 +35,7 @@ class CustomerLedgerService
             ]);
 
             $customer->decrement('credit_balance', $amount);
+            $this->creditAccounts->allocatePayment($customer, $amount);
 
             return $payment;
         });

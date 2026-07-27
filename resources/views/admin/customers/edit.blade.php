@@ -37,6 +37,16 @@
                 <x-input-error :messages="$errors->get('status')" />
             </div>
 
+            <div>
+                <x-input-label for="credit_status" value="Credit access" />
+                <x-select id="credit_status" name="credit_status" required>
+                    <option value="eligible" @selected(old('credit_status', $customer->credit_status) === 'eligible')>Eligible for credit</option>
+                    <option value="suspended" @selected(old('credit_status', $customer->credit_status) === 'suspended')>Suspended — cash only</option>
+                </x-select>
+                <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">Suspended customers cannot use credit. Restore access only after management review.</p>
+                <x-input-error :messages="$errors->get('credit_status')" />
+            </div>
+
             <div class="flex justify-end gap-3">
                 <x-button as="a" href="{{ route('admin.customers.index') }}" variant="secondary">Cancel</x-button>
                 <x-button type="submit">Update Customer</x-button>

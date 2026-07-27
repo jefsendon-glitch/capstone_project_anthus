@@ -6,6 +6,12 @@
         <x-stat-card variant="solid" label="Total Spent" value="₱{{ number_format($totalSpent, 2) }}" hint="Completed purchases" icon="dollar" color="secondary" />
     </div>
 
+    @if(auth()->user()->credit_status === 'suspended')
+        <div class="mt-6 rounded-2xl border border-danger-200 bg-danger-50 p-4 text-danger-800 dark:border-danger-500/30 dark:bg-danger-500/10 dark:text-danger-200">
+            <div class="flex gap-3"><x-icon name="alert-triangle" class="mt-0.5 size-5 shrink-0" /><div><p class="font-semibold">Credit access suspended</p><p class="mt-1 text-sm">Your credit payment is overdue. Please settle your balance and contact the station for a credit-account review. Cash payments remain available.</p></div></div>
+        </div>
+    @endif
+
     <div class="mt-6 flex flex-wrap gap-3"><x-button as="a" href="{{ route('customer.orders.create') }}"><x-icon name="plus" class="size-4" /> Place an Order</x-button><x-button as="a" href="{{ route('customer.orders.index') }}" variant="secondary"><x-icon name="truck" class="size-4" /> My Orders</x-button><x-button as="a" href="{{ route('customer.payments.index') }}" variant="secondary"><x-icon name="credit-card" class="size-4" /> Payment History</x-button></div>
 
     @if($currentOrder)

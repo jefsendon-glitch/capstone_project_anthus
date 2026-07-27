@@ -70,7 +70,14 @@ class CustomerController extends Controller
     {
         abort_unless($customer->isCustomer(), 404);
 
-        $customer->update($request->validated());
+        $data = $request->validated();
+
+        if ($data['credit_status'] === 'eligible' && $customer->credit_status !== 'eligible') {
+            $data['credit_suspended_at'] = null;
+            $data['credit_suspension_reason'] = null;
+        }
+
+        $customer->update($data);
 
         return redirect()->route('admin.customers.index')->with('success', 'Customer updated successfully.');
     }

@@ -13,7 +13,7 @@ use Illuminate\Validation\ValidationException;
 
 class DeliveryService
 {
-    public function __construct(private readonly SalesService $sales)
+    public function __construct(private readonly SalesService $sales, private readonly CreditAccountService $creditAccounts)
     {
     }
 
@@ -111,6 +111,10 @@ class DeliveryService
 
             $product = Product::lockForUpdate()->findOrFail($order->product_id);
 
+            if ($paymentMethod === 'loan') {
+                $this->creditAccounts->ensureEligible($order->customer);
+            }
+
             if ($order->quantity > $product->stock_quantity) {
                 throw ValidationException::withMessages([
                     'payment_method' => "Not enough stock for {$product->name}. Only {$product->stock_quantity} {$product->stock_unit_label} left.",
@@ -128,6 +132,8 @@ class DeliveryService
                 'unit_price' => $order->unit_price,
                 'total_amount' => $order->total_amount,
                 'payment_method' => $paymentMethod,
+                'credit_due_date' => $paymentMethod === 'loan' ? now()->addDays(CreditAccountService::CREDIT_TERM_DAYS)->toDateString() : null,
+                'credit_status' => $paymentMethod === 'loan' ? 'outstanding' : 'not_applicable',
                 'processed_by' => $updatedBy->id,
             ]);
 

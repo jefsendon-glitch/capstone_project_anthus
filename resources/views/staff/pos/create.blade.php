@@ -203,7 +203,7 @@ $categories = [
                             <select x-model="customerId" class="block w-full rounded-xl border-0 py-2.5 text-sm text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-inset focus:ring-primary-600 dark:bg-slate-800 dark:text-white dark:ring-white/10">
                                 <option value="">Select customer</option>
                                 @foreach($customers as $customer)
-                                    <option value="{{ $customer->id }}">{{ $customer->name }} ({{ $customer->email }})</option>
+                                    <option value="{{ $customer->id }}" @disabled($customer->credit_status !== 'eligible')>{{ $customer->name }} ({{ $customer->credit_status === 'eligible' ? $customer->email : 'credit suspended — cash only' }})</option>
                                 @endforeach
                             </select>
                         </div>

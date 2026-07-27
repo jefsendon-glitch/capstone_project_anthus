@@ -11,6 +11,10 @@ use Illuminate\Validation\ValidationException;
 
 class SalesService
 {
+    public function __construct(private readonly CreditAccountService $creditAccounts)
+    {
+    }
+
     /**
      * @param  array{items: array<int, array{product_id:int, quantity:int}>, payment_method:string, transaction_type:string, customer_id:?int, customer_name:?string, notes:?string}  $data
      * @return Collection<int, SalesTransaction>
@@ -18,7 +22,11 @@ class SalesService
     public function recordSale(array $data, User $processedBy): Collection
     {
         return DB::transaction(function () use ($data, $processedBy) {
-            $customer = ! empty($data['customer_id']) ? User::findOrFail($data['customer_id']) : null;
+            $customer = ! empty($data['customer_id']) ? User::lockForUpdate()->findOrFail($data['customer_id']) : null;
+
+            if ($data['payment_method'] === 'loan') {
+                $this->creditAccounts->ensureEligible($customer);
+            }
 
             $lines = collect();
             $grandTotal = 0;
@@ -82,6 +90,8 @@ class SalesService
                     'tendered_amount' => $tenderedAmount,
                     'change_amount' => $changeAmount,
                     'payment_method' => $data['payment_method'],
+                    'credit_due_date' => $data['payment_method'] === 'loan' ? now()->addDays(CreditAccountService::CREDIT_TERM_DAYS)->toDateString() : null,
+                    'credit_status' => $data['payment_method'] === 'loan' ? 'outstanding' : 'not_applicable',
                     'processed_by' => $processedBy->id,
                     'notes' => $data['notes'] ?? null,
                 ]));
