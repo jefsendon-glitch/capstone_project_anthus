@@ -33,6 +33,11 @@ class MaintenanceLog extends Model
 
     public function scopeOverdue(Builder $query): Builder
     {
-        return $query->where('status', 'overdue');
+        return $query->where(function (Builder $query) {
+            $query->where('status', 'overdue')
+                ->orWhere(function (Builder $query) {
+                    $query->where('status', '!=', 'ok')->where('next_due_date', '<', now());
+                });
+        });
     }
 }

@@ -39,7 +39,7 @@ $statusColors = ['draft' => 'slate', 'ordered' => 'primary', 'partially_received
                                     <x-badge :color="$statusColors[$purchaseOrder->status] ?? 'slate'">{{ ucfirst(str_replace('_', ' ', $purchaseOrder->status)) }}</x-badge>
                                 </td>
                                 <td class="px-6 py-3 text-sm text-slate-500 dark:text-slate-400">{{ $purchaseOrder->expected_date?->format('M d, Y') ?? '—' }}</td>
-                                <td class="px-6 py-3 text-right text-sm text-slate-500 dark:text-slate-400">{{ $purchaseOrder->items()->count() }}</td>
+                                <td class="px-6 py-3 text-right text-sm text-slate-500 dark:text-slate-400">{{ $purchaseOrder->items_count }}</td>
                             </tr>
                         @endforeach
                     </tbody>

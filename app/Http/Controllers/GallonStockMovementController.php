@@ -49,6 +49,7 @@ class GallonStockMovementController extends Controller
                 ['product_id' => $product->id, 'status' => $validated['from_status']],
                 ['quantity' => 0],
             );
+            $fromRow = GallonStock::lockForUpdate()->find($fromRow->id);
 
             if ($fromRow->quantity < $validated['quantity']) {
                 throw ValidationException::withMessages(['quantity' => "Not enough {$fromRow->status_label} gallons to transfer."]);
@@ -58,6 +59,7 @@ class GallonStockMovementController extends Controller
                 ['product_id' => $product->id, 'status' => $validated['to_status']],
                 ['quantity' => 0],
             );
+            $toRow = GallonStock::lockForUpdate()->find($toRow->id);
 
             $fromBefore = $fromRow->quantity;
             $fromRow->decrement('quantity', $validated['quantity']);

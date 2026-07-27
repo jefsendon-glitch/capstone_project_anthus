@@ -25,7 +25,7 @@ class PurchaseOrderController extends Controller
     {
         $this->authorize('viewAny', PurchaseOrder::class);
 
-        $purchaseOrders = PurchaseOrder::with('supplier')->latest()->paginate(15);
+        $purchaseOrders = PurchaseOrder::with('supplier')->withCount('items')->latest()->paginate(15);
 
         return view('admin.purchase-orders.index', compact('purchaseOrders'));
     }

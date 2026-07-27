@@ -33,13 +33,21 @@ class DashboardController extends Controller
             ->get();
         $totalOutstandingCredit = (float) User::role('customer')->sum('credit_balance');
 
-        $trend = collect(range(6, 0))->map(function (int $daysAgo) {
+        $sevenDaysAgo = Carbon::today()->subDays(6);
+        $dailyTotals = SalesTransaction::selectRaw('DATE(created_at) as day, transaction_type, SUM(total_amount) as total')
+            ->where('created_at', '>=', $sevenDaysAgo)
+            ->groupBy('day', 'transaction_type')
+            ->get()
+            ->groupBy('day');
+
+        $trend = collect(range(6, 0))->map(function (int $daysAgo) use ($dailyTotals) {
             $date = Carbon::today()->subDays($daysAgo);
+            $rows = $dailyTotals->get($date->toDateString(), collect());
 
             return [
                 'label' => $date->format('D'),
-                'walkIn' => (float) SalesTransaction::whereDate('created_at', $date)->where('transaction_type', 'walk-in')->sum('total_amount'),
-                'delivery' => (float) SalesTransaction::whereDate('created_at', $date)->where('transaction_type', 'delivery')->sum('total_amount'),
+                'walkIn' => (float) $rows->firstWhere('transaction_type', 'walk-in')?->total,
+                'delivery' => (float) $rows->firstWhere('transaction_type', 'delivery')?->total,
             ];
         });
 
@@ -69,14 +77,19 @@ class DashboardController extends Controller
             ->take(5)
             ->get();
 
-        $revenueTrendMonthly = collect(range(5, 0))->map(function (int $monthsAgo) {
+        $sixMonthsAgo = Carbon::today()->subMonths(5)->startOfMonth();
+        $monthlyTotals = SalesTransaction::select('created_at', 'total_amount')
+            ->where('created_at', '>=', $sixMonthsAgo)
+            ->get()
+            ->groupBy(fn ($row) => $row->created_at->format('Y-m'))
+            ->map(fn ($rows) => $rows->sum('total_amount'));
+
+        $revenueTrendMonthly = collect(range(5, 0))->map(function (int $monthsAgo) use ($monthlyTotals) {
             $month = Carbon::today()->subMonths($monthsAgo);
 
             return [
                 'label' => $month->format('M'),
-                'revenue' => (float) SalesTransaction::whereYear('created_at', $month->year)
-                    ->whereMonth('created_at', $month->month)
-                    ->sum('total_amount'),
+                'revenue' => (float) $monthlyTotals->get($month->format('Y-m'), 0),
             ];
         });
 
