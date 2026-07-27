@@ -42,13 +42,7 @@
                     <img
                         src="{{ asset('images/shaunti-water-logo.svg') }}"
                         alt="Shaunti Water Refilling Station"
-                        class="h-14 w-full object-contain dark:hidden"
-                        x-bind:class="$store.sidebar.collapsed && 'lg:h-12'"
-                    >
-                    <img
-                        src="{{ asset('images/shaunti-water-logo.svg') }}"
-                        alt="Shaunti Water Refilling Station"
-                        class="hidden h-14 w-full object-contain brightness-0 invert dark:block"
+                        class="h-14 w-full object-contain brightness-0 invert"
                         x-bind:class="$store.sidebar.collapsed && 'lg:h-12'"
                     >
                 </a>
