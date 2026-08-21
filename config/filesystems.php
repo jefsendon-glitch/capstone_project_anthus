@@ -18,6 +18,8 @@ return [
     // Product photos use object storage in production while retaining local public storage in development.
     'product_image_disk' => env('PRODUCT_IMAGE_DISK', 'public'),
 
+    'profile_image_disk' => env('PROFILE_IMAGE_DISK', 'public'),
+
     /*
     |--------------------------------------------------------------------------
     | Filesystem Disks

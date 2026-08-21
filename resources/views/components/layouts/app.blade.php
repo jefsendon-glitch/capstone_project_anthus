@@ -20,7 +20,7 @@
     class="min-h-screen bg-surface font-sans antialiased dark:bg-slate-950"
 >
     @php
-        $avatarUrl = auth()->user()->avatar_path ? Storage::disk('public')->url(auth()->user()->avatar_path) : null;
+        $avatarUrl = auth()->user()->avatar_url;
     @endphp
     <div class="app-canvas flex min-h-screen">
         {{-- Mobile sidebar backdrop --}}

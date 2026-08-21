@@ -29,6 +29,13 @@ class User extends Authenticatable
         ];
     }
 
+    public function getAvatarUrlAttribute(): ?string
+    {
+        return $this->avatar_path
+            ? route('profile.image', $this, false)
+            : null;
+    }
+
     public function staff(): HasOne
     {
         return $this->hasOne(Staff::class);
