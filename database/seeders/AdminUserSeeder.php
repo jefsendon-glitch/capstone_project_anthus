@@ -9,13 +9,14 @@ use Illuminate\Support\Facades\Hash;
 class AdminUserSeeder extends Seeder
 {
     /**
-     * Creates (or updates) the single default administrator account for this deployment.
-     * Override via ADMIN_NAME / ADMIN_EMAIL / ADMIN_PASSWORD in .env before seeding a real environment.
+     * Creates the default administrator account for this deployment.
+     * Override via ADMIN_NAME / ADMIN_EMAIL / ADMIN_PASSWORD before seeding.
      */
     public function run(): void
     {
         $email = env('ADMIN_EMAIL', 'admin@shauntiwater.com');
         $password = env('ADMIN_PASSWORD', 'ChangeMe123!');
+        $resetPassword = filter_var(env('ADMIN_RESET_PASSWORD', false), FILTER_VALIDATE_BOOL);
 
         $admin = User::firstOrCreate(
             ['email' => $email],
@@ -26,8 +27,16 @@ class AdminUserSeeder extends Seeder
             ]
         );
 
+        // Existing accounts keep their password unless an intentional reset is requested.
+        if ($resetPassword) {
+            $admin->forceFill([
+                'password' => Hash::make($password),
+                'status' => 'active',
+            ])->save();
+        }
+
         $admin->syncRoles(['admin']);
 
-        $this->command?->warn("Default admin ready -> {$email} / {$password} — change this password immediately after first login.");
+        $this->command?->info("Default administrator is ready: {$email}");
     }
 }
