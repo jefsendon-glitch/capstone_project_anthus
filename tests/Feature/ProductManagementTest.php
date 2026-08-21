@@ -47,6 +47,7 @@ test('product photos are saved to the configured image disk', function () {
 
     expect($product->image_path)->toStartWith('products/');
     Storage::disk('product-images')->assertExists($product->image_path);
+    $this->get($product->image_url)->assertOk();
 });
 
 test('a product with stock at or below its threshold is flagged low stock', function () {

@@ -3,8 +3,11 @@
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\ProductImageController;
 use App\Models\Product;
 use Illuminate\Support\Facades\Route;
+
+Route::get('/product-images/{product}', [ProductImageController::class, 'show'])->name('products.image');
 
 Route::get('/', function () {
     return view('welcome', [

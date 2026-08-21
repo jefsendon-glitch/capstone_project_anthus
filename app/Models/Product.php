@@ -8,7 +8,6 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Support\Facades\Storage;
 
 class Product extends Model
 {
@@ -41,7 +40,7 @@ class Product extends Model
     public function getImageUrlAttribute(): ?string
     {
         return $this->image_path
-            ? Storage::disk(config('filesystems.product_image_disk'))->url($this->image_path)
+            ? route('products.image', $this, false)
             : null;
     }
 
