@@ -8,7 +8,11 @@
         <x-card>
             <div class="flex items-start justify-between gap-3">
                 <div class="flex items-center gap-3">
-                    <span class="flex size-12 items-center justify-center rounded-2xl bg-primary-50 text-lg font-bold text-primary-700 dark:bg-primary-500/10 dark:text-primary-300">{{ Str::of($customer->name)->substr(0, 1)->upper() }}</span>
+                    @if($customer->avatar_url)
+                        <img src="{{ $customer->avatar_url }}" alt="{{ $customer->name }}" class="size-12 rounded-2xl object-cover" />
+                    @else
+                        <span class="flex size-12 items-center justify-center rounded-2xl bg-primary-50 text-lg font-bold text-primary-700 dark:bg-primary-500/10 dark:text-primary-300">{{ Str::of($customer->name)->substr(0, 1)->upper() }}</span>
+                    @endif
                     <div><h2 class="font-heading text-base font-bold text-slate-900 dark:text-white">Profile</h2><p class="text-xs text-slate-400">Customer details</p></div>
                 </div>
                 <x-badge :color="$customer->status === 'active' ? 'success' : 'danger'">{{ ucfirst($customer->status) }}</x-badge>

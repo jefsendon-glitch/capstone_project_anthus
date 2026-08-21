@@ -52,7 +52,11 @@
                             <tr class="transition hover:bg-slate-50/80 dark:hover:bg-white/[0.03]">
                                 <td class="px-6 py-4">
                                     <div class="flex items-center gap-3">
-                                        <span class="flex size-10 shrink-0 items-center justify-center rounded-full bg-primary-50 text-sm font-bold text-primary-700 dark:bg-primary-500/10 dark:text-primary-300">{{ Str::of($customer->name)->substr(0, 1)->upper() }}</span>
+                                        @if($customer->avatar_url)
+                                            <img src="{{ $customer->avatar_url }}" alt="{{ $customer->name }}" class="size-10 shrink-0 rounded-full object-cover" />
+                                        @else
+                                            <span class="flex size-10 shrink-0 items-center justify-center rounded-full bg-primary-50 text-sm font-bold text-primary-700 dark:bg-primary-500/10 dark:text-primary-300">{{ Str::of($customer->name)->substr(0, 1)->upper() }}</span>
+                                        @endif
                                         <div class="min-w-0">
                                             <a href="{{ route('admin.customers.show', $customer) }}" class="block truncate text-sm font-semibold text-slate-900 hover:text-primary-600 dark:text-white">{{ $customer->name }}</a>
                                             <p class="truncate text-xs text-slate-500 dark:text-slate-400">{{ $customer->email }}</p>

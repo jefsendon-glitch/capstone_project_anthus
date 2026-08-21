@@ -275,9 +275,13 @@
                 <div class="divide-y divide-slate-100 dark:divide-white/5">
                     @foreach($topDebtors as $customer)
                         <a href="{{ route('admin.customers.show', $customer) }}" class="flex items-center gap-3 px-6 py-3 hover:bg-slate-50 dark:hover:bg-white/5">
-                            <span class="flex size-9 shrink-0 items-center justify-center rounded-full bg-danger-50 text-danger-600 dark:bg-danger-500/10 dark:text-danger-500">
-                                <x-icon name="user-circle" class="size-5" />
-                            </span>
+                            @if($customer->avatar_url)
+                                <img src="{{ $customer->avatar_url }}" alt="{{ $customer->name }}" class="size-9 shrink-0 rounded-full object-cover" />
+                            @else
+                                <span class="flex size-9 shrink-0 items-center justify-center rounded-full bg-danger-50 text-danger-600 dark:bg-danger-500/10 dark:text-danger-500">
+                                    <x-icon name="user-circle" class="size-5" />
+                                </span>
+                            @endif
                             <div class="min-w-0 flex-1">
                                 <p class="truncate text-sm font-medium text-slate-900 dark:text-white">{{ $customer->name }}</p>
                             </div>

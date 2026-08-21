@@ -12,7 +12,10 @@ class ProfileImageController extends Controller
 {
     public function show(Request $request, User $user): BinaryFileResponse|RedirectResponse
     {
-        abort_unless($request->user()->is($user) && $user->avatar_path, 404);
+        abort_unless(
+            $user->avatar_path && ($request->user()->is($user) || $request->user()->hasAnyRole(['admin', 'staff'])),
+            404,
+        );
 
         $diskName = config('filesystems.profile_image_disk');
         $disk = Storage::disk($diskName);
