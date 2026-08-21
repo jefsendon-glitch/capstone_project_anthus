@@ -64,3 +64,51 @@ function initWidgets() {
 
 document.addEventListener('DOMContentLoaded', initWidgets);
 document.addEventListener('widgets:refresh', initWidgets);
+
+function startLiveNotificationUpdates() {
+    const url = document.body.dataset.liveNotificationsUrl;
+
+    if (!url) return;
+
+    let initialized = false;
+    const seen = new Set();
+
+    const showNotification = (notification) => {
+        Swal.fire({
+            icon: 'info',
+            title: notification.title,
+            text: notification.message,
+            showCancelButton: Boolean(notification.url),
+            confirmButtonText: 'View details',
+            cancelButtonText: 'Stay here',
+        }).then((result) => {
+            if (result.isConfirmed && notification.url) window.location.assign(notification.url);
+        });
+    };
+
+    const checkForNotifications = async () => {
+        try {
+            const response = await fetch(url, {
+                headers: { Accept: 'application/json' },
+                credentials: 'same-origin',
+            });
+
+            if (!response.ok) return;
+
+            const payload = await response.json();
+            const fresh = payload.notifications.filter((notification) => !seen.has(notification.id));
+            payload.notifications.forEach((notification) => seen.add(notification.id));
+
+            if (initialized) fresh.reverse().forEach(showNotification);
+
+            initialized = true;
+        } catch {
+            // The next interval will retry when the connection returns.
+        }
+    };
+
+    checkForNotifications();
+    window.setInterval(checkForNotifications, 10_000);
+}
+
+document.addEventListener('DOMContentLoaded', startLiveNotificationUpdates);
