@@ -3,6 +3,8 @@
 use App\Models\Product;
 use App\Models\User;
 use Database\Seeders\RoleSeeder;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 
 beforeEach(function () {
     $this->seed(RoleSeeder::class);
@@ -24,6 +26,27 @@ test('admin can create a product', function () {
 
     $response->assertRedirect(route('admin.products.index'));
     $this->assertDatabaseHas('products', ['name' => 'Purified Water', 'size' => '5 Gallon']);
+});
+
+test('product photos are saved to the configured image disk', function () {
+    Storage::fake('product-images');
+    config()->set('filesystems.product_image_disk', 'product-images');
+
+    $this->actingAs($this->admin)->post(route('admin.products.store'), [
+        'name' => 'Purified Water',
+        'category' => 'purified',
+        'size' => '5 Gallon',
+        'unit_price' => 25,
+        'stock_quantity' => 100,
+        'low_stock_threshold' => 10,
+        'is_active' => '1',
+        'image' => UploadedFile::fake()->image('water.jpg'),
+    ])->assertRedirect(route('admin.products.index'));
+
+    $product = Product::where('name', 'Purified Water')->firstOrFail();
+
+    expect($product->image_path)->toStartWith('products/');
+    Storage::disk('product-images')->assertExists($product->image_path);
 });
 
 test('a product with stock at or below its threshold is flagged low stock', function () {

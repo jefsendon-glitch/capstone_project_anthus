@@ -37,7 +37,7 @@ class ProductController extends Controller
         $data['is_active'] = $request->boolean('is_active', true);
 
         if ($request->hasFile('image')) {
-            $data['image_path'] = $request->file('image')->store('products', 'public');
+            $data['image_path'] = $request->file('image')->store('products', config('filesystems.product_image_disk'));
         }
 
         Product::create($data);
@@ -59,9 +59,9 @@ class ProductController extends Controller
 
         if ($request->hasFile('image')) {
             if ($product->image_path) {
-                Storage::disk('public')->delete($product->image_path);
+                Storage::disk(config('filesystems.product_image_disk'))->delete($product->image_path);
             }
-            $data['image_path'] = $request->file('image')->store('products', 'public');
+            $data['image_path'] = $request->file('image')->store('products', config('filesystems.product_image_disk'));
         }
 
         $product->update($data);
