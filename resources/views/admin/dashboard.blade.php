@@ -351,6 +351,17 @@
         </x-card>
     </div>
 
+    <div class="mt-6">
+        <x-card padding="p-0">
+            <div class="flex items-center justify-between px-6 py-4"><div><h2 class="font-heading text-base font-bold text-slate-900 dark:text-white">System Activity Log</h2><p class="text-xs text-slate-400">The 20 most recent actions recorded in the system.</p></div><x-icon name="clock" class="size-5 text-primary-500" /></div>
+            @if($recentActivities->isEmpty())
+                <div class="px-6 pb-6"><x-empty-state icon="clock" title="No activity recorded yet" description="System actions will appear here as users work in the application." /></div>
+            @else
+                <div class="overflow-x-auto"><table class="min-w-full divide-y divide-slate-200 dark:divide-white/10"><thead class="bg-slate-50/80 dark:bg-white/[0.03]"><tr class="text-left text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400"><th class="px-6 py-3.5">Date</th><th class="px-6 py-3.5">Time</th><th class="px-6 py-3.5">Action</th><th class="px-6 py-3.5">User</th></tr></thead><tbody class="divide-y divide-slate-100 dark:divide-white/5">@foreach($recentActivities as $activity)<tr class="transition hover:bg-slate-50/80 dark:hover:bg-white/[0.03]"><td class="whitespace-nowrap px-6 py-3.5 text-sm text-slate-600 dark:text-slate-300">{{ $activity->created_at->format('M d, Y') }}</td><td class="whitespace-nowrap px-6 py-3.5 font-mono text-sm text-slate-600 dark:text-slate-300">{{ $activity->created_at->format('h:i A') }}</td><td class="px-6 py-3.5 text-sm font-medium text-slate-900 dark:text-white">{{ $activity->description }}</td><td class="px-6 py-3.5 text-sm text-slate-600 dark:text-slate-300">{{ $activity->causer?->name ?? 'System' }}</td></tr>@endforeach</tbody></table></div>
+            @endif
+        </x-card>
+    </div>
+
     @push('scripts')
     <script>
         function dashboardIsDark() {

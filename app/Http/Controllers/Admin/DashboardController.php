@@ -11,6 +11,7 @@ use App\Models\SalesTransaction;
 use App\Models\User;
 use Illuminate\Support\Carbon;
 use Illuminate\View\View;
+use Spatie\Activitylog\Models\Activity;
 
 class DashboardController extends Controller
 {
@@ -94,6 +95,7 @@ class DashboardController extends Controller
         });
 
         $recentNotifications = auth()->user()->notifications()->latest()->take(6)->get();
+        $recentActivities = Activity::with('causer')->latest()->take(20)->get();
 
         return view('admin.dashboard', [
             'revenueToday' => $revenueToday,
@@ -121,6 +123,7 @@ class DashboardController extends Controller
             'revenueTrendLabels' => $revenueTrendMonthly->pluck('label'),
             'revenueTrendData' => $revenueTrendMonthly->pluck('revenue'),
             'recentNotifications' => $recentNotifications,
+            'recentActivities' => $recentActivities,
         ]);
     }
 }

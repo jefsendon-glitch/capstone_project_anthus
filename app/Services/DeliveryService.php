@@ -85,6 +85,7 @@ class DeliveryService
             'status' => 'cancelled',
             'updated_by' => $cancelledBy->id,
         ]);
+        activity('delivery_orders')->causedBy($cancelledBy)->performedOn($order)->event('cancelled')->log('Cancelled a delivery order');
 
         return $order;
     }
@@ -108,6 +109,7 @@ class DeliveryService
         }
 
         $order->update(['status' => $status, 'updated_by' => $updatedBy->id]);
+        activity('delivery_orders')->causedBy($updatedBy)->performedOn($order)->event('updated')->log('Changed delivery status to '.str_replace('_', ' ', $status));
 
         return $order;
     }
