@@ -27,6 +27,7 @@
                 <div class="grid gap-5 sm:grid-cols-2">
                     <div>
                         <x-input-label for="supplier_id" value="Supplier" />
+                        <p class="mt-1 text-xs text-slate-500">Select the supplier that will provide these items.</p>
                         <x-select id="supplier_id" name="supplier_id" required>
                             <option value="">Select supplier</option>
                             @foreach($suppliers as $supplier)
@@ -37,23 +38,27 @@
                     </div>
                     <div>
                         <x-input-label for="expected_date" value="Expected date (optional)" />
+                        <p class="mt-1 text-xs text-slate-500">When you expect the items to arrive.</p>
                         <x-text-input id="expected_date" type="text" name="expected_date" data-flatpickr :value="old('expected_date')" />
                         <x-input-error :messages="$errors->get('expected_date')" />
                     </div>
                 </div>
 
                 <div>
-                    <x-input-label value="Items" />
+                    <x-input-label value="Items to purchase" />
+                    <p class="mt-1 text-xs text-slate-500">Products increase product inventory. Supplies increase consumable inventory; container products also update gallon inventory.</p>
                     <div class="mt-2 space-y-3">
                         <template x-for="(item, index) in items" :key="index">
                             <div class="grid gap-3 rounded-2xl border border-slate-200/80 bg-slate-50/80 p-4 shadow-sm dark:border-white/10 dark:bg-white/5 sm:grid-cols-12">
                                 <div class="sm:col-span-3">
+                                    <label class="mb-1 block text-xs font-medium text-slate-500">Item type</label>
                                     <x-select x-model="item.itemable_type" x-bind:name="'items['+index+'][itemable_type]'">
                                         <option value="product">Product</option>
                                         <option value="consumable">Supply</option>
                                     </x-select>
                                 </div>
                                 <div class="sm:col-span-4">
+                                    <label class="mb-1 block text-xs font-medium text-slate-500">Product or supply</label>
                                     <x-select x-model="item.itemable_id" x-bind:name="'items['+index+'][itemable_id]'">
                                         <option value="">Select item</option>
                                         <template x-for="opt in (item.itemable_type === 'product' ? products : consumables)" :key="opt.id">
@@ -62,9 +67,11 @@
                                     </x-select>
                                 </div>
                                 <div class="sm:col-span-2">
+                                    <label class="mb-1 block text-xs font-medium text-slate-500">Quantity</label>
                                     <x-text-input type="number" step="0.01" min="0.01" placeholder="Qty" x-model="item.quantity_ordered" x-bind:name="'items['+index+'][quantity_ordered]'" />
                                 </div>
                                 <div class="sm:col-span-2">
+                                    <label class="mb-1 block text-xs font-medium text-slate-500">Unit cost</label>
                                     <x-text-input type="number" step="0.01" min="0" placeholder="Unit cost" x-model="item.unit_cost" x-bind:name="'items['+index+'][unit_cost]'" />
                                 </div>
                                 <div class="flex justify-end sm:col-span-1 sm:justify-center sm:pt-2.5">
@@ -87,9 +94,15 @@
                     <x-input-error :messages="$errors->get('notes')" />
                 </div>
 
+                <label class="flex cursor-pointer items-start gap-3 rounded-2xl border border-primary-100 bg-primary-50/60 p-4 text-sm dark:border-primary-500/20 dark:bg-primary-500/10">
+                    <input type="hidden" name="receive_immediately" value="0">
+                    <input type="checkbox" name="receive_immediately" value="1" @checked(old('receive_immediately', true)) class="mt-0.5 rounded border-primary-300 text-primary-600 focus:ring-primary-500">
+                    <span><span class="font-semibold text-primary-800 dark:text-primary-200">Receive inventory now</span><span class="mt-1 block text-xs text-primary-700 dark:text-primary-300">Recommended when the items have already arrived. This immediately updates product and supply stock; container products also update gallon inventory.</span></span>
+                </label>
+
                 <div class="flex justify-end gap-3">
                     <x-button as="a" href="{{ route('admin.purchase-orders.index') }}" variant="secondary">Cancel</x-button>
-                    <x-button type="submit">Save as Draft</x-button>
+                    <x-button type="submit">Create Purchase Order</x-button>
                 </div>
             </form>
         </x-card>
