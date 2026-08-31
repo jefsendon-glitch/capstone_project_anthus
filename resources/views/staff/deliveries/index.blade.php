@@ -26,7 +26,7 @@
                             <tr class="transition hover:bg-slate-50/80 dark:hover:bg-white/[0.03]">
                                 <td class="px-6 py-4"><a href="{{ route('deliveries.show', $order) }}" class="font-mono text-sm font-bold text-primary-600 hover:text-primary-700">{{ $order->order_code }}</a><p class="mt-1 text-xs text-slate-400">₱{{ number_format($order->total_amount, 2) }}</p></td>
                                 <td class="px-6 py-4"><p class="text-sm font-semibold text-slate-900 dark:text-white">{{ $order->customer_name }}</p><p class="max-w-56 truncate text-xs text-slate-500 dark:text-slate-400">{{ $order->customer_address }}</p></td>
-                                <td class="px-6 py-4 text-sm text-slate-700 dark:text-slate-300">{{ $order->product_name }} <span class="font-mono text-slate-400">× {{ $order->quantity }}</span></td>
+                                <td class="px-6 py-4 text-sm text-slate-700 dark:text-slate-300">{{ $order->items_summary }}</td>
                                 <td class="px-6 py-4 text-sm text-slate-600 dark:text-slate-300">{{ $order->preferred_delivery_date?->format('M d, Y') ?? 'Not scheduled' }}</td>
                                 <td class="px-6 py-4"><x-delivery-status-badge :status="$order->status" /></td>
                                 <td class="px-6 py-4 text-right"><a href="{{ route('deliveries.show', $order) }}" class="inline-flex rounded-lg p-2 text-slate-500 transition hover:bg-primary-50 hover:text-primary-600 dark:hover:bg-primary-500/10" aria-label="Open delivery order"><x-icon name="chevron-right" class="size-5" /></a></td>

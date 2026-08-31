@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class DeliveryOrder extends Model
 {
@@ -35,6 +36,20 @@ class DeliveryOrder extends Model
     public function product(): BelongsTo
     {
         return $this->belongsTo(Product::class);
+    }
+
+    public function items(): HasMany
+    {
+        return $this->hasMany(DeliveryOrderItem::class);
+    }
+
+    public function getItemsSummaryAttribute(): string
+    {
+        if ($this->relationLoaded('items') && $this->items->isNotEmpty()) {
+            return $this->items->map(fn (DeliveryOrderItem $item) => "{$item->product_name} × {$item->quantity}")->join(', ');
+        }
+
+        return "{$this->product_name} × {$this->quantity}";
     }
 
     public function placedBy(): BelongsTo

@@ -19,7 +19,7 @@ class OrderController extends Controller
 
     public function index(Request $request): View
     {
-        $orders = $request->user()->deliveryOrders()
+        $orders = $request->user()->deliveryOrders()->with('items')
             ->when($request->filled('status'), fn ($query) => $query->where('status', $request->string('status')))
             ->latest()
             ->paginate(10)
@@ -56,7 +56,7 @@ class OrderController extends Controller
     {
         $this->authorize('view', $order);
 
-        $order->load('product');
+        $order->load('items.product');
 
         return view('customer.orders.show', compact('order'));
     }

@@ -18,40 +18,54 @@ class DeliveryService
     }
 
     /**
-     * @param  array{product_id:int, quantity:int, customer_address:string, preferred_delivery_date:?string, notes:?string}  $data
+     * @param  array{items: array<int, array{product_id:int, quantity:int}>, customer_address:string, preferred_delivery_date:?string, notes:?string}  $data
      */
     public function placeOrder(array $data, User $customer): DeliveryOrder
     {
         return DB::transaction(function () use ($data, $customer) {
-            $product = Product::lockForUpdate()->findOrFail($data['product_id']);
+            $items = collect($data['items'] ?? (isset($data['product_id']) ? [[
+                'product_id' => $data['product_id'], 'quantity' => $data['quantity'],
+            ]] : []))->groupBy('product_id')->map(fn ($lines) => (int) $lines->sum('quantity'));
+            $orderItems = collect();
 
-            if (! $product->is_active) {
-                throw ValidationException::withMessages([
-                    'product_id' => 'This product is no longer available for delivery orders.',
-                ]);
+            foreach ($items as $productId => $quantity) {
+                $product = Product::lockForUpdate()->findOrFail($productId);
+                if (! $product->is_active) {
+                    throw ValidationException::withMessages(['items' => "{$product->name} is no longer available for delivery orders."]);
+                }
+                if ($quantity > $product->stock_quantity) {
+                    throw ValidationException::withMessages(['items' => "Only {$product->stock_quantity} {$product->stock_unit_label} of {$product->name} are currently available."]);
+                }
+                $orderItems->push(['product' => $product, 'quantity' => $quantity, 'total_amount' => $product->unit_price * $quantity]);
             }
 
-            if ($data['quantity'] > $product->stock_quantity) {
-                throw ValidationException::withMessages([
-                    'quantity' => "Only {$product->stock_quantity} {$product->stock_unit_label} of this product are currently available.",
-                ]);
-            }
+            $firstItem = $orderItems->first();
 
             $order = DeliveryOrder::create([
             'order_code' => $this->sales->generateCode('DEL'),
             'customer_id' => $customer->id,
             'customer_name' => $customer->name,
             'customer_address' => $data['customer_address'],
-            'product_id' => $product->id,
-            'product_name' => $product->name,
-            'quantity' => $data['quantity'],
-            'unit_price' => $product->unit_price,
-            'total_amount' => $product->unit_price * $data['quantity'],
+            'product_id' => $firstItem['product']->id,
+            'product_name' => $orderItems->count() === 1 ? $firstItem['product']->name : 'Multiple products',
+            'quantity' => $orderItems->sum('quantity'),
+            'unit_price' => $firstItem['product']->unit_price,
+            'total_amount' => $orderItems->sum('total_amount'),
             'status' => 'pending',
             'preferred_delivery_date' => $data['preferred_delivery_date'] ?? null,
             'notes' => $data['notes'] ?? null,
             'placed_by' => $customer->id,
         ]);
+
+            $order->items()->createMany($orderItems->map(fn ($item) => [
+                'product_id' => $item['product']->id,
+                'product_name' => $item['product']->name,
+                'quantity' => $item['quantity'],
+                'unit_price' => $item['product']->unit_price,
+                'total_amount' => $item['total_amount'],
+            ])->all());
+
+            activity('delivery_orders')->causedBy($customer)->performedOn($order)->event('created')->log('Placed a delivery order');
 
             User::role(['admin', 'staff'])->get()->each->notify(new NewDeliveryOrderPlaced($order));
 
@@ -71,6 +85,7 @@ class DeliveryService
             'status' => 'cancelled',
             'updated_by' => $cancelledBy->id,
         ]);
+        activity('delivery_orders')->causedBy($cancelledBy)->performedOn($order)->event('cancelled')->log('Cancelled a delivery order');
 
         return $order;
     }
@@ -94,6 +109,7 @@ class DeliveryService
         }
 
         $order->update(['status' => $status, 'updated_by' => $updatedBy->id]);
+        activity('delivery_orders')->causedBy($updatedBy)->performedOn($order)->event('updated')->log('Changed delivery status to '.str_replace('_', ' ', $status));
 
         return $order;
     }
@@ -109,35 +125,43 @@ class DeliveryService
                 ]);
             }
 
-            $product = Product::lockForUpdate()->findOrFail($order->product_id);
-
             if ($paymentMethod === 'loan') {
                 $this->creditAccounts->ensureEligible($order->customer);
             }
-
-            if ($order->quantity > $product->stock_quantity) {
-                throw ValidationException::withMessages([
-                    'payment_method' => "Not enough stock for {$product->name}. Only {$product->stock_quantity} {$product->stock_unit_label} left.",
-                ]);
+            $items = $order->items()->lockForUpdate()->get();
+            if ($items->isEmpty()) {
+                $items = collect([(object) ['product_id' => $order->product_id, 'product_name' => $order->product_name, 'quantity' => $order->quantity, 'unit_price' => $order->unit_price, 'total_amount' => $order->total_amount]]);
             }
 
-            $transaction = SalesTransaction::create([
+            $products = [];
+            $transaction = null;
+            foreach ($items as $item) {
+                $product = Product::lockForUpdate()->findOrFail($item->product_id);
+                if ($item->quantity > $product->stock_quantity) {
+                    throw ValidationException::withMessages(['payment_method' => "Not enough stock for {$product->name}. Only {$product->stock_quantity} {$product->stock_unit_label} left."]);
+                }
+                $products[$item->product_id] = $product;
+            }
+
+            foreach ($items as $item) {
+                $product = $products[$item->product_id];
+                $transaction = SalesTransaction::create([
                 'transaction_code' => $this->sales->generateCode('TXN'),
                 'transaction_type' => 'delivery',
                 'customer_id' => $order->customer_id,
                 'customer_name' => $order->customer_name,
                 'product_id' => $product->id,
-                'product_name' => $order->product_name,
-                'quantity' => $order->quantity,
-                'unit_price' => $order->unit_price,
-                'total_amount' => $order->total_amount,
+                'product_name' => $item->product_name,
+                'quantity' => $item->quantity,
+                'unit_price' => $item->unit_price,
+                'total_amount' => $item->total_amount,
                 'payment_method' => $paymentMethod,
                 'credit_due_date' => $paymentMethod === 'loan' ? now()->addDays(CreditAccountService::CREDIT_TERM_DAYS)->toDateString() : null,
                 'credit_status' => $paymentMethod === 'loan' ? 'outstanding' : 'not_applicable',
                 'processed_by' => $updatedBy->id,
-            ]);
-
-            $product->decrement('stock_quantity', $order->quantity);
+                ]);
+                $product->decrement('stock_quantity', $item->quantity);
+            }
 
             if ($paymentMethod === 'loan') {
                 $order->customer->increment('credit_balance', $order->total_amount);
@@ -151,6 +175,7 @@ class DeliveryService
             ]);
 
             $order->customer?->notify(new OrderStatusUpdated($order));
+            activity('delivery_orders')->causedBy($updatedBy)->performedOn($order)->event('fulfilled')->log('Completed a delivery order');
 
             return $transaction;
         });
