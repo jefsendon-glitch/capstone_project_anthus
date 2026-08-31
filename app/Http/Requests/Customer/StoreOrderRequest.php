@@ -6,13 +6,6 @@ use Illuminate\Foundation\Http\FormRequest;
 
 class StoreOrderRequest extends FormRequest
 {
-    protected function prepareForValidation(): void
-    {
-        if (! $this->has('items') && $this->filled('product_id')) {
-            $this->merge(['items' => [['product_id' => $this->input('product_id'), 'quantity' => $this->input('quantity')]]]);
-        }
-    }
-
     public function authorize(): bool
     {
         return $this->user()->isCustomer();

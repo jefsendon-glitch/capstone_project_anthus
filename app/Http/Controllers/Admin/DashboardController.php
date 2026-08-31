@@ -11,7 +11,6 @@ use App\Models\SalesTransaction;
 use App\Models\User;
 use Illuminate\Support\Carbon;
 use Illuminate\View\View;
-use Spatie\Activitylog\Models\Activity;
 
 class DashboardController extends Controller
 {
@@ -27,7 +26,7 @@ class DashboardController extends Controller
         $lowStockProducts = Product::lowStock()->get();
         $lowStockConsumables = Consumable::lowStock()->get();
         $overdueMaintenance = MaintenanceLog::overdue()->count();
-        $pendingDeliveryOrders = DeliveryOrder::with(['customer', 'items'])
+        $pendingDeliveryOrders = DeliveryOrder::with('customer')
             ->whereIn('status', ['pending', 'confirmed', 'out_for_delivery'])
             ->orderBy('preferred_delivery_date')
             ->take(5)
@@ -95,7 +94,6 @@ class DashboardController extends Controller
         });
 
         $recentNotifications = auth()->user()->notifications()->latest()->take(6)->get();
-        $recentActivities = Activity::with('causer')->latest()->take(8)->get();
 
         return view('admin.dashboard', [
             'revenueToday' => $revenueToday,
@@ -123,7 +121,6 @@ class DashboardController extends Controller
             'revenueTrendLabels' => $revenueTrendMonthly->pluck('label'),
             'revenueTrendData' => $revenueTrendMonthly->pluck('revenue'),
             'recentNotifications' => $recentNotifications,
-            'recentActivities' => $recentActivities,
         ]);
     }
 }

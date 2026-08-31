@@ -85,7 +85,6 @@ class DeliveryService
             'status' => 'cancelled',
             'updated_by' => $cancelledBy->id,
         ]);
-        activity('delivery_orders')->causedBy($cancelledBy)->performedOn($order)->event('cancelled')->log('Cancelled a delivery order');
 
         return $order;
     }
@@ -109,7 +108,6 @@ class DeliveryService
         }
 
         $order->update(['status' => $status, 'updated_by' => $updatedBy->id]);
-        activity('delivery_orders')->causedBy($updatedBy)->performedOn($order)->event('updated')->log('Changed delivery status to '.str_replace('_', ' ', $status));
 
         return $order;
     }
@@ -134,7 +132,6 @@ class DeliveryService
             }
 
             $products = [];
-            $transaction = null;
             foreach ($items as $item) {
                 $product = Product::lockForUpdate()->findOrFail($item->product_id);
                 if ($item->quantity > $product->stock_quantity) {
@@ -145,7 +142,7 @@ class DeliveryService
 
             foreach ($items as $item) {
                 $product = $products[$item->product_id];
-                $transaction = SalesTransaction::create([
+                SalesTransaction::create([
                 'transaction_code' => $this->sales->generateCode('TXN'),
                 'transaction_type' => 'delivery',
                 'customer_id' => $order->customer_id,
@@ -177,7 +174,7 @@ class DeliveryService
             $order->customer?->notify(new OrderStatusUpdated($order));
             activity('delivery_orders')->causedBy($updatedBy)->performedOn($order)->event('fulfilled')->log('Completed a delivery order');
 
-            return $transaction;
+            return SalesTransaction::where('transaction_type', 'delivery')->latest()->firstOrFail();
         });
     }
 }
