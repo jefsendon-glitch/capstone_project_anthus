@@ -95,7 +95,7 @@ class DashboardController extends Controller
         });
 
         $recentNotifications = auth()->user()->notifications()->latest()->take(6)->get();
-        $recentActivities = Activity::with('causer')->latest()->take(20)->get();
+        $recentActivities = Activity::with('causer')->latest()->paginate(10, ['*'], 'activity_page');
 
         return view('admin.dashboard', [
             'revenueToday' => $revenueToday,
