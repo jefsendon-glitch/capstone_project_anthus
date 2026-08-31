@@ -34,6 +34,24 @@ test('customer can place a delivery order', function () {
     $response->assertRedirect(route('customer.orders.show', $order));
 });
 
+test('customer can order multiple different available products in one delivery order', function () {
+    $secondProduct = Product::factory()->create(['unit_price' => 15, 'stock_quantity' => 10]);
+
+    $response = $this->actingAs($this->customer)->post(route('customer.orders.store'), [
+        'items' => [
+            ['product_id' => $this->product->id, 'quantity' => 2],
+            ['product_id' => $secondProduct->id, 'quantity' => 3],
+        ],
+        'customer_address' => '123 Sample St, Bato, Camarines Sur',
+    ]);
+
+    $order = $this->customer->deliveryOrders()->latest()->first();
+
+    expect($order->items)->toHaveCount(2);
+    expect((float) $order->total_amount)->toBe(95.0);
+    $response->assertRedirect(route('customer.orders.show', $order));
+});
+
 test('customer cannot view another customers order', function () {
     $order = app(\App\Services\DeliveryService::class)->placeOrder([
         'product_id' => $this->product->id,

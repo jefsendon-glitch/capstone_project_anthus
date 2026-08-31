@@ -22,7 +22,7 @@ class DeliveryController extends Controller
     {
         $this->authorize('manage', DeliveryOrder::class);
 
-        $ordersQuery = DeliveryOrder::with('customer');
+        $ordersQuery = DeliveryOrder::with(['customer', 'items']);
 
         $deliveryStats = [
             'pending' => (clone $ordersQuery)->where('status', 'pending')->count(),
@@ -52,7 +52,7 @@ class DeliveryController extends Controller
     {
         $this->authorize('manage', DeliveryOrder::class);
 
-        $delivery->load(['customer', 'product', 'placedBy', 'updatedBy']);
+        $delivery->load(['customer', 'items.product', 'placedBy', 'updatedBy']);
 
         return view('staff.deliveries.show', ['order' => $delivery]);
     }

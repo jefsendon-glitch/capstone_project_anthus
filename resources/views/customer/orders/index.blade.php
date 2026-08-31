@@ -36,7 +36,7 @@
                                 <td class="px-6 py-3 text-sm font-medium text-slate-900 dark:text-white">
                                     <a href="{{ route('customer.orders.show', $order) }}" class="hover:text-primary-600">{{ $order->order_code }}</a>
                                 </td>
-                                <td class="px-6 py-3 text-sm text-slate-600 dark:text-slate-300">{{ $order->product_name }} × {{ $order->quantity }}</td>
+                                <td class="px-6 py-3 text-sm text-slate-600 dark:text-slate-300">{{ $order->items_summary }}</td>
                                 <td class="px-6 py-3 font-mono text-sm text-slate-900 dark:text-white">₱{{ number_format($order->total_amount, 2) }}</td>
                                 <td class="px-6 py-3"><x-delivery-status-badge :status="$order->status" /></td>
                             </tr>

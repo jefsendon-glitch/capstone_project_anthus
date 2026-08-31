@@ -132,6 +132,7 @@ class DeliveryService
             }
 
             $products = [];
+            $transaction = null;
             foreach ($items as $item) {
                 $product = Product::lockForUpdate()->findOrFail($item->product_id);
                 if ($item->quantity > $product->stock_quantity) {
@@ -142,7 +143,7 @@ class DeliveryService
 
             foreach ($items as $item) {
                 $product = $products[$item->product_id];
-                SalesTransaction::create([
+                $transaction = SalesTransaction::create([
                 'transaction_code' => $this->sales->generateCode('TXN'),
                 'transaction_type' => 'delivery',
                 'customer_id' => $order->customer_id,
@@ -174,7 +175,7 @@ class DeliveryService
             $order->customer?->notify(new OrderStatusUpdated($order));
             activity('delivery_orders')->causedBy($updatedBy)->performedOn($order)->event('fulfilled')->log('Completed a delivery order');
 
-            return SalesTransaction::where('transaction_type', 'delivery')->latest()->firstOrFail();
+            return $transaction;
         });
     }
 }
