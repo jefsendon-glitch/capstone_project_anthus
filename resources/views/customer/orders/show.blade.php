@@ -1,54 +1,8 @@
-<x-layouts.app title="Order Details" :heading="'Order Details'">
-    <x-card class="mx-auto max-w-xl">
-        <div class="flex items-center justify-between">
-            <p class="text-sm text-slate-500 dark:text-slate-400">{{ $order->order_code }}</p>
-            <x-delivery-status-badge :status="$order->status" />
-        </div>
-
-        <dl class="mt-6 space-y-4 text-sm">
-            <div>
-                <dt class="text-slate-400">Product</dt>
-                <dd class="mt-1 text-slate-700 dark:text-slate-200">{{ $order->product_name }} × {{ $order->quantity }} — <span class="font-mono">₱{{ number_format($order->total_amount, 2) }}</span></dd>
-            </div>
-            <div>
-                <dt class="text-slate-400">Delivery Address</dt>
-                <dd class="mt-1 text-slate-700 dark:text-slate-200">{{ $order->customer_address }}</dd>
-            </div>
-            <div>
-                <dt class="text-slate-400">Preferred Delivery Date</dt>
-                <dd class="mt-1 text-slate-700 dark:text-slate-200">{{ $order->preferred_delivery_date?->format('F d, Y') ?? '—' }}</dd>
-            </div>
-        </dl>
-
-        <ol class="mt-6 space-y-3 text-sm">
-            @foreach(['pending' => 'Order placed', 'confirmed' => 'Confirmed by staff', 'out_for_delivery' => 'Out for delivery', 'delivered' => 'Delivered'] as $key => $label)
-                @php
-                    $steps = ['pending', 'confirmed', 'out_for_delivery', 'delivered'];
-                    $reached = in_array($order->status, $steps) && array_search($order->status, $steps) >= array_search($key, $steps);
-                @endphp
-                <li class="flex items-center gap-3">
-                    <span class="flex size-2.5 rounded-full {{ $reached ? 'bg-primary-600' : 'bg-slate-300 dark:bg-slate-700' }}"></span>
-                    <span class="{{ $reached ? 'font-medium text-slate-900 dark:text-white' : 'text-slate-400' }}">{{ $label }}</span>
-                </li>
-            @endforeach
-            @if($order->status === 'cancelled')
-                <li class="flex items-center gap-3">
-                    <span class="flex size-2.5 rounded-full bg-danger-600"></span>
-                    <span class="font-medium text-danger-600">Order cancelled</span>
-                </li>
-            @endif
-        </ol>
-
-        <div class="mt-6 flex gap-3">
-            <x-button as="a" href="{{ route('customer.orders.index') }}" variant="secondary" class="w-full">Back to My Orders</x-button>
-
-            @can('cancel', $order)
-                <form method="POST" action="{{ route('customer.orders.cancel', $order) }}" class="w-full" onsubmit="return confirm('Cancel this order?')">
-                    @csrf
-                    @method('PATCH')
-                    <x-button type="submit" variant="danger" class="w-full">Cancel Order</x-button>
-                </form>
-            @endcan
-        </div>
+<x-layouts.app title="Order Details" :heading="'Order Details'" :subheading="$order->order_code">
+    <x-card class="mx-auto max-w-2xl">
+        <div class="flex items-center justify-between"><div><p class="text-xs font-semibold uppercase tracking-wide text-slate-400">Order reference</p><p class="mt-1 font-mono text-sm font-bold text-primary-600">{{ $order->order_code }}</p></div><x-delivery-status-badge :status="$order->status" /></div>
+        <div class="mt-6 overflow-hidden rounded-2xl border border-slate-200 dark:border-white/10"><div class="grid grid-cols-[1fr_auto_auto] gap-4 bg-slate-50 px-4 py-3 text-xs font-semibold uppercase tracking-wide text-slate-500 dark:bg-white/5 dark:text-slate-400"><span>Product</span><span>Qty</span><span>Amount</span></div><div class="divide-y divide-slate-100 dark:divide-white/5">@forelse($order->items as $item)<div class="grid grid-cols-[1fr_auto_auto] items-center gap-4 px-4 py-3 text-sm"><span class="font-medium text-slate-900 dark:text-white">{{ $item->product_name }}</span><span class="text-slate-600 dark:text-slate-300">{{ $item->quantity }}</span><span class="font-mono text-slate-900 dark:text-white">₱{{ number_format($item->total_amount, 2) }}</span></div>@empty<div class="grid grid-cols-[1fr_auto_auto] items-center gap-4 px-4 py-3 text-sm"><span class="font-medium text-slate-900 dark:text-white">{{ $order->product_name }}</span><span class="text-slate-600 dark:text-slate-300">{{ $order->quantity }}</span><span class="font-mono text-slate-900 dark:text-white">₱{{ number_format($order->total_amount, 2) }}</span></div>@endforelse</div><div class="flex items-center justify-between border-t border-slate-200 bg-primary-50 px-4 py-4 dark:border-white/10 dark:bg-primary-500/10"><span class="font-semibold text-slate-700 dark:text-slate-200">Total amount</span><span class="font-mono text-lg font-bold text-primary-700 dark:text-primary-300">₱{{ number_format($order->total_amount, 2) }}</span></div></div>
+        <dl class="mt-6 space-y-4 text-sm"><div><dt class="text-xs font-semibold uppercase tracking-wide text-slate-400">Delivery address</dt><dd class="mt-1 text-slate-700 dark:text-slate-200">{{ $order->customer_address }}</dd></div><div><dt class="text-xs font-semibold uppercase tracking-wide text-slate-400">Preferred delivery date</dt><dd class="mt-1 text-slate-700 dark:text-slate-200">{{ $order->preferred_delivery_date?->format('F d, Y') ?? 'Not specified' }}</dd></div></dl>
+        <div class="mt-6 flex gap-3"><x-button as="a" href="{{ route('customer.orders.index') }}" variant="secondary" class="w-full">Back to My Orders</x-button>@can('cancel', $order)<form method="POST" action="{{ route('customer.orders.cancel', $order) }}" class="w-full" onsubmit="return confirm('Cancel this order?')">@csrf @method('PATCH')<x-button type="submit" variant="danger" class="w-full">Cancel Order</x-button></form>@endcan</div>
     </x-card>
 </x-layouts.app>
