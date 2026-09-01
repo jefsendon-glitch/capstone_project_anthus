@@ -41,7 +41,7 @@ $statusColors = ['draft' => 'slate', 'ordered' => 'primary', 'partially_received
                             <th class="px-6 py-3">PO Number</th>
                             <th class="px-6 py-3">Supplier</th>
                             <th class="px-6 py-3">Status</th>
-                            <th class="px-6 py-3">Expected Date</th>
+                            <th class="px-6 py-3">Date</th>
                             <th class="px-6 py-3 text-right">Items</th>
                         </tr>
                     </thead>

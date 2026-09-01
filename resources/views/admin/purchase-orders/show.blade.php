@@ -85,7 +85,7 @@ $canReceive = in_array($purchaseOrder->status, ['ordered', 'partially_received']
             <div class="mt-4 space-y-3 text-sm">
                 <div class="flex justify-between"><span class="text-slate-400">Supplier</span><span class="text-slate-900 dark:text-white">{{ $purchaseOrder->supplier->name }}</span></div>
                 <div class="flex justify-between"><span class="text-slate-400">Ordered</span><span class="text-slate-900 dark:text-white">{{ $purchaseOrder->ordered_at?->format('M d, Y') ?? '—' }}</span></div>
-                <div class="flex justify-between"><span class="text-slate-400">Expected</span><span class="text-slate-900 dark:text-white">{{ $purchaseOrder->expected_date?->format('M d, Y') ?? '—' }}</span></div>
+                <div class="flex justify-between"><span class="text-slate-400">Date</span><span class="text-slate-900 dark:text-white">{{ $purchaseOrder->expected_date?->format('M d, Y') ?? '—' }}</span></div>
                 <div class="flex justify-between"><span class="text-slate-400">Created by</span><span class="text-slate-900 dark:text-white">{{ $purchaseOrder->createdBy?->name ?? '—' }}</span></div>
                 @if($purchaseOrder->notes)
                     <div class="border-t border-slate-100 pt-3 dark:border-white/10">

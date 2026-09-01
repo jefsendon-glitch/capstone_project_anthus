@@ -47,7 +47,7 @@
                         <x-input-error :messages="$errors->get('status')" />
                     </div>
                     <div>
-                        <x-input-label for="expected_date" value="Expected date (optional)" />
+                        <x-input-label for="expected_date" value="Date (optional)" />
                         <x-text-input id="expected_date" type="text" name="expected_date" data-flatpickr :value="old('expected_date', $purchaseOrder->expected_date?->format('Y-m-d'))" />
                         <x-input-error :messages="$errors->get('expected_date')" />
                     </div>
