@@ -352,6 +352,18 @@
     </div>
 
     <div id="system-activity-log" data-activity-url="{{ route('admin.dashboard.activities') }}" class="mt-6">
+        <form method="GET" action="{{ route('admin.dashboard') }}" class="mb-4 flex flex-wrap items-end justify-end gap-3">
+            <div>
+                <x-input-label for="activity_date_from" value="Activity from" />
+                <x-text-input id="activity_date_from" type="text" name="activity_date_from" data-flatpickr :value="$activityDateFrom" placeholder="Start date" />
+            </div>
+            <div>
+                <x-input-label for="activity_date_to" value="Activity to" />
+                <x-text-input id="activity_date_to" type="text" name="activity_date_to" data-flatpickr :value="$activityDateTo" placeholder="End date" />
+            </div>
+            <x-button as="a" href="{{ route('admin.dashboard') }}" variant="secondary">Reset</x-button>
+            <x-button type="submit">Filter log</x-button>
+        </form>
         <x-card padding="p-0">
             <div class="flex items-center justify-between px-6 py-4"><div><h2 class="font-heading text-base font-bold text-slate-900 dark:text-white">System Activity Log</h2><p class="text-xs text-slate-400">The 10 most recent actions recorded in the system.</p></div><x-icon name="clock" class="size-5 text-primary-500" /></div>
             @if($recentActivities->isEmpty())
@@ -499,7 +511,10 @@
             }
         };
 
-        window.setInterval(refreshActivities, 15_000);
+        const activityFiltersApplied = new URLSearchParams(window.location.search).has('activity_date_from')
+            || new URLSearchParams(window.location.search).has('activity_date_to');
+
+        if (!activityFiltersApplied) window.setInterval(refreshActivities, 15_000);
         });
     </script>
     @endpush

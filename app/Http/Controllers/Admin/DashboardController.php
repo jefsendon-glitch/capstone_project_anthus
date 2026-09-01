@@ -109,7 +109,14 @@ class DashboardController extends Controller
         });
 
         $recentNotifications = auth()->user()->notifications()->latest()->take(6)->get();
-        $recentActivities = Activity::with('causer')->latest()->paginate(10, ['*'], 'activity_page');
+        $activityDateFrom = request('activity_date_from');
+        $activityDateTo = request('activity_date_to');
+        $recentActivities = Activity::with('causer')
+            ->when($activityDateFrom, fn ($query) => $query->whereDate('created_at', '>=', $activityDateFrom))
+            ->when($activityDateTo, fn ($query) => $query->whereDate('created_at', '<=', $activityDateTo))
+            ->latest()
+            ->paginate(10, ['*'], 'activity_page')
+            ->withQueryString();
 
         return view('admin.dashboard', [
             'revenueToday' => $revenueToday,
@@ -138,6 +145,8 @@ class DashboardController extends Controller
             'revenueTrendData' => $revenueTrendMonthly->pluck('revenue'),
             'recentNotifications' => $recentNotifications,
             'recentActivities' => $recentActivities,
+            'activityDateFrom' => $activityDateFrom,
+            'activityDateTo' => $activityDateTo,
         ]);
     }
 }

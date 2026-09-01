@@ -30,9 +30,17 @@ class PurchaseOrderController extends Controller
     {
         $this->authorize('viewAny', PurchaseOrder::class);
 
-        $purchaseOrders = PurchaseOrder::with('supplier')->withCount('items')->latest()->paginate(15);
+        $dateFrom = request('date_from');
+        $dateTo = request('date_to');
+        $purchaseOrders = PurchaseOrder::with('supplier')
+            ->withCount('items')
+            ->when($dateFrom, fn ($query) => $query->whereDate('ordered_at', '>=', $dateFrom))
+            ->when($dateTo, fn ($query) => $query->whereDate('ordered_at', '<=', $dateTo))
+            ->latest()
+            ->paginate(15)
+            ->withQueryString();
 
-        return view('admin.purchase-orders.index', compact('purchaseOrders'));
+        return view('admin.purchase-orders.index', compact('purchaseOrders', 'dateFrom', 'dateTo'));
     }
 
     public function create(): View

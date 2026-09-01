@@ -17,9 +17,17 @@ class WaterProductionController extends Controller
     {
         $this->authorize('viewAny', WaterProductionLog::class);
 
-        $logs = WaterProductionLog::with(['product', 'producedBy'])->latest('production_date')->latest()->paginate(15);
+        $dateFrom = request('date_from');
+        $dateTo = request('date_to');
+        $logs = WaterProductionLog::with(['product', 'producedBy'])
+            ->when($dateFrom, fn ($query) => $query->whereDate('production_date', '>=', $dateFrom))
+            ->when($dateTo, fn ($query) => $query->whereDate('production_date', '<=', $dateTo))
+            ->latest('production_date')
+            ->latest()
+            ->paginate(15)
+            ->withQueryString();
 
-        return view('admin.water-production.index', compact('logs'));
+        return view('admin.water-production.index', compact('logs', 'dateFrom', 'dateTo'));
     }
 
     public function create(): View

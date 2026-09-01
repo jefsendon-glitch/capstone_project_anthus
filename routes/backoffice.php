@@ -36,7 +36,7 @@ Route::middleware(['auth', 'role:admin|staff'])->group(function () {
         Route::post('gallon-stocks/{product}/add', [GallonStockMovementController::class, 'addStock'])->name('gallon-stocks.add');
         Route::post('gallon-stocks/{product}/transfer', [GallonStockMovementController::class, 'transfer'])->name('gallon-stocks.transfer');
 
-        Route::resource('water-production', WaterProductionController::class)->only(['index', 'create', 'store', 'destroy']);
+        Route::resource('water-production', WaterProductionController::class)->only(['index']);
 
         Route::get('stock-movements', [StockMovementController::class, 'index'])->name('stock-movements.index');
     });

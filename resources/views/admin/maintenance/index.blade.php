@@ -7,6 +7,23 @@
         @endcan
     </div>
 
+    <x-card class="mb-6">
+        <form method="GET" class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <div>
+                <x-input-label for="date_from" value="Due from" />
+                <x-text-input id="date_from" type="text" name="date_from" data-flatpickr :value="$dateFrom" placeholder="Start date" />
+            </div>
+            <div>
+                <x-input-label for="date_to" value="Due to" />
+                <x-text-input id="date_to" type="text" name="date_to" data-flatpickr :value="$dateTo" placeholder="End date" />
+            </div>
+            <div class="flex items-end justify-end gap-3">
+                <x-button as="a" href="{{ route('admin.maintenance.index') }}" variant="secondary">Reset</x-button>
+                <x-button type="submit">Filter</x-button>
+            </div>
+        </form>
+    </x-card>
+
     <x-card padding="p-0">
         @if($logs->isEmpty())
             <div class="p-6">

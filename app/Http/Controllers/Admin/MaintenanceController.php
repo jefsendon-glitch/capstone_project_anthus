@@ -15,9 +15,15 @@ class MaintenanceController extends Controller
     {
         $this->authorize('viewAny', MaintenanceLog::class);
 
-        $logs = MaintenanceLog::orderBy('next_due_date')->paginate(15);
+        $dateFrom = request('date_from');
+        $dateTo = request('date_to');
+        $logs = MaintenanceLog::when($dateFrom, fn ($query) => $query->whereDate('next_due_date', '>=', $dateFrom))
+            ->when($dateTo, fn ($query) => $query->whereDate('next_due_date', '<=', $dateTo))
+            ->orderBy('next_due_date')
+            ->paginate(15)
+            ->withQueryString();
 
-        return view('admin.maintenance.index', compact('logs'));
+        return view('admin.maintenance.index', compact('logs', 'dateFrom', 'dateTo'));
     }
 
     public function create(): View
