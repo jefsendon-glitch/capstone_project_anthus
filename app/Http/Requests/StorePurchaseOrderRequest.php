@@ -2,9 +2,12 @@
 
 namespace App\Http\Requests;
 
+use App\Models\Consumable;
+use App\Models\Product;
 use App\Models\PurchaseOrder;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Validator;
 
 class StorePurchaseOrderRequest extends FormRequest
 {
@@ -26,5 +29,27 @@ class StorePurchaseOrderRequest extends FormRequest
             'items.*.quantity_ordered' => ['required', 'numeric', 'min:0.01'],
             'items.*.unit_cost' => ['required', 'numeric', 'min:0'],
         ];
+    }
+
+    public function withValidator(Validator $validator): void
+    {
+        $validator->after(function (Validator $validator) {
+            foreach ((array) $this->input('items', []) as $index => $item) {
+                $type = $item['itemable_type'] ?? null;
+                $id = $item['itemable_id'] ?? null;
+
+                if (! is_numeric($id) || ! in_array($type, ['product', 'consumable'], true)) {
+                    continue;
+                }
+
+                $exists = $type === 'product'
+                    ? Product::whereKey($id)->exists()
+                    : Consumable::whereKey($id)->exists();
+
+                if (! $exists) {
+                    $validator->errors()->add("items.{$index}.itemable_id", 'Select a current '.$type.' from the list.');
+                }
+            }
+        });
     }
 }

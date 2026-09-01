@@ -2,7 +2,8 @@
     $purchaseOrderFormData = [
         'products' => $products->map(fn ($product) => [
             'id' => $product->id,
-            'label' => $product->name.' ('.$product->size.')',
+            'label' => $product->name.' ('.ucfirst($product->category).' · '.$product->size.')',
+            'image_url' => $product->image_url,
         ])->values(),
         'consumables' => $consumables->map(fn ($consumable) => [
             'id' => $consumable->id,
@@ -52,19 +53,46 @@
                             <div class="grid gap-3 rounded-2xl border border-slate-200/80 bg-slate-50/80 p-4 shadow-sm dark:border-white/10 dark:bg-white/5 sm:grid-cols-12">
                                 <div class="sm:col-span-3">
                                     <label class="mb-1 block text-xs font-medium text-slate-500">Item type</label>
-                                    <x-select x-model="item.itemable_type" x-bind:name="'items['+index+'][itemable_type]'">
+                                    <x-select x-model="item.itemable_type" x-on:change="item.itemable_id = ''" x-bind:name="'items['+index+'][itemable_type]'">
                                         <option value="product">Product</option>
                                         <option value="consumable">Supply</option>
                                     </x-select>
                                 </div>
                                 <div class="sm:col-span-4">
                                     <label class="mb-1 block text-xs font-medium text-slate-500">Product or supply</label>
-                                    <x-select x-model="item.itemable_id" x-bind:name="'items['+index+'][itemable_id]'">
-                                        <option value="">Select item</option>
-                                        <template x-for="opt in (item.itemable_type === 'product' ? products : consumables)" :key="opt.id">
-                                            <option :value="opt.id" x-text="opt.label"></option>
-                                        </template>
-                                    </x-select>
+                                    <div class="relative" x-data="{ open: false }" x-on:click.outside="open = false">
+                                        <input type="hidden" x-bind:name="'items['+index+'][itemable_id]'" x-bind:value="item.itemable_id">
+                                        <button type="button" x-on:click="open = !open" x-bind:aria-expanded="open" class="flex w-full items-center gap-3 rounded-xl bg-white/90 px-3.5 py-2.5 text-left text-sm text-slate-900 shadow-sm ring-1 ring-inset ring-slate-200 transition hover:ring-slate-300 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary-500 dark:bg-slate-800/90 dark:text-white dark:ring-white/10">
+                                            <template x-if="selectedItem(item)">
+                                                <span class="flex min-w-0 items-center gap-3">
+                                                    <template x-if="item.itemable_type === 'product' && selectedItem(item).image_url">
+                                                        <img :src="selectedItem(item).image_url" :alt="selectedItem(item).label" class="size-9 shrink-0 rounded-lg object-cover">
+                                                    </template>
+                                                    <template x-if="item.itemable_type !== 'product' || !selectedItem(item).image_url">
+                                                        <span class="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary-50 text-primary-500 dark:bg-primary-500/10"><x-icon name="photo" class="size-4" /></span>
+                                                    </template>
+                                                    <span class="truncate" x-text="selectedItem(item).label"></span>
+                                                </span>
+                                            </template>
+                                            <template x-if="!selectedItem(item)">
+                                                <span class="text-slate-400" x-text="item.itemable_type === 'product' ? 'Select product' : 'Select supply'"></span>
+                                            </template>
+                                            <x-icon name="chevron-down" class="ml-auto size-4 shrink-0 text-slate-400" />
+                                        </button>
+                                        <div x-cloak x-show="open" x-transition class="absolute z-20 mt-1 max-h-60 w-full overflow-y-auto rounded-xl border border-slate-200 bg-white p-1 shadow-xl dark:border-white/10 dark:bg-slate-800">
+                                            <template x-for="opt in optionsFor(item)" :key="opt.id">
+                                                <button type="button" x-on:click="item.itemable_id = opt.id; open = false" class="flex w-full items-center gap-3 rounded-lg px-2.5 py-2 text-left text-sm text-slate-700 transition hover:bg-primary-50 hover:text-primary-800 dark:text-slate-200 dark:hover:bg-primary-500/10 dark:hover:text-primary-200">
+                                                    <template x-if="item.itemable_type === 'product' && opt.image_url">
+                                                        <img :src="opt.image_url" :alt="opt.label" class="size-10 shrink-0 rounded-lg object-cover">
+                                                    </template>
+                                                    <template x-if="item.itemable_type !== 'product' || !opt.image_url">
+                                                        <span class="flex size-10 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-slate-400 dark:bg-slate-700"><x-icon name="photo" class="size-4" /></span>
+                                                    </template>
+                                                    <span class="min-w-0 truncate" x-text="opt.label"></span>
+                                                </button>
+                                            </template>
+                                        </div>
+                                    </div>
                                 </div>
                                 <div class="sm:col-span-2">
                                     <label class="mb-1 block text-xs font-medium text-slate-500">Quantity</label>
@@ -85,6 +113,7 @@
                     <button type="button" x-on:click="addItem()" class="mt-3 inline-flex items-center gap-1.5 rounded-xl bg-primary-50 px-3 py-2 text-sm font-semibold text-primary-700 transition hover:bg-primary-100 dark:bg-primary-500/10 dark:text-primary-300 dark:hover:bg-primary-500/20">
                         <x-icon name="plus" class="size-4" /> Add item
                     </button>
+                    <x-input-error :messages="$errors->get('items.*.itemable_id')" />
                     <x-input-error :messages="$errors->get('items')" />
                 </div>
 
@@ -95,8 +124,8 @@
                 </div>
 
                 <div class="flex items-start gap-3 rounded-2xl border border-primary-100 bg-primary-50/60 p-4 text-sm dark:border-primary-500/20 dark:bg-primary-500/10">
-                    <input type="checkbox" checked disabled aria-label="Receive inventory immediately" class="mt-0.5 rounded border-primary-300 text-primary-600 focus:ring-primary-500">
-                    <span><span class="font-semibold text-primary-800 dark:text-primary-200">Receive inventory automatically</span><span class="mt-1 block text-xs text-primary-700 dark:text-primary-300">Every new purchase order immediately updates product and supply stock. Container products also update gallon inventory.</span></span>
+                    <x-badge color="success"><x-icon name="check-circle" class="size-4" /> Inventory received automatically</x-badge>
+                    <span class="pt-0.5 text-xs text-primary-700 dark:text-primary-300">Every new purchase order immediately updates product and supply stock. Container products also update gallon inventory.</span>
                 </div>
 
                 <div class="flex justify-end gap-3">

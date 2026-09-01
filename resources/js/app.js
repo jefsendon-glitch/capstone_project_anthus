@@ -27,6 +27,12 @@ window.purchaseOrderForm = (payload) => {
         removeItem(index) {
             if (this.items.length > 1) this.items.splice(index, 1);
         },
+        optionsFor(item) {
+            return item.itemable_type === 'product' ? this.products : this.consumables;
+        },
+        selectedItem(item) {
+            return this.optionsFor(item).find((option) => String(option.id) === String(item.itemable_id));
+        },
     };
 };
 
