@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', DashboardController::class)->name('dashboard');
+    Route::get('/dashboard/activities', [DashboardController::class, 'activities'])->name('dashboard.activities');
 
     Route::resource('staff', StaffController::class)->except('show');
     Route::resource('customers', CustomerController::class)->only(['index', 'show', 'edit', 'update']);

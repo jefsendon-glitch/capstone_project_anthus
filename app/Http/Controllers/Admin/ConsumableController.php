@@ -6,7 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreConsumableRequest;
 use App\Http\Requests\UpdateConsumableRequest;
 use App\Models\Consumable;
+use App\Models\StockMovement;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 class ConsumableController extends Controller
@@ -29,7 +31,14 @@ class ConsumableController extends Controller
 
     public function store(StoreConsumableRequest $request): RedirectResponse
     {
-        Consumable::create($request->validated());
+        DB::transaction(function () use ($request) {
+            $consumable = Consumable::create($request->validated());
+            $quantity = (float) $consumable->quantity;
+
+            if ($quantity > 0) {
+                StockMovement::record($consumable, 'initial', $quantity, 0, $quantity, $request->user()->id, 'Initial supply stock', (float) $consumable->unit_cost);
+            }
+        });
 
         return redirect()->route('admin.consumables.index')->with('success', 'Consumable added successfully.');
     }
@@ -43,7 +52,16 @@ class ConsumableController extends Controller
 
     public function update(UpdateConsumableRequest $request, Consumable $consumable): RedirectResponse
     {
-        $consumable->update($request->validated());
+        DB::transaction(function () use ($request, $consumable) {
+            $data = $request->validated();
+            $before = (float) $consumable->quantity;
+            $after = (float) $data['quantity'];
+            $consumable->update($data);
+
+            if ($before !== $after) {
+                StockMovement::record($consumable, $after > $before ? 'adjustment_increase' : 'adjustment_decrease', $after - $before, $before, $after, $request->user()->id, 'Supply quantity updated', (float) $consumable->unit_cost);
+            }
+        });
 
         return redirect()->route('admin.consumables.index')->with('success', 'Consumable updated successfully.');
     }

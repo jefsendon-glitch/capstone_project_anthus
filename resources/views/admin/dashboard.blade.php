@@ -351,7 +351,7 @@
         </x-card>
     </div>
 
-    <div class="mt-6">
+    <div id="system-activity-log" data-activity-url="{{ route('admin.dashboard.activities') }}" class="mt-6">
         <x-card padding="p-0">
             <div class="flex items-center justify-between px-6 py-4"><div><h2 class="font-heading text-base font-bold text-slate-900 dark:text-white">System Activity Log</h2><p class="text-xs text-slate-400">The 10 most recent actions recorded in the system.</p></div><x-icon name="clock" class="size-5 text-primary-500" /></div>
             @if($recentActivities->isEmpty())
@@ -461,6 +461,45 @@
                 chart.update();
             });
         }).observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+
+        const activityLog = document.getElementById('system-activity-log');
+        const activityTableBody = activityLog?.querySelector('tbody');
+
+        const refreshActivities = async () => {
+            if (!activityLog) return;
+
+            try {
+                const response = await fetch(activityLog.dataset.activityUrl, { headers: { Accept: 'application/json' }, credentials: 'same-origin' });
+                if (!response.ok) return;
+
+                const { activities } = await response.json();
+                if (!activityTableBody) {
+                    if (activities.length) window.location.reload();
+                    return;
+                }
+                const rows = document.createDocumentFragment();
+
+                activities.forEach((activity) => {
+                    const row = document.createElement('tr');
+                    row.className = 'transition hover:bg-slate-50/80 dark:hover:bg-white/[0.03]';
+
+                    [activity.date, activity.time, activity.description, activity.user].forEach((value, index) => {
+                        const cell = document.createElement('td');
+                        cell.textContent = value;
+                        cell.className = index === 2
+                            ? 'px-6 py-3.5 text-sm font-medium text-slate-900 dark:text-white'
+                            : `whitespace-nowrap px-6 py-3.5 ${index === 1 ? 'font-mono ' : ''}text-sm text-slate-600 dark:text-slate-300`;
+                        rows.appendChild(row).appendChild(cell);
+                    });
+                });
+
+                if (activities.length) activityTableBody.replaceChildren(rows);
+            } catch {
+                // Keep the current log visible and try again on the next refresh.
+            }
+        };
+
+        window.setInterval(refreshActivities, 15_000);
         });
     </script>
     @endpush

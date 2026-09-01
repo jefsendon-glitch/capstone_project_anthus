@@ -3,11 +3,19 @@
 namespace App\Http\Requests;
 
 use App\Models\MaintenanceLog;
+use Illuminate\Support\Carbon;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
 class StoreMaintenanceLogRequest extends FormRequest
 {
+    protected function prepareForValidation(): void
+    {
+        if ($status = $this->statusFromDueDate()) {
+            $this->merge(['status' => $status]);
+        }
+    }
+
     public function authorize(): bool
     {
         return $this->user()->can('create', MaintenanceLog::class);
@@ -23,5 +31,22 @@ class StoreMaintenanceLogRequest extends FormRequest
             'status' => ['required', Rule::in(['ok', 'due_soon', 'overdue'])],
             'notes' => ['nullable', 'string', 'max:2000'],
         ];
+    }
+
+    private function statusFromDueDate(): ?string
+    {
+        $dueDate = $this->input('next_due_date');
+
+        if (! is_string($dueDate) || strtotime($dueDate) === false) {
+            return null;
+        }
+
+        $due = Carbon::parse($dueDate)->startOfDay();
+
+        return match (true) {
+            $due->isPast() => 'overdue',
+            $due->lessThanOrEqualTo(today()->addDays(7)) => 'due_soon',
+            default => 'ok',
+        };
     }
 }

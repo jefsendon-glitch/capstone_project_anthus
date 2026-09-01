@@ -34,14 +34,9 @@
                 </div>
             </div>
 
-            <div>
-                <x-input-label for="status" value="Status" />
-                <x-select id="status" name="status" required>
-                    <option value="ok" @selected(old('status', $log->status) === 'ok')>OK</option>
-                    <option value="due_soon" @selected(old('status', $log->status) === 'due_soon')>Due Soon</option>
-                    <option value="overdue" @selected(old('status', $log->status) === 'overdue')>Overdue</option>
-                </x-select>
-                <x-input-error :messages="$errors->get('status')" />
+            <div class="flex items-start gap-3 rounded-2xl border border-primary-100 bg-primary-50/60 p-4 text-sm dark:border-primary-500/20 dark:bg-primary-500/10">
+                <x-badge color="primary"><x-icon name="clock" class="size-4" /> Status updates automatically</x-badge>
+                <p class="pt-0.5 text-xs text-primary-700 dark:text-primary-300">The due date determines whether this maintenance is OK, due soon, or overdue.</p>
             </div>
 
             <div>

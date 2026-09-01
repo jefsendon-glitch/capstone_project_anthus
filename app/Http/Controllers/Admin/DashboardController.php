@@ -10,11 +10,25 @@ use App\Models\Product;
 use App\Models\SalesTransaction;
 use App\Models\User;
 use Illuminate\Support\Carbon;
+use Illuminate\Http\JsonResponse;
 use Illuminate\View\View;
 use Spatie\Activitylog\Models\Activity;
 
 class DashboardController extends Controller
 {
+    public function activities(): JsonResponse
+    {
+        $activities = Activity::with('causer')->latest()->take(10)->get()->map(fn (Activity $activity) => [
+            'id' => $activity->id,
+            'date' => $activity->created_at->format('M d, Y'),
+            'time' => $activity->created_at->format('h:i A'),
+            'description' => $activity->description,
+            'user' => $activity->causer?->name ?? 'System',
+        ]);
+
+        return response()->json(['activities' => $activities]);
+    }
+
     public function __invoke(): View
     {
         $today = Carbon::today();

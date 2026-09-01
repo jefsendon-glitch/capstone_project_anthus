@@ -32,6 +32,7 @@
                 <div>
                     <x-input-label for="quantity" value="Quantity" />
                     <x-text-input id="quantity" type="number" step="0.01" min="0" name="quantity" :value="old('quantity', $consumable->quantity)" required />
+                    <p class="mt-1 text-xs text-slate-500">Any quantity change is recorded as an adjustment in the stock movement history.</p>
                     <x-input-error :messages="$errors->get('quantity')" />
                 </div>
 
