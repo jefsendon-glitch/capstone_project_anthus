@@ -8,6 +8,13 @@ use Illuminate\Validation\Rule;
 
 class StorePurchaseOrderRequest extends FormRequest
 {
+    protected function prepareForValidation(): void
+    {
+        $this->merge([
+            'receive_immediately' => $this->boolean('receive_immediately'),
+        ]);
+    }
+
     public function authorize(): bool
     {
         return $this->user()->can('create', PurchaseOrder::class);
@@ -20,7 +27,7 @@ class StorePurchaseOrderRequest extends FormRequest
             'ordered_at' => ['nullable', 'date'],
             'expected_date' => ['nullable', 'date'],
             'notes' => ['nullable', 'string', 'max:1000'],
-            'receive_immediately' => ['nullable', 'boolean'],
+            'receive_immediately' => ['required', 'boolean'],
             'items' => ['required', 'array', 'min:1'],
             'items.*.itemable_type' => ['required', Rule::in(['product', 'consumable'])],
             'items.*.itemable_id' => ['required', 'integer'],
