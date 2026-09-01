@@ -21,7 +21,7 @@ beforeEach(function () {
     $this->product = Product::factory()->create(['stock_quantity' => 10]);
 });
 
-test('admin can create a draft purchase order with items', function () {
+test('admin creates a purchase order and receives its items immediately', function () {
     $response = $this->actingAs($this->admin)->post(route('admin.purchase-orders.store'), [
         'supplier_id' => $this->supplier->id,
         'items' => [
@@ -31,30 +31,15 @@ test('admin can create a draft purchase order with items', function () {
 
     $purchaseOrder = PurchaseOrder::latest()->first();
     $response->assertRedirect(route('admin.purchase-orders.show', $purchaseOrder));
-    expect($purchaseOrder->status)->toBe('draft');
+    expect($purchaseOrder->fresh()->status)->toBe('received');
     expect($purchaseOrder->items)->toHaveCount(1);
+    expect($this->product->fresh()->stock_quantity)->toBe(30);
 });
 
-test('an unchecked receive-inventory option creates a draft without changing stock', function () {
+test('purchase order creation always receives items even if an old client sends an unchecked flag', function () {
     $response = $this->actingAs($this->admin)->post(route('admin.purchase-orders.store'), [
         'supplier_id' => $this->supplier->id,
         'receive_immediately' => '0',
-        'items' => [
-            ['itemable_type' => 'product', 'itemable_id' => $this->product->id, 'quantity_ordered' => 20, 'unit_cost' => 15],
-        ],
-    ]);
-
-    $purchaseOrder = PurchaseOrder::latest()->first();
-
-    $response->assertRedirect(route('admin.purchase-orders.show', $purchaseOrder));
-    expect($purchaseOrder->status)->toBe('draft');
-    expect($this->product->fresh()->stock_quantity)->toBe(10);
-});
-
-test('receiving an order immediately adds its items to inventory', function () {
-    $response = $this->actingAs($this->admin)->post(route('admin.purchase-orders.store'), [
-        'supplier_id' => $this->supplier->id,
-        'receive_immediately' => true,
         'items' => [
             ['itemable_type' => 'product', 'itemable_id' => $this->product->id, 'quantity_ordered' => 20, 'unit_cost' => 15],
         ],

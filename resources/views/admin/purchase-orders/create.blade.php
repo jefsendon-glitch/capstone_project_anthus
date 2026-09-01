@@ -94,11 +94,10 @@
                     <x-input-error :messages="$errors->get('notes')" />
                 </div>
 
-                <label class="flex cursor-pointer items-start gap-3 rounded-2xl border border-primary-100 bg-primary-50/60 p-4 text-sm dark:border-primary-500/20 dark:bg-primary-500/10">
-                    <input type="hidden" name="receive_immediately" value="0">
-                    <input type="checkbox" name="receive_immediately" value="1" @checked(old('receive_immediately', true)) class="mt-0.5 rounded border-primary-300 text-primary-600 focus:ring-primary-500">
-                    <span><span class="font-semibold text-primary-800 dark:text-primary-200">Receive inventory now</span><span class="mt-1 block text-xs text-primary-700 dark:text-primary-300">Recommended when the items have already arrived. This immediately updates product and supply stock; container products also update gallon inventory.</span></span>
-                </label>
+                <div class="flex items-start gap-3 rounded-2xl border border-primary-100 bg-primary-50/60 p-4 text-sm dark:border-primary-500/20 dark:bg-primary-500/10">
+                    <input type="checkbox" checked disabled aria-label="Receive inventory immediately" class="mt-0.5 rounded border-primary-300 text-primary-600 focus:ring-primary-500">
+                    <span><span class="font-semibold text-primary-800 dark:text-primary-200">Receive inventory automatically</span><span class="mt-1 block text-xs text-primary-700 dark:text-primary-300">Every new purchase order immediately updates product and supply stock. Container products also update gallon inventory.</span></span>
+                </div>
 
                 <div class="flex justify-end gap-3">
                     <x-button as="a" href="{{ route('admin.purchase-orders.index') }}" variant="secondary">Cancel</x-button>

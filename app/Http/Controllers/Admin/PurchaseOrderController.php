@@ -49,13 +49,12 @@ class PurchaseOrderController extends Controller
     public function store(StorePurchaseOrderRequest $request): RedirectResponse
     {
         $validated = $request->validated();
-        $receiveImmediately = $validated['receive_immediately'];
 
-        $purchaseOrder = DB::transaction(function () use ($validated, $request, $receiveImmediately) {
+        $purchaseOrder = DB::transaction(function () use ($validated, $request) {
             $purchaseOrder = PurchaseOrder::create([
                 'po_number' => $this->generatePoNumber(),
                 'supplier_id' => $validated['supplier_id'],
-                'status' => $receiveImmediately ? 'ordered' : 'draft',
+                'status' => 'ordered',
                 'ordered_at' => $validated['ordered_at'] ?? now()->toDateString(),
                 'expected_date' => $validated['expected_date'] ?? null,
                 'notes' => $validated['notes'] ?? null,
@@ -64,13 +63,11 @@ class PurchaseOrderController extends Controller
 
             $this->syncItems($purchaseOrder, $validated['items']);
 
-            if ($receiveImmediately) {
-                $purchaseOrder->load('items');
-                $this->receiving->receive($purchaseOrder, $purchaseOrder->items->map(fn ($item) => [
-                    'purchase_order_item_id' => $item->id,
-                    'quantity_received' => $item->quantity_ordered,
-                ])->all(), $request->user());
-            }
+            $purchaseOrder->load('items');
+            $this->receiving->receive($purchaseOrder, $purchaseOrder->items->map(fn ($item) => [
+                'purchase_order_item_id' => $item->id,
+                'quantity_received' => $item->quantity_ordered,
+            ])->all(), $request->user());
 
             return $purchaseOrder;
         });
