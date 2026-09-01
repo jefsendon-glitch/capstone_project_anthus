@@ -43,7 +43,7 @@ class StorePurchaseOrderRequest extends FormRequest
                 }
 
                 $exists = $type === 'product'
-                    ? Product::whereKey($id)->exists()
+                    ? Product::where('category', 'container')->whereKey($id)->exists()
                     : Consumable::whereKey($id)->exists();
 
                 if (! $exists) {

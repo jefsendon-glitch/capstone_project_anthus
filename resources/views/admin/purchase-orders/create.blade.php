@@ -2,7 +2,7 @@
     $purchaseOrderFormData = [
         'products' => $products->map(fn ($product) => [
             'id' => $product->id,
-            'label' => $product->name.' ('.ucfirst($product->category).' · '.$product->size.')',
+            'label' => $product->name.' ('.$product->size.')',
             'image_url' => $product->image_url,
         ])->values(),
         'consumables' => $consumables->map(fn ($consumable) => [

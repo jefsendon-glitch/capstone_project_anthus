@@ -41,7 +41,7 @@ class PurchaseOrderController extends Controller
 
         return view('admin.purchase-orders.create', [
             'suppliers' => Supplier::active()->orderBy('name')->get(),
-            'products' => Product::orderBy('category')->orderBy('name')->get(),
+            'products' => Product::where('category', 'container')->orderBy('name')->get(),
             'consumables' => Consumable::orderBy('name')->get(),
         ]);
     }
