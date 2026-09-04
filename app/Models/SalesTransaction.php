@@ -13,7 +13,7 @@ class SalesTransaction extends Model
     use HasFactory, LogsActivity;
 
     protected $fillable = [
-        'transaction_code', 'transaction_type', 'customer_id', 'customer_name',
+        'transaction_code', 'transaction_type', 'customer_id', 'delivery_order_id', 'customer_name',
         'product_id', 'product_name', 'quantity', 'unit_price', 'total_amount',
         'tendered_amount', 'change_amount', 'payment_method', 'processed_by', 'notes',
         'credit_due_date', 'credit_paid_amount', 'credit_status',
@@ -39,6 +39,11 @@ class SalesTransaction extends Model
     public function customer(): BelongsTo
     {
         return $this->belongsTo(User::class, 'customer_id');
+    }
+
+    public function deliveryOrder(): BelongsTo
+    {
+        return $this->belongsTo(DeliveryOrder::class);
     }
 
     public function product(): BelongsTo

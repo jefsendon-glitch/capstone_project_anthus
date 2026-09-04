@@ -124,6 +124,33 @@ test('staff fulfilling an order with cash does not change the customers balance'
     expect((float) $this->customer->fresh()->credit_balance)->toBe(0.0);
 });
 
+test('a customer can view a receipt only after their delivery sale is completed', function () {
+    $order = app(\App\Services\DeliveryService::class)->placeOrder([
+        'product_id' => $this->product->id,
+        'quantity' => 2,
+        'customer_address' => 'Somewhere',
+        'payment_method' => 'cash',
+    ], $this->customer);
+
+    $this->actingAs($this->customer)
+        ->get(route('customer.orders.receipt', $order))
+        ->assertNotFound();
+
+    app(\App\Services\DeliveryService::class)->updateStatus($order, 'confirmed', $this->staffUser);
+    $this->actingAs($this->staffUser)->post(route('deliveries.fulfill', $order), ['payment_method' => 'loan']);
+
+    $this->assertDatabaseHas('sales_transactions', [
+        'delivery_order_id' => $order->id,
+        'payment_method' => 'cash',
+    ]);
+
+    $this->actingAs($this->customer)
+        ->get(route('customer.orders.receipt', $order))
+        ->assertOk()
+        ->assertSee($order->order_code)
+        ->assertSee('₱50.00');
+});
+
 test('staff cannot fulfill an order for more than the current stock on hand', function () {
     $order = app(\App\Services\DeliveryService::class)->placeOrder([
         'product_id' => $this->product->id,

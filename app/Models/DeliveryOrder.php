@@ -43,6 +43,11 @@ class DeliveryOrder extends Model
         return $this->hasMany(DeliveryOrderItem::class);
     }
 
+    public function salesTransactions(): HasMany
+    {
+        return $this->hasMany(SalesTransaction::class);
+    }
+
     public function getItemsSummaryAttribute(): string
     {
         if ($this->relationLoaded('items') && $this->items->isNotEmpty()) {

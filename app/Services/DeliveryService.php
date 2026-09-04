@@ -167,6 +167,7 @@ class DeliveryService
                 'transaction_code' => $this->sales->generateCode('TXN'),
                 'transaction_type' => 'delivery',
                 'customer_id' => $order->customer_id,
+                'delivery_order_id' => $order->id,
                 'customer_name' => $order->customer_name,
                 'product_id' => $product->id,
                 'product_name' => $item->product_name,

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Customer\StoreOrderRequest;
 use App\Models\DeliveryOrder;
 use App\Models\Product;
+use App\Models\Setting;
 use App\Services\DeliveryService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -19,7 +20,7 @@ class OrderController extends Controller
 
     public function index(Request $request): View
     {
-        $orders = $request->user()->deliveryOrders()->with('items')
+        $orders = $request->user()->deliveryOrders()->with('items')->withCount('salesTransactions')
             ->when($request->filled('status'), fn ($query) => $query->where('status', $request->string('status')))
             ->latest()
             ->paginate(10)
@@ -59,6 +60,29 @@ class OrderController extends Controller
         $order->load('items.product');
 
         return view('customer.orders.show', compact('order'));
+    }
+
+    public function receipt(DeliveryOrder $order): View
+    {
+        $this->authorize('view', $order);
+
+        abort_unless($order->status === 'delivered', 404);
+
+        $transactions = $order->salesTransactions()
+            ->with('product')
+            ->orderBy('id')
+            ->get();
+
+        // A delivered status alone is not enough: the receipt only appears
+        // once the completed delivery has its matching sales transaction.
+        abort_if($transactions->isEmpty(), 404);
+
+        return view('customer.orders.receipt', [
+            'order' => $order,
+            'transactions' => $transactions,
+            'business' => Setting::current(),
+            'total' => $transactions->sum('total_amount'),
+        ]);
     }
 
     public function cancel(DeliveryOrder $order): RedirectResponse
