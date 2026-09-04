@@ -23,6 +23,7 @@ test('customer can place a delivery order', function () {
         'product_id' => $this->product->id,
         'quantity' => 2,
         'customer_address' => '123 Sample St, Bato, Camarines Sur',
+        'payment_method' => 'cash',
         'preferred_delivery_date' => now()->addDay()->toDateString(),
     ]);
 
@@ -30,6 +31,7 @@ test('customer can place a delivery order', function () {
 
     expect($order)->not->toBeNull();
     expect((float) $order->total_amount)->toBe(50.0);
+    expect($order->payment_method)->toBe('cash');
     expect($order->status)->toBe('pending');
     $response->assertRedirect(route('customer.orders.show', $order));
 });
@@ -43,12 +45,14 @@ test('customer can order multiple different available products in one delivery o
             ['product_id' => $secondProduct->id, 'quantity' => 3],
         ],
         'customer_address' => '123 Sample St, Bato, Camarines Sur',
+        'payment_method' => 'loan',
     ]);
 
     $order = $this->customer->deliveryOrders()->latest()->first();
 
     expect($order->items)->toHaveCount(2);
     expect((float) $order->total_amount)->toBe(95.0);
+    expect($order->payment_method)->toBe('loan');
     $response->assertRedirect(route('customer.orders.show', $order));
 });
 
@@ -70,12 +74,13 @@ test('staff fulfilling an order on credit updates stock and the customers balanc
         'product_id' => $this->product->id,
         'quantity' => 3,
         'customer_address' => 'Somewhere',
+        'payment_method' => 'loan',
     ], $this->customer);
 
     app(\App\Services\DeliveryService::class)->updateStatus($order, 'confirmed', $this->staffUser);
 
     $response = $this->actingAs($this->staffUser)->post(route('deliveries.fulfill', $order), [
-        'payment_method' => 'loan',
+        'payment_method' => 'cash',
     ]);
 
     $response->assertRedirect(route('deliveries.show', $order));
@@ -89,6 +94,20 @@ test('staff fulfilling an order on credit updates stock and the customers balanc
         'customer_id' => $this->customer->id,
         'payment_method' => 'loan',
     ]);
+});
+
+test('customer cannot place a credit order when their credit account is suspended', function () {
+    $this->customer->update(['credit_status' => 'suspended']);
+
+    $response = $this->actingAs($this->customer)->post(route('customer.orders.store'), [
+        'product_id' => $this->product->id,
+        'quantity' => 1,
+        'customer_address' => 'Somewhere',
+        'payment_method' => 'loan',
+    ]);
+
+    $response->assertSessionHasErrors('payment_method');
+    expect($this->customer->deliveryOrders()->count())->toBe(0);
 });
 
 test('staff fulfilling an order with cash does not change the customers balance', function () {

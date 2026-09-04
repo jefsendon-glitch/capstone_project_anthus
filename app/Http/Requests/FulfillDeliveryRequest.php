@@ -16,7 +16,7 @@ class FulfillDeliveryRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'payment_method' => ['required', Rule::in(['cash', 'loan'])],
+            'payment_method' => ['nullable', Rule::in(['cash', 'loan'])],
         ];
     }
 }

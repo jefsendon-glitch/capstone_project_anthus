@@ -18,11 +18,19 @@ class DeliveryService
     }
 
     /**
-     * @param  array{items: array<int, array{product_id:int, quantity:int}>, customer_address:string, preferred_delivery_date:?string, notes:?string}  $data
+     * @param  array{items: array<int, array{product_id:int, quantity:int}>, customer_address:string, payment_method?:string, preferred_delivery_date:?string, notes:?string}  $data
      */
     public function placeOrder(array $data, User $customer): DeliveryOrder
     {
         return DB::transaction(function () use ($data, $customer) {
+            // HTTP order submissions must choose a method. This default protects
+            // service callers created before payment selection was introduced.
+            $paymentMethod = $data['payment_method'] ?? 'cash';
+
+            if ($paymentMethod === 'loan') {
+                $this->creditAccounts->ensureEligible($customer);
+            }
+
             $items = collect($data['items'] ?? (isset($data['product_id']) ? [[
                 'product_id' => $data['product_id'], 'quantity' => $data['quantity'],
             ]] : []))->groupBy('product_id')->map(fn ($lines) => (int) $lines->sum('quantity'));
@@ -51,6 +59,7 @@ class DeliveryService
             'quantity' => $orderItems->sum('quantity'),
             'unit_price' => $firstItem['product']->unit_price,
             'total_amount' => $orderItems->sum('total_amount'),
+            'payment_method' => $paymentMethod,
             'status' => 'pending',
             'preferred_delivery_date' => $data['preferred_delivery_date'] ?? null,
             'notes' => $data['notes'] ?? null,
@@ -114,10 +123,19 @@ class DeliveryService
         return $order;
     }
 
-    public function fulfill(DeliveryOrder $order, string $paymentMethod, User $updatedBy): SalesTransaction
+    public function fulfill(DeliveryOrder $order, ?string $legacyPaymentMethod, User $updatedBy): SalesTransaction
     {
-        return DB::transaction(function () use ($order, $paymentMethod, $updatedBy) {
+        return DB::transaction(function () use ($order, $legacyPaymentMethod, $updatedBy) {
             $order = DeliveryOrder::lockForUpdate()->with('customer')->findOrFail($order->id);
+
+            // New orders always use the customer's choice. The fallback is only
+            // for orders that existed before a method was selected at checkout.
+            $paymentMethod = $order->payment_method ?? $legacyPaymentMethod;
+            if (! in_array($paymentMethod, ['cash', 'loan'], true)) {
+                throw ValidationException::withMessages([
+                    'payment_method' => 'A payment method is required before completing this delivery.',
+                ]);
+            }
 
             if (! in_array($order->status, ['confirmed', 'out_for_delivery'], true)) {
                 throw ValidationException::withMessages([
