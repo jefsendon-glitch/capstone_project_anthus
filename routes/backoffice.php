@@ -21,6 +21,7 @@ Route::middleware(['auth', 'role:admin|staff'])->group(function () {
     Route::prefix('admin')->name('admin.')->group(function () {
         Route::resource('products', ProductController::class)->except('show');
         Route::post('products/{product}/restore', [ProductController::class, 'restore'])->name('products.restore');
+        Route::delete('products/{product}/permanent', [ProductController::class, 'forceDelete'])->name('products.force-delete');
         Route::post('products/{product}/stock/add', [ProductStockController::class, 'add'])->name('products.stock.add');
         Route::post('products/{product}/stock/update', [ProductStockController::class, 'update'])->name('products.stock.update');
         Route::post('products/{product}/stock/adjust', [ProductStockController::class, 'adjust'])->name('products.stock.adjust');

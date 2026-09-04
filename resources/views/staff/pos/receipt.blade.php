@@ -11,6 +11,7 @@
 
         <x-card class="print:shadow-none print:ring-0">
             <div class="text-center">
+                <img src="{{ asset('images/shaunti-water-logo.svg') }}" alt="{{ $business->business_name }} logo" class="mx-auto mb-3 h-14 w-36 object-contain print:h-12">
                 <p class="font-heading text-lg font-bold text-slate-900 dark:text-white">{{ $business->business_name }}</p>
                 @if($business->address)
                     <p class="text-xs text-slate-500 dark:text-slate-400">{{ $business->address }}</p>

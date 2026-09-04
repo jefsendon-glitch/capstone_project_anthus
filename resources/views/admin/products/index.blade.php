@@ -65,6 +65,15 @@
                                                     </button>
                                                 </form>
                                             @endcan
+                                            @can('forceDelete', $product)
+                                                <form method="POST" action="{{ route('admin.products.force-delete', $product) }}" onsubmit="return confirm('Permanently delete this product? This cannot be undone.')">
+                                                    @csrf
+                                                    @method('delete')
+                                                    <button type="submit" class="text-slate-500 hover:text-danger-600" title="Permanently delete product">
+                                                        <x-icon name="trash" class="size-4" />
+                                                    </button>
+                                                </form>
+                                            @endcan
                                         @else
                                             @can('addStock', $product)
                                                 <x-stock-action-modal

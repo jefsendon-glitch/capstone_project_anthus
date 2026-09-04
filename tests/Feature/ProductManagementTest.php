@@ -87,6 +87,16 @@ test('admin can archive and restore a product', function () {
     $this->assertDatabaseHas('products', ['id' => $product->id, 'deleted_at' => null]);
 });
 
+test('admin can permanently delete an archived product with no historical records', function () {
+    $product = Product::factory()->create(['category' => 'purified']);
+
+    $this->actingAs($this->admin)->delete(route('admin.products.destroy', $product));
+    $this->actingAs($this->admin)->delete(route('admin.products.force-delete', $product->id))
+        ->assertRedirect(route('admin.products.index', ['archived' => 1]));
+
+    $this->assertDatabaseMissing('products', ['id' => $product->id]);
+});
+
 test('admin can add stock to a product with an audit trail', function () {
     $product = Product::factory()->create(['stock_quantity' => 10]);
 
