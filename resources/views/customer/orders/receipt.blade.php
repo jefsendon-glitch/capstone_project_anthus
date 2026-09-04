@@ -11,6 +11,7 @@
 
         <x-card class="print:shadow-none print:ring-0">
             <div class="text-center">
+                <img src="{{ asset('images/shaunti-water-logo.svg') }}" alt="{{ $business->business_name }} logo" class="mx-auto mb-3 h-14 w-36 object-contain print:h-12">
                 <p class="font-heading text-lg font-bold text-slate-900 dark:text-white">{{ $business->business_name }}</p>
                 @if($business->address)<p class="text-xs text-slate-500 dark:text-slate-400">{{ $business->address }}</p>@endif
                 @if($business->contact_number || $business->contact_email)<p class="text-xs text-slate-500 dark:text-slate-400">{{ collect([$business->contact_number, $business->contact_email])->filter()->implode(' · ') }}</p>@endif
@@ -23,6 +24,13 @@
             </div>
 
             <div class="mt-4 border-t border-dashed border-slate-300 pt-4 dark:border-white/10">
+                <div class="mb-3 flex flex-wrap justify-center gap-3">
+                    @foreach($receiptLines as $line)
+                        @if($line->product?->image_url)
+                            <img src="{{ $line->product->image_url }}" alt="{{ $line->product_name }}" class="size-16 rounded-xl object-cover ring-1 ring-slate-200 print:size-14">
+                        @endif
+                    @endforeach
+                </div>
                 <table class="w-full text-sm">
                     <thead><tr class="text-left text-xs uppercase tracking-wide text-slate-400"><th class="pb-2 font-medium">Item</th><th class="pb-2 text-center font-medium">Qty</th><th class="pb-2 text-right font-medium">Price</th><th class="pb-2 text-right font-medium">Amount</th></tr></thead>
                     <tbody>

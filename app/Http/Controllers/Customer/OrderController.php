@@ -78,6 +78,7 @@ class OrderController extends Controller
         $receiptLines = $transactions->isNotEmpty()
             ? $transactions
             : $order->items()
+                ->with('product')
                 ->orderBy('id')
                 ->get(['product_id', 'product_name', 'quantity', 'unit_price', 'total_amount']);
 
@@ -88,6 +89,7 @@ class OrderController extends Controller
                 'quantity' => $order->quantity,
                 'unit_price' => $order->unit_price,
                 'total_amount' => $order->total_amount,
+                'product' => $order->product,
             ]]);
         }
 
