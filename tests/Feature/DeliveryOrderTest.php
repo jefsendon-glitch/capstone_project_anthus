@@ -151,6 +151,29 @@ test('a customer can view a receipt only after their delivery sale is completed'
         ->assertSee('₱50.00');
 });
 
+test('a customer can view a receipt for an existing delivered order without sales transactions', function () {
+    $order = app(\App\Services\DeliveryService::class)->placeOrder([
+        'product_id' => $this->product->id,
+        'quantity' => 2,
+        'customer_address' => 'Somewhere',
+        'payment_method' => 'cash',
+    ], $this->customer);
+
+    $order->update([
+        'status' => 'delivered',
+        'delivered_at' => now(),
+    ]);
+
+    expect($order->salesTransactions)->toBeEmpty();
+
+    $this->actingAs($this->customer)
+        ->get(route('customer.orders.receipt', $order))
+        ->assertOk()
+        ->assertSee($order->order_code)
+        ->assertSee($this->product->name)
+        ->assertSee('50.00');
+});
+
 test('staff cannot fulfill an order for more than the current stock on hand', function () {
     $order = app(\App\Services\DeliveryService::class)->placeOrder([
         'product_id' => $this->product->id,

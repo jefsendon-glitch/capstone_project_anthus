@@ -20,7 +20,7 @@ class OrderController extends Controller
 
     public function index(Request $request): View
     {
-        $orders = $request->user()->deliveryOrders()->with('items')->withCount('salesTransactions')
+        $orders = $request->user()->deliveryOrders()->with('items')
             ->when($request->filled('status'), fn ($query) => $query->where('status', $request->string('status')))
             ->latest()
             ->paginate(10)
@@ -73,15 +73,29 @@ class OrderController extends Controller
             ->orderBy('id')
             ->get();
 
-        // A delivered status alone is not enough: the receipt only appears
-        // once the completed delivery has its matching sales transaction.
-        abort_if($transactions->isEmpty(), 404);
+        // Older delivered orders may predate linked sales transactions. Their
+        // saved order items still contain the exact receipt line details.
+        $receiptLines = $transactions->isNotEmpty()
+            ? $transactions
+            : $order->items()
+                ->orderBy('id')
+                ->get(['product_id', 'product_name', 'quantity', 'unit_price', 'total_amount']);
+
+        if ($receiptLines->isEmpty()) {
+            $receiptLines = collect([(object) [
+                'product_id' => $order->product_id,
+                'product_name' => $order->product_name,
+                'quantity' => $order->quantity,
+                'unit_price' => $order->unit_price,
+                'total_amount' => $order->total_amount,
+            ]]);
+        }
 
         return view('customer.orders.receipt', [
             'order' => $order,
-            'transactions' => $transactions,
+            'receiptLines' => $receiptLines,
             'business' => Setting::current(),
-            'total' => $transactions->sum('total_amount'),
+            'total' => $receiptLines->sum('total_amount'),
         ]);
     }
 

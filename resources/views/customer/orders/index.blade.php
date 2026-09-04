@@ -41,7 +41,7 @@
                                 <td class="px-6 py-3 font-mono text-sm text-slate-900 dark:text-white">₱{{ number_format($order->total_amount, 2) }}</td>
                                 <td class="px-6 py-3"><x-delivery-status-badge :status="$order->status" /></td>
                                 <td class="px-6 py-3 text-right">
-                                    @if($order->status === 'delivered' && $order->sales_transactions_count > 0)
+                                    @if($order->status === 'delivered')
                                         <a href="{{ route('customer.orders.receipt', $order) }}" class="inline-flex items-center gap-1 text-sm font-semibold text-primary-600 hover:text-primary-700"><x-icon name="tag" class="size-4" /> View Receipt</a>
                                     @else
                                         <span class="text-xs text-slate-400">Available after delivery</span>

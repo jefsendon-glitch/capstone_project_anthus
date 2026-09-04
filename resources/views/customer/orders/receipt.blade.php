@@ -26,7 +26,7 @@
                 <table class="w-full text-sm">
                     <thead><tr class="text-left text-xs uppercase tracking-wide text-slate-400"><th class="pb-2 font-medium">Item</th><th class="pb-2 text-center font-medium">Qty</th><th class="pb-2 text-right font-medium">Price</th><th class="pb-2 text-right font-medium">Amount</th></tr></thead>
                     <tbody>
-                        @foreach($transactions as $line)
+                        @foreach($receiptLines as $line)
                             <tr class="border-t border-slate-100 dark:border-white/5"><td class="py-2 text-slate-900 dark:text-white">{{ $line->product_name }}</td><td class="py-2 text-center text-slate-600 dark:text-slate-300">{{ $line->quantity }}</td><td class="py-2 text-right font-mono text-slate-600 dark:text-slate-300">₱{{ number_format($line->unit_price, 2) }}</td><td class="py-2 text-right font-mono font-medium text-slate-900 dark:text-white">₱{{ number_format($line->total_amount, 2) }}</td></tr>
                         @endforeach
                     </tbody>
