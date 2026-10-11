@@ -48,6 +48,24 @@ class StationGallonController extends Controller
         return back()->with('success', 'Station gallon type created.');
     }
 
+    public function update(Request $request, int $gallon)
+    {
+        abort_unless(DB::table('station_gallons')->where('id', $gallon)->exists(), 404);
+
+        $data = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'size' => ['required', 'string', 'max:100'],
+        ]);
+
+        DB::table('station_gallons')->where('id', $gallon)->update([
+            'name' => $data['name'],
+            'size' => $data['size'],
+            'updated_at' => now(),
+        ]);
+
+        return back()->with('success', 'Registered gallon updated successfully.');
+    }
+
     public function move(Request $request)
     {
         $data = $request->validate([

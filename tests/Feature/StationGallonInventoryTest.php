@@ -48,6 +48,30 @@ test('new inventory independently tracks stock, customer loans and returns', fun
     $this->assertDatabaseHas('station_gallons', ['id' => $id, 'empty' => 4, 'filled' => 2]);
 });
 
+test('admin can edit registered gallon details while preserving inventory', function () {
+    $this->actingAs($this->admin)->post(route('admin.inventory.gallon-inventory.store'), [
+        'name' => 'Round', 'size' => '5 gallons', 'quantity' => 10,
+    ])->assertSessionHasNoErrors();
+    $id = DB::table('station_gallons')->value('id');
+    $url = route('admin.inventory.gallon-inventory.update', $id);
+
+    $this->patch($url, ['name' => 'Slim', 'size' => '20 liters', 'empty' => 999])
+        ->assertRedirect()->assertSessionHasNoErrors();
+    $this->assertDatabaseHas('station_gallons', [
+        'id' => $id, 'name' => 'Slim', 'size' => '20 liters', 'empty' => 10,
+    ]);
+    $this->assertDatabaseCount('station_gallon_movements', 1);
+
+    $this->patch($url, ['name' => '', 'size' => ''])->assertSessionHasErrors(['name', 'size']);
+    $this->assertDatabaseHas('station_gallons', ['id' => $id, 'name' => 'Slim', 'size' => '20 liters']);
+    $this->patch(route('admin.inventory.gallon-inventory.update', $id + 1), [
+        'name' => 'Missing', 'size' => '5 gallons',
+    ])->assertNotFound();
+
+    $this->actingAs($this->customer)->patch($url, ['name' => 'Changed', 'size' => '1 liter'])->assertForbidden();
+    $this->assertDatabaseHas('station_gallons', ['id' => $id, 'name' => 'Slim']);
+});
+
 test('old module is removed and new inventory is admin only', function () {
     $this->actingAs($this->admin)->get('/admin/gallon-stocks')->assertNotFound();
     $this->actingAs($this->customer)->get(route('admin.inventory.gallon-inventory'))->assertForbidden();
