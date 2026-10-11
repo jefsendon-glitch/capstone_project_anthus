@@ -40,6 +40,23 @@ class ConsumableController extends Controller
         return view('admin.consumables.create');
     }
 
+    public function report(): View
+    {
+        $this->authorize('viewAny', Consumable::class);
+
+        $categories = array_values(array_filter((array) request('categories', []), 'is_string'));
+        $status = request('status', 'all');
+        $query = Consumable::query()
+            ->when($categories, fn ($query) => $query->whereIn('category', $categories))
+            ->when($status === 'low_stock', fn ($query) => $query->where('quantity', '>', 0)->whereColumn('quantity', '<=', 'low_stock_threshold'))
+            ->when($status === 'out_of_stock', fn ($query) => $query->where('quantity', '<=', 0));
+
+        $consumables = $query->orderBy('category')->orderBy('name')->get();
+        $availableCategories = Consumable::query()->select('category')->distinct()->orderBy('category')->pluck('category');
+
+        return view('admin.consumables.report', compact('consumables', 'availableCategories', 'categories', 'status'));
+    }
+
     public function store(StoreConsumableRequest $request): RedirectResponse
     {
         DB::transaction(function () use ($request) {

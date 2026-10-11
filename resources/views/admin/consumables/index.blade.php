@@ -29,7 +29,7 @@
             <a href="{{ route('admin.consumables.index', ['archived' => 1]) }}" class="rounded-lg px-3 py-1.5 text-sm font-medium {{ $archived ? 'bg-white text-slate-900 shadow-sm dark:bg-slate-800 dark:text-white' : 'text-slate-500 dark:text-slate-400' }}">Archived</a>
         </div>
         <div class="flex items-center gap-3">
-            <x-button as="a" href="{{ route('admin.stock-movements.index', ['item_type' => 'consumable']) }}" variant="secondary"><x-icon name="swap" class="size-4" /> Stock History</x-button>
+            <x-button as="a" href="{{ route('admin.consumables.report') }}" variant="secondary"><x-icon name="clipboard" class="size-4" /> Stock Report</x-button>
             @if(! $archived)
                 @can('create', \App\Models\Consumable::class)
                     <x-button as="a" href="{{ route('admin.consumables.create') }}"><x-icon name="plus" class="size-4" /> Add Supply</x-button>
