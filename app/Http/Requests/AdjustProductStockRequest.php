@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class AdjustProductStockRequest extends FormRequest
 {
@@ -14,7 +15,8 @@ class AdjustProductStockRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'delta' => ['required', 'numeric'],
+            'adjustment_type' => ['required', Rule::in(['increase', 'decrease'])],
+            'quantity' => ['required', 'integer', 'min:1'],
             'notes' => ['required', 'string', 'max:1000'],
         ];
     }

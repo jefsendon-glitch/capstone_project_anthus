@@ -55,6 +55,7 @@
                                                 :action-url="route('admin.products.stock.adjust', $product)"
                                                 :title="'Adjust Stock — '.$product->name"
                                                 mode="adjust"
+                                                adjustment-uses-direction
                                                 :trigger-text="$product->stock_quantity"
                                                 :trigger-color="$product->is_low_stock
                                                     ? 'inline-flex cursor-pointer items-center rounded-full bg-danger-50 px-2.5 py-1 text-xs font-medium text-danger-700 hover:bg-danger-100 focus:outline-none focus:ring-2 focus:ring-danger-500 dark:bg-danger-500/10 dark:text-danger-500'

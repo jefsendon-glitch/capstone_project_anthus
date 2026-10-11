@@ -52,8 +52,9 @@ class ProductStockController extends Controller
 
     public function adjust(AdjustProductStockRequest $request, Product $product): RedirectResponse
     {
-        $delta = (float) $request->validated('delta');
-        $this->ensureWholeWaterQuantity($product, max(0, $delta));
+        $quantity = (float) $request->validated('quantity');
+        $delta = $request->validated('adjustment_type') === 'decrease' ? -$quantity : $quantity;
+        $this->ensureWholeWaterQuantity($product, $quantity);
 
         DB::transaction(function () use ($product, $delta, $request) {
             $before = (float) $product->stock_quantity;

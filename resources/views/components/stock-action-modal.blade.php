@@ -5,6 +5,7 @@
     'triggerIcon' => 'plus',
     'triggerColor' => 'text-slate-500 hover:text-primary-600',
     'triggerText' => null,
+    'adjustmentUsesDirection' => false,
 ])
 
 <div x-data="{ open: false }" class="inline-flex">
@@ -37,10 +38,30 @@
                             <x-text-input type="number" step="0.01" min="0" name="quantity" required />
                         </div>
                     @elseif($mode === 'adjust')
-                        <div>
-                            <x-input-label value="Adjustment (use - to subtract)" />
-                            <x-text-input type="number" step="0.01" name="delta" required />
-                        </div>
+                        @if($adjustmentUsesDirection)
+                            <fieldset>
+                                <legend class="text-sm font-medium text-slate-700 dark:text-slate-300">Adjustment type</legend>
+                                <div class="mt-2 flex gap-4">
+                                    <label class="inline-flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300">
+                                        <input type="radio" name="adjustment_type" value="increase" checked>
+                                        Increase
+                                    </label>
+                                    <label class="inline-flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300">
+                                        <input type="radio" name="adjustment_type" value="decrease">
+                                        Decrease
+                                    </label>
+                                </div>
+                            </fieldset>
+                            <div>
+                                <x-input-label value="Quantity" />
+                                <x-text-input type="number" step="1" min="1" name="quantity" required />
+                            </div>
+                        @else
+                            <div>
+                                <x-input-label value="Adjustment (use - to subtract)" />
+                                <x-text-input type="number" step="0.01" name="delta" required />
+                            </div>
+                        @endif
                         <div>
                             <x-input-label value="Reason" />
                             <x-textarea name="notes" required></x-textarea>
