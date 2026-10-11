@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreProductRequest;
 use App\Http\Requests\UpdateProductRequest;
 use App\Models\Product;
+use App\Models\StockMovement;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Storage;
@@ -41,7 +42,18 @@ class ProductController extends Controller
             $data['image_path'] = $request->file('image')->store('products', config('filesystems.product_image_disk'));
         }
 
-        Product::create($data);
+        DB::transaction(function () use ($data, $request) {
+            $product = Product::create($data);
+
+            // Container products are tracked by their gallon state. Place the
+            // opening quantity in Empty Gallons so it is immediately usable.
+            if ($product->category === 'container' && $product->stock_quantity > 0) {
+                $emptyStock = $product->gallonStocks()->where('status', 'empty')->firstOrFail();
+                $quantity = (int) $product->stock_quantity;
+                $emptyStock->update(['quantity' => $quantity]);
+                StockMovement::record($emptyStock, 'initial', $quantity, 0, $quantity, $request->user()->id, 'Initial gallon inventory');
+            }
+        });
 
         return redirect()->route('admin.products.index')->with('success', 'Product added successfully.');
     }

@@ -77,6 +77,27 @@ test('creating a container product automatically provisions its gallon stock row
     expect($product->gallonStocks()->count())->toBe(7);
 });
 
+test('opening quantity for a gallon type is recorded as empty gallon stock', function () {
+    $this->actingAs($this->admin)->post(route('admin.products.store'), [
+        'name' => 'Round 5 Gallon Container',
+        'category' => 'container',
+        'size' => '5 Gallon',
+        'unit_price' => 0,
+        'stock_quantity' => 12,
+        'low_stock_threshold' => 3,
+    ])->assertRedirect(route('admin.products.index'));
+
+    $product = Product::where('name', 'Round 5 Gallon Container')->firstOrFail();
+
+    expect($product->gallonStocks()->where('status', 'empty')->value('quantity'))->toBe(12);
+    $this->assertDatabaseHas('stock_movements', [
+        'movable_type' => \App\Models\GallonStock::class,
+        'movable_id' => $product->gallonStocks()->where('status', 'empty')->value('id'),
+        'type' => 'initial',
+        'quantity_delta' => 12,
+    ]);
+});
+
 test('admin can archive and restore a product', function () {
     $product = Product::factory()->create();
 
