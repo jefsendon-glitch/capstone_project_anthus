@@ -13,8 +13,11 @@
         <div><h2 class="text-xl font-bold text-slate-900 dark:text-white">Gallon Records</h2><p class="mt-1 text-sm text-slate-500">List of gallon types and their current inventory status.</p></div>
         <div class="flex flex-wrap gap-2">
             <a href="{{ route('admin.products.create', ['category' => 'container']) }}" class="gallon-action gallon-action--blue"><x-icon name="plus" class="size-4" /> Add Gallon</a>
-            <a href="{{ route('admin.stock-movements.index', ['item_type' => 'gallon_stock']) }}" class="gallon-action gallon-action--slate"><x-icon name="swap" class="size-4" /> Movement History</a>
-            <button type="button" onclick="window.print()" class="gallon-action gallon-action--slate"><x-icon name="clipboard" class="size-4" /> Print Report</button>
+            <a href="#gallon-inventory-table" class="gallon-action gallon-action--green"><x-icon name="droplet" class="size-4" /> Fill Gallons</a>
+            <a href="#gallon-inventory-table" class="gallon-action gallon-action--orange"><x-icon name="truck" class="size-4" /> Release</a>
+            <a href="#gallon-inventory-table" class="gallon-action gallon-action--purple"><x-icon name="swap" class="size-4" /> Return</a>
+            <a href="#gallon-inventory-table" class="gallon-action gallon-action--red"><x-icon name="alert-triangle" class="size-4" /> Damaged/Missing</a>
+            <a href="#gallon-inventory-table" class="gallon-action gallon-action--slate"><x-icon name="cog" class="size-4" /> Adjust Stock</a>
         </div>
     </div>
     <div class="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -27,7 +30,7 @@
             <div><x-input-label value="Search" /><x-text-input name="search" :value="$search" placeholder="ID, type, or size" /></div>
             <div><x-input-label value="Gallon type" /><x-select name="type"><option value="">All types</option>@foreach($types as $option)<option value="{{ $option }}" @selected($type === $option)>{{ $option }}</option>@endforeach</x-select></div>
             <div><x-input-label value="Stock status" /><x-select name="stock_status"><option value="">All statuses</option>@foreach(['In Stock', 'Low Stock', 'Out of Stock'] as $option)<option value="{{ $option }}" @selected($stockStatus === $option)>{{ $option }}</option>@endforeach</x-select></div>
-            <div class="flex items-end gap-3"><x-button as="a" href="{{ route('admin.gallon-stocks.index') }}" variant="secondary">Reset</x-button><x-button type="submit">Filter</x-button></div>
+            <div class="flex items-end gap-3"><x-button as="a" href="{{ route('admin.gallon-stocks.index') }}" variant="secondary">Reset</x-button><x-button type="submit"><x-icon name="search" class="size-4" /> Search</x-button></div>
         </form>
     </x-card>
     <x-card padding="p-0">
@@ -36,10 +39,11 @@
                 <x-empty-state icon="droplet" title="No gallon containers yet" description="Add a product in the 'Container' category to start tracking gallon stock." />
             </div>
         @else
-            <div class="overflow-x-auto">
+            <div id="gallon-inventory-table" class="overflow-x-auto scroll-mt-6">
                 <table class="gallon-table min-w-full divide-y divide-slate-200 dark:divide-white/10">
                     <thead>
                         <tr class="text-left text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+                            <th class="px-4 py-3 text-center">#</th>
                             <th class="px-4 py-3">Gallon ID</th>
                             <th class="px-4 py-3">Gallon Type</th>
                             <th class="px-4 py-3">Size</th>
@@ -57,8 +61,9 @@
                     <tbody class="divide-y divide-slate-100 dark:divide-white/5">
                         @foreach($products as $product)
                             <tr x-data="{ addOpen: false, editOpen: false, transferOpen: false, fillOpen: false, releaseOpen: false, returnOpen: false }">
+                                <td class="px-4 py-3 text-center text-sm font-semibold text-slate-500">{{ $products->firstItem() + $loop->index }}</td>
                                 <td class="px-4 py-3 font-mono text-xs text-slate-500">GAL-{{ str_pad((string) $product->id, 4, '0', STR_PAD_LEFT) }}</td>
-                                <td class="px-4 py-3 text-sm font-medium text-slate-900 dark:text-white">{{ str($product->name)->before(' ')->title() }}</td>
+                                <td class="px-4 py-3"><div class="flex items-center gap-2"><span class="flex size-8 shrink-0 items-center justify-center rounded-lg bg-sky-100 text-sky-600 dark:bg-sky-500/15 dark:text-sky-300"><x-icon name="droplet" class="size-5" /></span><span class="text-sm font-semibold text-slate-900 dark:text-white">{{ str($product->name)->before(' ')->title() }}</span></div></td>
                                 <td class="px-4 py-3 text-sm text-slate-600 dark:text-slate-300">{{ $product->size }}</td>
                                 <td class="px-4 py-3 text-center font-mono text-sm font-semibold">{{ $product->statusCounts->sum() }}</td>
                                 <td class="px-4 py-3 text-center"><x-badge :color="$product->stock_status === 'In Stock' ? 'success' : ($product->stock_status === 'Low Stock' ? 'warning' : 'danger')">{{ $product->stock_status }}</x-badge></td>
@@ -173,7 +178,7 @@
                     </tbody>
                 </table>
             </div>
-            <div class="border-t border-slate-100 px-6 py-4 dark:border-white/5">{{ $products->links() }}</div>
+            <div class="flex flex-col gap-3 border-t border-slate-100 px-6 py-4 text-sm text-slate-500 sm:flex-row sm:items-center sm:justify-between dark:border-white/5"> <span>Showing {{ $products->firstItem() ?? 0 }} to {{ $products->lastItem() ?? 0 }} of {{ $products->total() }} records</span>{{ $products->links() }}</div>
         @endif
     </x-card>
     </section>
