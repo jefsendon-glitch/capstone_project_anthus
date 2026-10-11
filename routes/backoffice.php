@@ -36,6 +36,10 @@ Route::middleware(['auth', 'role:admin|staff'])->group(function () {
         Route::post('consumables/{consumable}/stock/update', [ConsumableStockController::class, 'update'])->name('consumables.stock.update');
         Route::post('consumables/{consumable}/stock/adjust', [ConsumableStockController::class, 'adjust'])->name('consumables.stock.adjust');
 
+        // Keep the user-facing Inventory navigation URL explicit. The legacy
+        // gallon-stocks endpoint remains available for existing bookmarks and
+        // form actions, while this route is the canonical menu destination.
+        Route::get('inventory/gallon-inventory', [GallonStockController::class, 'index'])->name('inventory.gallon-inventory');
         Route::get('gallon-stocks', [GallonStockController::class, 'index'])->name('gallon-stocks.index');
         Route::post('gallon-stocks', [GallonStockController::class, 'store'])->name('gallon-stocks.store');
         Route::patch('gallon-stocks/{product}', [GallonStockController::class, 'update'])->name('gallon-stocks.update');
