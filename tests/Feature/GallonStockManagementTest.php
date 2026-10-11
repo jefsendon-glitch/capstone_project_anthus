@@ -36,12 +36,14 @@ test('staff cannot transfer gallon stock but admin can', function () {
         'from_status' => 'company_owned',
         'to_status' => 'filled',
         'quantity' => 5,
+        'notes' => 'Filled for station stock',
     ])->assertForbidden();
 
     $this->actingAs($this->admin)->post(route('admin.gallon-stocks.transfer', $this->container), [
         'from_status' => 'company_owned',
         'to_status' => 'filled',
         'quantity' => 5,
+        'notes' => 'Filled for station stock',
     ]);
 
     expect(GallonStock::where('product_id', $this->container->id)->where('status', 'company_owned')->first()->quantity)->toBe(15);

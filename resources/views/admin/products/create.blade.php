@@ -20,7 +20,7 @@
                     <x-input-label for="category" value="Category" />
                     <x-select id="category" name="category" required>
                         @foreach(['refill', 'alkaline', 'distilled', 'purified', 'mineral', 'container'] as $category)
-                            <option value="{{ $category }}" @selected(old('category') === $category)>{{ ucfirst($category) }}</option>
+                            <option value="{{ $category }}" @selected(old('category', request('category')) === $category)>{{ ucfirst($category) }}</option>
                         @endforeach
                     </x-select>
                     <x-input-error :messages="$errors->get('category')" />

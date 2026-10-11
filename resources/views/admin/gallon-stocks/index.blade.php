@@ -1,4 +1,15 @@
 <x-layouts.app title="Gallon Inventory" :heading="'Gallon Inventory'">
+    <style>@media print { @page { size: letter portrait; margin: 10mm; } .no-print { display:none!important; } main { padding:0!important; } th,td{padding:4px!important;font-size:8px!important;} }</style>
+    <div class="no-print mb-6 flex flex-wrap justify-end gap-3">
+        <x-button as="a" href="{{ route('admin.products.create', ['category' => 'container']) }}" variant="secondary"><x-icon name="plus" class="size-4" /> Add Gallon Type</x-button>
+        <x-button as="a" href="{{ route('admin.stock-movements.index', ['item_type' => 'gallon_stock']) }}" variant="secondary"><x-icon name="swap" class="size-4" /> Movement History</x-button>
+        <x-button type="button" onclick="window.print()"><x-icon name="clipboard" class="size-4" /> Print Report</x-button>
+    </div>
+    <div class="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        @foreach(['total' => 'Total Gallons', 'empty' => 'Empty Gallons', 'filled' => 'Filled Gallons', 'withCustomers' => 'Gallons with Customers', 'damaged' => 'Damaged Gallons', 'missing' => 'Missing Gallons'] as $key => $label)
+            <x-card><p class="text-sm text-slate-500">{{ $label }}</p><p class="mt-1 text-2xl font-bold text-slate-900 dark:text-white">{{ number_format($dashboard[$key]) }}</p></x-card>
+        @endforeach
+    </div>
     <x-card padding="p-0">
         @if($products->isEmpty())
             <div class="p-6">
@@ -10,6 +21,7 @@
                     <thead>
                         <tr class="text-left text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
                             <th class="px-6 py-3">Container</th>
+                            <th class="px-4 py-3 text-center">Stock Status</th>
                             <th class="px-4 py-3 text-center">Filled</th>
                             <th class="px-4 py-3 text-center">Empty</th>
                             <th class="px-4 py-3 text-center">Customer-Owned</th>
@@ -22,8 +34,9 @@
                     </thead>
                     <tbody class="divide-y divide-slate-100 dark:divide-white/5">
                         @foreach($products as $product)
-                            <tr x-data="{ addOpen: false, transferOpen: false }">
+                            <tr x-data="{ addOpen: false, transferOpen: false, fillOpen: false, releaseOpen: false, returnOpen: false }">
                                 <td class="px-6 py-3 text-sm font-medium text-slate-900 dark:text-white">{{ $product->name }} ({{ $product->size }})</td>
+                                <td class="px-4 py-3 text-center"><x-badge :color="$product->stock_status === 'In Stock' ? 'success' : ($product->stock_status === 'Low Stock' ? 'warning' : 'danger')">{{ $product->stock_status }}</x-badge></td>
                                 <td class="px-4 py-3 text-center"><x-badge color="success">{{ $product->statusCounts['filled'] }}</x-badge></td>
                                 <td class="px-4 py-3 text-center"><x-badge color="slate">{{ $product->statusCounts['empty'] }}</x-badge></td>
                                 <td class="px-4 py-3 text-center"><x-badge color="primary">{{ $product->statusCounts['customer_owned'] }}</x-badge></td>
@@ -39,6 +52,11 @@
                                             </button>
                                         @endcan
                                         @can('adjust', \App\Models\GallonStock::class)
+                                            <a href="{{ route('admin.products.edit', $product) }}" class="text-slate-500 hover:text-primary-600" title="Edit gallon type"><x-icon name="pencil" class="size-4" /></a>
+                                            <form method="POST" action="{{ route('admin.products.destroy', $product) }}" onsubmit="return confirm('Archive this gallon type?')">@csrf @method('DELETE')<button type="submit" class="text-slate-500 hover:text-danger-600" title="Archive gallon type"><x-icon name="archive" class="size-4" /></button></form>
+                                            <button type="button" x-on:click="fillOpen = true" class="text-slate-500 hover:text-primary-600" title="Fill gallons"><x-icon name="droplet" class="size-4" /></button>
+                                            <button type="button" x-on:click="releaseOpen = true" class="text-slate-500 hover:text-primary-600" title="Release to customer"><x-icon name="truck" class="size-4" /></button>
+                                            <button type="button" x-on:click="returnOpen = true" class="text-slate-500 hover:text-primary-600" title="Return from customer"><x-icon name="swap" class="size-4" /></button>
                                             <button type="button" x-on:click="transferOpen = true" class="text-slate-500 hover:text-primary-600" title="Transfer / adjust">
                                                 <x-icon name="swap" class="size-4" />
                                             </button>
@@ -75,6 +93,10 @@
                                     </div>
                                 </template>
 
+                                @foreach(['fill' => ['fillOpen', 'Fill Gallons', 'admin.gallon-stocks.fill', false], 'release' => ['releaseOpen', 'Release Gallons', 'admin.gallon-stocks.release', true], 'return' => ['returnOpen', 'Return Gallons', 'admin.gallon-stocks.return', true]] as [$open, $title, $route, $needsCustomer])
+                                    <template x-teleport="body"><div x-show="{{ $open }}" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4"><div class="fixed inset-0 bg-slate-900/50" x-on:click="{{ $open }} = false"></div><div class="relative w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl dark:bg-slate-900"><h3 class="text-base font-semibold text-slate-900 dark:text-white">{{ $title }} — {{ $product->name }}</h3><form method="POST" action="{{ route($route, $product) }}" class="mt-4 space-y-3">@csrf @if($needsCustomer)<div><x-input-label value="Customer"/><x-select name="customer_id" required><option value="">Select customer</option>@foreach($customers as $customer)<option value="{{ $customer->id }}">{{ $customer->name }}</option>@endforeach</x-select></div>@endif<div><x-input-label value="Quantity"/><x-text-input type="number" min="1" name="quantity" required/></div><div><x-input-label value="Notes"/><x-textarea name="notes"></x-textarea></div><x-button type="submit" class="w-full">{{ $title }}</x-button></form></div></div></template>
+                                @endforeach
+
                                 <template x-teleport="body">
                                     <div x-show="transferOpen" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4">
                                         <div class="fixed inset-0 bg-slate-900/50" x-on:click="transferOpen = false"></div>
@@ -106,7 +128,7 @@
                                                 </div>
                                                 <div>
                                                     <x-input-label value="Reason / notes" />
-                                                    <x-textarea name="notes" placeholder="Required when moving to Damaged or Missing"></x-textarea>
+                                                    <x-textarea name="notes" placeholder="Required" required></x-textarea>
                                                 </div>
                                                 <x-button type="submit" class="w-full">Transfer</x-button>
                                             </form>

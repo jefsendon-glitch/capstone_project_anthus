@@ -39,6 +39,9 @@ Route::middleware(['auth', 'role:admin|staff'])->group(function () {
         Route::get('gallon-stocks', [GallonStockController::class, 'index'])->name('gallon-stocks.index');
         Route::post('gallon-stocks/{product}/add', [GallonStockMovementController::class, 'addStock'])->name('gallon-stocks.add');
         Route::post('gallon-stocks/{product}/transfer', [GallonStockMovementController::class, 'transfer'])->name('gallon-stocks.transfer');
+        Route::post('gallon-stocks/{product}/fill', [GallonStockController::class, 'fill'])->name('gallon-stocks.fill');
+        Route::post('gallon-stocks/{product}/release', [GallonStockController::class, 'release'])->name('gallon-stocks.release');
+        Route::post('gallon-stocks/{product}/return', [GallonStockController::class, 'returnFromCustomer'])->name('gallon-stocks.return');
 
         Route::resource('water-production', WaterProductionController::class)->only(['index']);
 

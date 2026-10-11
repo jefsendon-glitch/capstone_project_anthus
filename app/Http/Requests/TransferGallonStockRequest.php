@@ -19,7 +19,7 @@ class TransferGallonStockRequest extends FormRequest
             'from_status' => ['required', Rule::in(GallonStock::STATUSES)],
             'to_status' => ['required', Rule::in(GallonStock::STATUSES), 'different:from_status'],
             'quantity' => ['required', 'integer', 'min:1'],
-            'notes' => [Rule::requiredIf(fn () => in_array($this->input('to_status'), ['damaged', 'missing'])), 'nullable', 'string', 'max:1000'],
+            'notes' => ['required', 'string', 'max:1000'],
         ];
     }
 }
