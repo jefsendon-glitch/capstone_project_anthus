@@ -83,14 +83,7 @@
                                             <h3 class="text-base font-semibold text-slate-900 dark:text-white">Add Gallon Stock — {{ $product->name }}</h3>
                                             <form method="POST" action="{{ route('admin.gallon-stocks.add', $product) }}" class="mt-4 space-y-3">
                                                 @csrf
-                                                <div>
-                                                    <x-input-label value="Status" />
-                                                    <x-select name="status" required>
-                                                        @foreach(\App\Models\GallonStock::STATUSES as $status)
-                                                            <option value="{{ $status }}">{{ ucfirst(str_replace('_', ' ', $status)) }}</option>
-                                                        @endforeach
-                                                    </x-select>
-                                                </div>
+                                                <p class="rounded-xl bg-slate-50 px-3 py-2 text-sm text-slate-600 dark:bg-white/5 dark:text-slate-300">Newly acquired gallons are added to <strong>Empty Gallons</strong>.</p>
                                                 <div>
                                                     <x-input-label value="Quantity" />
                                                     <x-text-input type="number" min="1" name="quantity" required />

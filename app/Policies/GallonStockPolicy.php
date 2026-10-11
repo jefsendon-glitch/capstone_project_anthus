@@ -19,7 +19,7 @@ class GallonStockPolicy
 
     public function addStock(User $user): bool
     {
-        return $user->isAdmin() || $user->isStaff();
+        return $user->isAdmin();
     }
 
     public function adjust(User $user): bool

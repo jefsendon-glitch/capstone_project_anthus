@@ -15,11 +15,12 @@ class GallonStockMovementController extends Controller
 {
     public function addStock(AddGallonStockRequest $request, Product $product): RedirectResponse
     {
+        $this->ensureContainer($product);
         $validated = $request->validated();
 
         DB::transaction(function () use ($validated, $product, $request) {
             $row = GallonStock::firstOrCreate(
-                ['product_id' => $product->id, 'status' => $validated['status']],
+                ['product_id' => $product->id, 'status' => 'empty'],
                 ['quantity' => 0],
             );
 
@@ -28,7 +29,7 @@ class GallonStockMovementController extends Controller
 
             StockMovement::record(
                 $row,
-                $this->movementTypeFor($validated['status']),
+                'restock',
                 $validated['quantity'],
                 $before,
                 $row->fresh()->quantity,
@@ -42,7 +43,12 @@ class GallonStockMovementController extends Controller
 
     public function transfer(TransferGallonStockRequest $request, Product $product): RedirectResponse
     {
+        $this->ensureContainer($product);
         $validated = $request->validated();
+
+        if (in_array('customer_owned', [$validated['from_status'], $validated['to_status']], true)) {
+            throw ValidationException::withMessages(['from_status' => 'Use Release or Return Gallons for customer-held containers.']);
+        }
 
         DB::transaction(function () use ($validated, $product, $request) {
             $fromRow = GallonStock::firstOrCreate(
@@ -97,5 +103,10 @@ class GallonStockMovementController extends Controller
             'returned' => 'returned',
             default => $forTransfer ? 'adjustment_increase' : 'restock',
         };
+    }
+
+    private function ensureContainer(Product $product): void
+    {
+        abort_unless($product->category === 'container', 404);
     }
 }

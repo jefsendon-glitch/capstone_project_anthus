@@ -19,14 +19,21 @@ beforeEach(function () {
     $this->container = Product::factory()->create(['category' => 'container']);
 });
 
-test('staff can add gallon stock', function () {
+test('only admins can add gallon stock', function () {
     $response = $this->actingAs($this->staffUser)->post(route('admin.gallon-stocks.add', $this->container), [
         'status' => 'empty',
         'quantity' => 20,
         'notes' => 'Opening stock count',
     ]);
 
-    $response->assertRedirect();
+    $response->assertForbidden();
+    expect(GallonStock::where('product_id', $this->container->id)->where('status', 'empty')->first()->quantity)->toBe(0);
+
+    $this->actingAs($this->admin)->post(route('admin.gallon-stocks.add', $this->container), [
+        'quantity' => 20,
+        'notes' => 'Opening stock count',
+    ])->assertRedirect();
+
     expect(GallonStock::where('product_id', $this->container->id)->where('status', 'empty')->first()->quantity)->toBe(20);
 });
 

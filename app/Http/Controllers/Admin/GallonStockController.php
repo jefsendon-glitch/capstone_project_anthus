@@ -67,11 +67,13 @@ class GallonStockController extends Controller
 
     public function fill(Request $request, Product $product): RedirectResponse
     {
+        $this->ensureContainer($product);
         return $this->move($request, $product, 'empty', 'filled', 'fill', 'Gallons filled');
     }
 
     public function release(Request $request, Product $product): RedirectResponse
     {
+        $this->ensureContainer($product);
         $request->validate(['customer_id' => ['required', Rule::exists('users', 'id')], 'quantity' => ['required', 'integer', 'min:1'], 'notes' => ['nullable', 'string', 'max:1000']]);
         $customer = User::findOrFail($request->integer('customer_id'));
         if (! $customer->isCustomer()) {
@@ -89,6 +91,7 @@ class GallonStockController extends Controller
 
     public function returnFromCustomer(Request $request, Product $product): RedirectResponse
     {
+        $this->ensureContainer($product);
         $request->validate(['customer_id' => ['required', Rule::exists('users', 'id')], 'return_status' => ['required', Rule::in(['empty', 'damaged'])], 'quantity' => ['required', 'integer', 'min:1'], 'notes' => ['nullable', 'string', 'max:1000']]);
         $customer = User::findOrFail($request->integer('customer_id'));
         if (! $customer->isCustomer()) {
@@ -128,5 +131,10 @@ class GallonStockController extends Controller
     private function typeOf(Product $product): string
     {
         return str($product->name)->before(' ')->title()->toString();
+    }
+
+    private function ensureContainer(Product $product): void
+    {
+        abort_unless($product->category === 'container', 404);
     }
 }

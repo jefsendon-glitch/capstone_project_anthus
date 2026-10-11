@@ -4,6 +4,8 @@ $typeColors = [
     'restock' => 'success',
     'production' => 'success',
     'purchase_receive' => 'success',
+    'fill' => 'success',
+    'release' => 'primary',
     'returned' => 'delivery',
     'adjustment_increase' => 'warning',
     'adjustment_decrease' => 'warning',
@@ -12,7 +14,7 @@ $typeColors = [
     'sale_deduction' => 'primary',
 ];
 $itemTypes = ['product' => 'Product', 'consumable' => 'Consumable', 'gallon_stock' => 'Gallon Stock'];
-$movementTypes = ['initial', 'restock', 'adjustment_increase', 'adjustment_decrease', 'damage', 'missing', 'returned', 'sale_deduction', 'production', 'purchase_receive'];
+$movementTypes = ['initial', 'restock', 'adjustment_increase', 'adjustment_decrease', 'damage', 'missing', 'returned', 'release', 'fill', 'sale_deduction', 'production', 'purchase_receive'];
 @endphp
 
 <x-layouts.app title="Stock Movement History" :heading="'Stock Movement History'">

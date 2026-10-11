@@ -2,9 +2,7 @@
 
 namespace App\Http\Requests;
 
-use App\Models\GallonStock;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
 
 class AddGallonStockRequest extends FormRequest
 {
@@ -16,7 +14,6 @@ class AddGallonStockRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'status' => ['required', Rule::in(GallonStock::STATUSES)],
             'quantity' => ['required', 'integer', 'min:1'],
             'notes' => ['required', 'string', 'max:1000'],
         ];
