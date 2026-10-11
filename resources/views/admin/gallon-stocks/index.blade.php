@@ -19,7 +19,7 @@
         quickUrl(template) { return template.replace("__PRODUCT__", this.quickProduct); }
     }'>
     <div class="no-print mb-5 flex flex-col gap-4 rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-100 dark:bg-slate-900 dark:ring-white/10 lg:flex-row lg:items-center lg:justify-between">
-        <div><h2 class="text-xl font-bold text-slate-900 dark:text-white">Gallon Records</h2><p class="mt-1 text-sm text-slate-500">List of gallon types and their current inventory status.</p></div>
+        <div><h2 class="text-xl font-bold text-slate-900 dark:text-white">Gallon Records</h2><p class="mt-1 text-sm text-slate-500">Manage Shuanti Water Refilling Station's containers and monitor gallon movements.</p></div>
         <div class="flex flex-wrap gap-2">
             @can('adjust', \App\Models\GallonStock::class)
             <button type="button" x-on:click="openQuick('add')" class="gallon-action gallon-action--blue"><x-icon name="plus" class="size-4" /> Add Gallon</button>
@@ -77,11 +77,12 @@
         </div>
     </template>
     <div class="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        @foreach(['total' => 'Total Gallons', 'empty' => 'Empty Gallons', 'filled' => 'Filled Gallons', 'withCustomers' => 'Gallons with Customers', 'damaged' => 'Damaged Gallons', 'missing' => 'Missing Gallons'] as $key => $label)
+        @foreach(['total' => 'Total Station-Owned Gallons', 'empty' => 'Empty Gallons', 'filled' => 'Filled Gallons', 'withCustomers' => 'Borrowed Gallons', 'returned' => 'Returned Gallons (All Time)', 'damaged' => 'Damaged Gallons', 'missing' => 'Missing Gallons'] as $key => $label)
             <x-card><p class="text-sm text-slate-500">{{ $label }}</p><p class="mt-1 text-2xl font-bold text-slate-900 dark:text-white">{{ number_format($dashboard[$key]) }}</p></x-card>
         @endforeach
     </div>
     <div class="no-print mb-5 flex flex-wrap justify-end gap-2">
+        <p class="mr-auto text-sm text-slate-500">Returned gallons are counted in empty or damaged stock. The all-time return total includes repeat returns.</p>
         <a href="{{ route('admin.stock-movements.index', ['item_type' => 'gallon_stock']) }}" class="inline-flex items-center gap-2 rounded-xl border border-primary-200 bg-white px-3.5 py-2 text-sm font-semibold text-primary-700 shadow-sm transition hover:bg-primary-50 dark:border-primary-500/20 dark:bg-slate-900 dark:text-primary-300 dark:hover:bg-primary-500/10"><x-icon name="swap" class="size-4" /> View Movement History</a>
         <button type="button" onclick="window.print()" class="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 dark:border-white/10 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-white/5"><x-icon name="clipboard" class="size-4" /> Print Report</button>
     </div>
@@ -111,7 +112,7 @@
                             <th class="px-4 py-3 text-center">Stock Status</th>
                             <th class="px-4 py-3 text-center">Filled</th>
                             <th class="px-4 py-3 text-center">Empty</th>
-                            <th class="px-4 py-3 text-center">Customer-Owned</th>
+                            <th class="px-4 py-3 text-center">Borrowed</th>
                             <th class="px-4 py-3 text-center">Damaged</th>
                             <th class="px-4 py-3 text-center">Missing</th>
                             <th class="px-4 py-3 text-center">Reorder Level</th>

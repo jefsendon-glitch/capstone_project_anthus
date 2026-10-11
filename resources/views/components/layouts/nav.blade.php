@@ -39,6 +39,9 @@ $procurementActive = request()->routeIs('admin.suppliers*') || request()->routeI
             <a href="{{ route('admin.consumables.index') }}" class="flex items-center gap-3 rounded-xl py-2 pl-11 pr-3 text-sm font-medium {{ $navLink('admin.consumables') }}">
                 <span>Consumable Inventory</span>
             </a>
+            <a href="{{ route('admin.inventory.gallon-inventory') }}" class="flex items-center gap-3 rounded-xl py-2 pl-11 pr-3 text-sm font-medium {{ request()->routeIs('admin.inventory.gallon-inventory*') || request()->routeIs('admin.gallon-stocks*') ? 'sidebar-nav-link is-active bg-gradient-to-r from-primary-500 to-primary-700 text-white' : 'sidebar-nav-link text-secondary-100/80 hover:bg-white/10 hover:text-white' }}">
+                <span>Gallon Inventory</span>
+            </a>
             <a href="{{ route('admin.water-production.index') }}" class="flex items-center gap-3 rounded-xl py-2 pl-11 pr-3 text-sm font-medium {{ $navLink('admin.water-production') }}">
                 <span>Water Production</span>
             </a>

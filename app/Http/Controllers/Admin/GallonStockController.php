@@ -48,6 +48,14 @@ class GallonStockController extends Controller
             'withCustomers' => $allProducts->sum(fn (Product $product) => $product->statusCounts['customer_owned']),
             'damaged' => $allProducts->sum(fn (Product $product) => $product->statusCounts['damaged']),
             'missing' => $allProducts->sum(fn (Product $product) => $product->statusCounts['missing']),
+            // Returns are cumulative movements, not another physical stock bucket.
+            'returned' => (int) StockMovement::where('movable_type', (new GallonStock)->getMorphClass())
+                ->where('quantity_delta', '>', 0)
+                ->where(function ($query) {
+                    $query->where('type', 'returned')
+                        ->orWhere(fn ($query) => $query->where('type', 'damage')->whereNotNull('customer_id'));
+                })
+                ->sum('quantity_delta'),
         ];
         $search = trim((string) request('search'));
         $type = (string) request('type');
@@ -95,7 +103,7 @@ class GallonStockController extends Controller
             ]);
             $empty = $product->gallonStocks()->where('status', 'empty')->firstOrFail();
             $empty->update(['quantity' => $data['quantity']]);
-            StockMovement::record($empty, 'initial', $data['quantity'], 0, $data['quantity'], $request->user()->id, $data['notes'] ?: 'Initial gallon inventory');
+            StockMovement::record($empty, 'initial', $data['quantity'], 0, $data['quantity'], $request->user()->id, ($data['notes'] ?? null) ?: 'Initial gallon inventory');
         });
 
         return back()->with('success', 'Gallon type added successfully.');

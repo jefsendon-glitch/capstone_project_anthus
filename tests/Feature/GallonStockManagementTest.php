@@ -120,6 +120,51 @@ test('releasing and returning gallons keeps stock and customer balance in sync',
     $this->assertDatabaseHas('stock_movements', ['type' => 'returned', 'recorded_by' => $this->admin->id, 'customer_id' => $customer->id]);
 });
 
+test('gallon dashboard tracks returns without double counting station containers', function () {
+    $customer = User::factory()->create();
+    $customer->assignRole('customer');
+    $this->actingAs($this->admin);
+
+    $this->post(route('admin.gallon-stocks.add', $this->container), ['quantity' => 10])
+        ->assertSessionHasNoErrors();
+    $this->post(route('admin.gallon-stocks.fill', $this->container), ['quantity' => 6])
+        ->assertSessionHasNoErrors();
+    $this->post(route('admin.gallon-stocks.release', $this->container), [
+        'customer_id' => $customer->id, 'quantity' => 4,
+    ])->assertSessionHasNoErrors();
+
+    foreach (['empty', 'damaged'] as $status) {
+        $this->post(route('admin.gallon-stocks.return', $this->container), [
+            'customer_id' => $customer->id, 'quantity' => 1, 'return_status' => $status,
+        ])->assertSessionHasNoErrors();
+    }
+
+    foreach (['damaged', 'missing'] as $status) {
+        $this->post(route('admin.gallon-stocks.transfer', $this->container), [
+            'from_status' => 'empty', 'to_status' => $status,
+            'quantity' => 1, 'notes' => 'Physical inspection',
+        ])->assertSessionHasNoErrors();
+    }
+
+    $this->get(route('admin.inventory.gallon-inventory'))
+        ->assertOk()
+        ->assertSee('Borrowed Gallons')
+        ->assertViewHas('dashboard', fn ($dashboard) =>
+            $dashboard['total'] === 10
+            && $dashboard['empty'] === 3
+            && $dashboard['filled'] === 2
+            && $dashboard['withCustomers'] === 2
+            && $dashboard['returned'] === 2
+            && $dashboard['damaged'] === 2
+            && $dashboard['missing'] === 1
+        );
+
+    $this->post(route('admin.gallon-stocks.return', $this->container), [
+        'customer_id' => $customer->id, 'quantity' => 3, 'return_status' => 'empty',
+    ])->assertSessionHasErrors('quantity');
+    expect($this->container->gallonStocks()->sum('quantity'))->toEqual(10);
+});
+
 test('admin can adjust stock with a reason without allowing negative quantities', function () {
     GallonStock::where('product_id', $this->container->id)->where('status', 'empty')->update(['quantity' => 8]);
 
