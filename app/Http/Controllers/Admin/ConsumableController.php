@@ -44,7 +44,10 @@ class ConsumableController extends Controller
     {
         $this->authorize('viewAny', Consumable::class);
 
-        $categories = array_values(array_filter((array) request('categories', []), 'is_string'));
+        $categories = array_values(array_filter(
+            (array) request('categories', []),
+            fn ($category) => is_string($category) && $category !== '',
+        ));
         $status = request('status', 'all');
         $status = in_array($status, ['all', 'in_stock', 'low_stock', 'out_of_stock'], true) ? $status : 'all';
         $query = Consumable::query()

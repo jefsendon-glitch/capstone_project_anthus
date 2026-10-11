@@ -28,7 +28,8 @@
         <form method="GET" class="grid gap-4 md:grid-cols-3">
             <div>
                 <x-input-label value="Categories" />
-                <x-select name="categories[]" multiple size="4">
+                <x-select name="categories[]">
+                    <option value="">All categories</option>
                     @foreach($availableCategories as $category)
                         <option value="{{ $category }}" @selected(in_array($category, $categories, true))>{{ $categoryLabels[$category] ?? ucfirst(str_replace('_', ' ', $category)) }}</option>
                     @endforeach
@@ -36,7 +37,7 @@
             </div>
             <div>
                 <x-input-label value="Stock Status" />
-                <x-select name="status">
+                <x-select name="status" onchange="this.form.requestSubmit()">
                     <option value="all" @selected($status === 'all')>Complete supply list</option>
                     <option value="in_stock" @selected($status === 'in_stock')>In-stock items</option>
                     <option value="low_stock" @selected($status === 'low_stock')>Low-stock items</option>
@@ -56,7 +57,12 @@
                 <h2 class="font-heading text-lg font-bold text-slate-900 dark:text-white">Consumable Stock Report</h2>
                 <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">{{ $statusLabels[$status] }} · Generated {{ now()->format('M d, Y g:i A') }} · {{ $consumables->count() }} {{ Str::plural('supply', $consumables->count()) }}</p>
             </div>
-            <button type="button" onclick="window.print()" class="no-print inline-flex items-center gap-2 rounded-xl bg-primary-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-primary-700"><x-icon name="clipboard" class="size-4" /> Print</button>
+            <div class="no-print flex items-center gap-3">
+                <x-button as="a" href="{{ route('admin.consumables.index') }}" variant="secondary">
+                    <x-icon name="chevron-left" class="size-4" /> Back to Consumable Inventory
+                </x-button>
+                <button type="button" onclick="window.print()" class="inline-flex items-center gap-2 rounded-xl bg-primary-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-primary-700"><x-icon name="clipboard" class="size-4" /> Print</button>
+            </div>
         </div>
 
         <div class="overflow-x-auto border-t border-slate-100 dark:border-white/5">
