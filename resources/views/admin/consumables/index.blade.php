@@ -51,14 +51,44 @@
                     </thead>
                     <tbody class="divide-y divide-slate-100 dark:divide-white/5">
                         @foreach($consumables as $consumable)
-                            <tr x-data="{ open: false }">
+                            <tr>
                                 <td class="px-6 py-3 font-mono text-xs text-slate-500 dark:text-slate-400">SUP-{{ str_pad((string) $consumable->id, 4, '0', STR_PAD_LEFT) }}</td>
                                 <td class="px-6 py-3 text-sm font-medium text-slate-900 dark:text-white">{{ $consumable->name }}</td>
                                 <td class="px-6 py-3 text-sm text-slate-500 dark:text-slate-400">{{ $categoryLabels[$consumable->category] ?? ucfirst(str_replace('_', ' ', $consumable->category)) }}</td>
                                 <td class="px-6 py-3 text-sm text-slate-600 dark:text-slate-300">{{ $consumable->unit }}</td>
-                                <td class="px-6 py-3 font-mono text-sm text-slate-600 dark:text-slate-300">{{ rtrim(rtrim($consumable->quantity, '0'), '.') }}</td>
-                                <td class="px-6 py-3 font-mono text-sm text-slate-600 dark:text-slate-300">{{ rtrim(rtrim($consumable->low_stock_threshold, '0'), '.') }}</td>
-                                <td class="px-6 py-3 font-mono text-sm text-slate-600 dark:text-slate-300">₱{{ number_format((float) $consumable->unit_cost, 2) }}</td>
+                                <td class="px-6 py-3">
+                                    @if(! $archived)
+                                        @can('update', $consumable)
+                                            <x-consumable-value-modal :action-url="route('admin.consumables.quick-update', $consumable)" title="Adjust Stock Quantity" field="quantity" label="Stock quantity" :current-value="$consumable->quantity" :trigger-text="rtrim(rtrim($consumable->quantity, '0'), '.')" requires-reason />
+                                        @else
+                                            <span class="font-mono text-sm text-slate-600 dark:text-slate-300">{{ rtrim(rtrim($consumable->quantity, '0'), '.') }}</span>
+                                        @endcan
+                                    @else
+                                        <span class="font-mono text-sm text-slate-600 dark:text-slate-300">{{ rtrim(rtrim($consumable->quantity, '0'), '.') }}</span>
+                                    @endif
+                                </td>
+                                <td class="px-6 py-3">
+                                    @if(! $archived)
+                                        @can('update', $consumable)
+                                            <x-consumable-value-modal :action-url="route('admin.consumables.quick-update', $consumable)" title="Adjust Reorder Level" field="low_stock_threshold" label="Reorder level" :current-value="$consumable->low_stock_threshold" :trigger-text="rtrim(rtrim($consumable->low_stock_threshold, '0'), '.')" />
+                                        @else
+                                            <span class="font-mono text-sm text-slate-600 dark:text-slate-300">{{ rtrim(rtrim($consumable->low_stock_threshold, '0'), '.') }}</span>
+                                        @endcan
+                                    @else
+                                        <span class="font-mono text-sm text-slate-600 dark:text-slate-300">{{ rtrim(rtrim($consumable->low_stock_threshold, '0'), '.') }}</span>
+                                    @endif
+                                </td>
+                                <td class="px-6 py-3">
+                                    @if(! $archived)
+                                        @can('update', $consumable)
+                                            <x-consumable-value-modal :action-url="route('admin.consumables.quick-update', $consumable)" title="Adjust Unit Cost" field="unit_cost" label="Unit cost (₱)" :current-value="$consumable->unit_cost" :trigger-text="'₱'.number_format((float) $consumable->unit_cost, 2)" />
+                                        @else
+                                            <span class="font-mono text-sm text-slate-600 dark:text-slate-300">₱{{ number_format((float) $consumable->unit_cost, 2) }}</span>
+                                        @endcan
+                                    @else
+                                        <span class="font-mono text-sm text-slate-600 dark:text-slate-300">₱{{ number_format((float) $consumable->unit_cost, 2) }}</span>
+                                    @endif
+                                </td>
                                 <td class="px-6 py-3">
                                     @if($consumable->is_out_of_stock)<x-badge color="danger">Out of Stock</x-badge>
                                     @elseif($consumable->is_low_stock)<x-badge color="warning">Low Stock</x-badge>
@@ -71,11 +101,7 @@
                                                 <form method="POST" action="{{ route('admin.consumables.restore', $consumable) }}">@csrf<button type="submit" class="text-slate-500 hover:text-success-600" title="Restore supply"><x-icon name="check-circle" class="size-4" /></button></form>
                                             @endcan
                                         @else
-                                            @can('restock', \App\Models\Consumable::class)
-                                                <button type="button" x-on:click="open = true" class="text-slate-500 hover:text-primary-600" title="Add stock"><x-icon name="plus" class="size-4" /></button>
-                                            @endcan
                                             @can('update', $consumable)
-                                                <x-stock-action-modal :action-url="route('admin.consumables.stock.adjust', $consumable)" :title="'Adjust Stock — '.$consumable->name" mode="adjust" adjustment-uses-direction trigger-icon="swap" />
                                                 <a href="{{ route('admin.consumables.edit', $consumable) }}" class="text-slate-500 hover:text-primary-600" title="Edit supply"><x-icon name="pencil" class="size-4" /></a>
                                             @endcan
                                             @can('delete', $consumable)
@@ -84,9 +110,6 @@
                                         @endif
                                     </div>
                                 </td>
-                                @if(! $archived)
-                                    <template x-teleport="body"><div x-show="open" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4"><div class="fixed inset-0 bg-slate-900/50" x-on:click="open = false"></div><div class="relative w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl dark:bg-slate-900"><h3 class="text-base font-semibold text-slate-900 dark:text-white">Restock {{ $consumable->name }}</h3><form method="POST" action="{{ route('admin.consumables.restock', $consumable) }}" class="mt-4 space-y-3">@csrf<div><x-input-label value="Quantity to add" /><x-text-input type="number" step="0.01" min="0.01" name="quantity_added" required /></div><div><x-input-label value="Cost (optional)" /><x-text-input type="number" step="0.01" min="0" name="cost" /></div><x-button type="submit" class="w-full">Add Stock</x-button></form></div></div></template>
-                                @endif
                             </tr>
                         @endforeach
                     </tbody>

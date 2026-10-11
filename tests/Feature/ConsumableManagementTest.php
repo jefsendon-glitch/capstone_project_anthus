@@ -78,3 +78,26 @@ test('admin can archive and restore a consumable', function () {
 
     $this->assertDatabaseHas('consumables', ['id' => $consumable->id, 'deleted_at' => null]);
 });
+
+test('admin can quick-update whole-number consumable values', function () {
+    $consumable = Consumable::factory()->create(['quantity' => 10, 'low_stock_threshold' => 5, 'unit_cost' => 12]);
+
+    $this->actingAs($this->admin)->post(route('admin.consumables.quick-update', $consumable), [
+        'field' => 'quantity',
+        'value' => 15,
+        'notes' => 'Counted new delivery',
+    ])->assertSessionHasNoErrors();
+
+    expect((float) $consumable->fresh()->quantity)->toBe(15.0);
+    $this->assertDatabaseHas('stock_movements', [
+        'movable_type' => Consumable::class,
+        'movable_id' => $consumable->id,
+        'quantity_delta' => 5,
+        'notes' => 'Counted new delivery',
+    ]);
+
+    $this->actingAs($this->admin)->post(route('admin.consumables.quick-update', $consumable), [
+        'field' => 'unit_cost',
+        'value' => 12.5,
+    ])->assertSessionHasErrors('value');
+});

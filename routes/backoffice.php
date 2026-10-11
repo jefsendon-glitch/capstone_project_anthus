@@ -28,6 +28,7 @@ Route::middleware(['auth', 'role:admin|staff'])->group(function () {
 
         Route::resource('consumables', ConsumableController::class)->except('show');
         Route::post('consumables/{consumable}/restore', [ConsumableController::class, 'restore'])->name('consumables.restore');
+        Route::post('consumables/{consumable}/quick-update', [ConsumableController::class, 'quickUpdate'])->name('consumables.quick-update');
         Route::resource('maintenance', MaintenanceController::class)->except('show');
 
         Route::post('consumables/{consumable}/restock', [ConsumableRestockController::class, 'store'])->name('consumables.restock');

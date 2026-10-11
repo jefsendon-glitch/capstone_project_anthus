@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreConsumableRequest;
+use App\Http\Requests\QuickUpdateConsumableRequest;
 use App\Http\Requests\UpdateConsumableRequest;
 use App\Models\Consumable;
 use App\Models\StockMovement;
@@ -74,6 +75,36 @@ class ConsumableController extends Controller
         });
 
         return redirect()->route('admin.consumables.index')->with('success', 'Consumable updated successfully.');
+    }
+
+    public function quickUpdate(QuickUpdateConsumableRequest $request, Consumable $consumable): RedirectResponse
+    {
+        $field = $request->validated('field');
+        $value = (float) $request->validated('value');
+        $labels = [
+            'quantity' => 'Stock quantity',
+            'low_stock_threshold' => 'Reorder level',
+            'unit_cost' => 'Unit cost',
+        ];
+
+        DB::transaction(function () use ($request, $consumable, $field, $value) {
+            $before = (float) $consumable->{$field};
+            $consumable->update([$field => $value]);
+
+            if ($field === 'quantity' && $before !== $value) {
+                StockMovement::record(
+                    $consumable,
+                    $value > $before ? 'adjustment_increase' : 'adjustment_decrease',
+                    $value - $before,
+                    $before,
+                    $value,
+                    $request->user()->id,
+                    $request->validated('notes'),
+                );
+            }
+        });
+
+        return back()->with('success', $labels[$field].' updated successfully.');
     }
 
     public function destroy(Consumable $consumable): RedirectResponse
