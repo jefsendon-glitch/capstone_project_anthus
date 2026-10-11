@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\StoreConsumableRequest;
 use App\Http\Requests\QuickUpdateConsumableRequest;
+use App\Http\Requests\StoreConsumableRequest;
 use App\Http\Requests\UpdateConsumableRequest;
 use App\Models\Consumable;
 use App\Models\StockMovement;
@@ -46,10 +46,10 @@ class ConsumableController extends Controller
 
         $categories = array_values(array_filter((array) request('categories', []), 'is_string'));
         $status = request('status', 'all');
+        $status = in_array($status, ['all', 'in_stock', 'low_stock', 'out_of_stock'], true) ? $status : 'all';
         $query = Consumable::query()
             ->when($categories, fn ($query) => $query->whereIn('category', $categories))
-            ->when($status === 'low_stock', fn ($query) => $query->where('quantity', '>', 0)->whereColumn('quantity', '<=', 'low_stock_threshold'))
-            ->when($status === 'out_of_stock', fn ($query) => $query->where('quantity', '<=', 0));
+            ->withStockStatus($status);
 
         $consumables = $query->orderBy('category')->orderBy('name')->get();
         $availableCategories = Consumable::query()->select('category')->distinct()->orderBy('category')->pluck('category');

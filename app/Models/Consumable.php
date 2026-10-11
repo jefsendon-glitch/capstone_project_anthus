@@ -40,6 +40,20 @@ class Consumable extends Model
         return $query->whereColumn('quantity', '<=', 'low_stock_threshold');
     }
 
+    /**
+     * Limit the query to the stock status displayed throughout the consumables UI.
+     */
+    public function scopeWithStockStatus(Builder $query, string $status): Builder
+    {
+        return match ($status) {
+            'in_stock' => $query->whereColumn('quantity', '>', 'low_stock_threshold'),
+            'low_stock' => $query->where('quantity', '>', 0)
+                ->whereColumn('quantity', '<=', 'low_stock_threshold'),
+            'out_of_stock' => $query->where('quantity', '<=', 0),
+            default => $query,
+        };
+    }
+
     public function supplier(): BelongsTo
     {
         return $this->belongsTo(Supplier::class);

@@ -79,6 +79,46 @@ test('admin can archive and restore a consumable', function () {
     $this->assertDatabaseHas('consumables', ['id' => $consumable->id, 'deleted_at' => null]);
 });
 
+test('consumable stock report only shows the selected stock status', function () {
+    Consumable::factory()->create([
+        'name' => 'Available Filter',
+        'quantity' => 10,
+        'low_stock_threshold' => 5,
+    ]);
+    Consumable::factory()->create([
+        'name' => 'Reorder Caps',
+        'quantity' => 5,
+        'low_stock_threshold' => 5,
+    ]);
+    Consumable::factory()->create([
+        'name' => 'Empty Sanitizer',
+        'quantity' => 0,
+        'low_stock_threshold' => 5,
+    ]);
+
+    $this->actingAs($this->admin)
+        ->get(route('admin.consumables.report', ['status' => 'low_stock']))
+        ->assertOk()
+        ->assertSee('Low-stock items')
+        ->assertSee('Reorder Caps')
+        ->assertDontSee('Available Filter')
+        ->assertDontSee('Empty Sanitizer');
+
+    $this->actingAs($this->admin)
+        ->get(route('admin.consumables.report', ['status' => 'out_of_stock']))
+        ->assertOk()
+        ->assertSee('Empty Sanitizer')
+        ->assertDontSee('Available Filter')
+        ->assertDontSee('Reorder Caps');
+
+    $this->actingAs($this->admin)
+        ->get(route('admin.consumables.report', ['status' => 'in_stock']))
+        ->assertOk()
+        ->assertSee('Available Filter')
+        ->assertDontSee('Reorder Caps')
+        ->assertDontSee('Empty Sanitizer');
+});
+
 test('admin can quick-update whole-number consumable values', function () {
     $consumable = Consumable::factory()->create(['quantity' => 10, 'low_stock_threshold' => 5, 'unit_cost' => 12]);
 
