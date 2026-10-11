@@ -1,4 +1,4 @@
-@props(['label', 'value', 'icon' => 'chart', 'color' => 'primary', 'hint' => null, 'variant' => 'plain'])
+@props(['label', 'value', 'icon' => 'chart', 'color' => 'primary', 'hint' => null, 'variant' => 'plain', 'compact' => false])
 
 @php
 $iconColors = [
@@ -36,10 +36,13 @@ $tintedText = [
     'danger' => 'text-danger-700 dark:text-danger-500',
     'delivery' => 'text-delivery-700 dark:text-delivery-400',
 ];
+
+$cardHeight = $compact ? 'min-h-0' : 'min-h-36';
+$cardPadding = $compact ? 'p-4' : 'p-6';
 @endphp
 
 @if($variant === 'solid')
-    <x-card class="flex min-h-36 items-start justify-between overflow-hidden bg-gradient-to-br {{ $solidColors[$color] ?? $solidColors['primary'] }} text-white">
+    <x-card :padding="$cardPadding" class="flex {{ $cardHeight }} items-start justify-between overflow-hidden bg-gradient-to-br {{ $solidColors[$color] ?? $solidColors['primary'] }} text-white">
         <div>
             <p class="text-xs font-semibold uppercase tracking-wide text-white/80">{{ $label }}</p>
             <p class="mt-2 text-2xl font-bold">{{ $value }}</p>
@@ -52,7 +55,7 @@ $tintedText = [
         </div>
     </x-card>
 @elseif($variant === 'tinted')
-    <x-card class="flex min-h-36 items-start justify-between {{ $tintedColors[$color] ?? $tintedColors['warning'] }}">
+    <x-card :padding="$cardPadding" class="flex {{ $cardHeight }} items-start justify-between {{ $tintedColors[$color] ?? $tintedColors['warning'] }}">
         <div>
             <p class="text-xs font-semibold uppercase tracking-wide {{ $tintedText[$color] ?? $tintedText['warning'] }}">{{ $label }}</p>
             <p class="mt-2 text-2xl font-bold {{ $tintedText[$color] ?? $tintedText['warning'] }}">{{ $value }}</p>
@@ -65,7 +68,7 @@ $tintedText = [
         </div>
     </x-card>
 @else
-    <x-card class="flex min-h-36 items-start justify-between">
+    <x-card :padding="$cardPadding" class="flex {{ $cardHeight }} items-start justify-between">
         <div>
             <p class="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">{{ $label }}</p>
             <p class="mt-2 text-2xl font-bold text-slate-900 dark:text-white">{{ $value }}</p>

@@ -16,22 +16,11 @@
 @endphp
 
 <x-layouts.app title="Consumable Inventory" :heading="'Consumable Inventory'">
-    <x-card class="mb-6">
-        <p class="text-sm text-slate-600 dark:text-slate-300">Manage materials used in water production and daily operations.</p>
-        <ul class="mt-3 grid gap-2 text-sm text-slate-600 sm:grid-cols-2 dark:text-slate-300">
-            <li>• Filter cartridges and treatment materials</li>
-            <li>• Bottle caps and seals</li>
-            <li>• Labels and packaging</li>
-            <li>• Cleaning and sanitation supplies</li>
-            <li>• Stock quantity and reorder level</li>
-        </ul>
-    </x-card>
-
-    <div class="mb-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <x-stat-card label="Total Supplies" :value="$summary['totalSupplies']" icon="archive" color="primary" hint="Active consumable records" />
-        <x-stat-card label="Total Stock" :value="number_format((float) $summary['totalStock'], 2)" icon="cube" color="success" hint="Across all supply units" />
-        <x-stat-card label="Low Stock" :value="$summary['lowStock']" icon="alert-triangle" color="warning" hint="At or below reorder level" />
-        <x-stat-card label="Out of Stock" :value="$summary['outOfStock']" icon="x-circle" color="danger" hint="Needs replenishment" />
+    <div class="mb-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <x-stat-card label="Total Supplies" :value="$summary['totalSupplies']" icon="archive" color="primary" compact />
+        <x-stat-card label="Total Stock" :value="number_format((float) $summary['totalStock'], 2)" icon="cube" color="success" compact />
+        <x-stat-card label="Low Stock" :value="$summary['lowStock']" icon="alert-triangle" color="warning" compact />
+        <x-stat-card label="Out of Stock" :value="$summary['outOfStock']" icon="x-circle" color="danger" compact />
     </div>
 
     <div class="mb-6 flex flex-wrap items-center justify-between gap-3">
