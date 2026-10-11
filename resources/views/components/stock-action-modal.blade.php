@@ -4,11 +4,16 @@
     'mode' => 'add',
     'triggerIcon' => 'plus',
     'triggerColor' => 'text-slate-500 hover:text-primary-600',
+    'triggerText' => null,
 ])
 
 <div x-data="{ open: false }" class="inline-flex">
     <button type="button" x-on:click="open = true" class="{{ $triggerColor }}" title="{{ $title }}">
-        <x-icon :name="$triggerIcon" class="size-4" />
+        @if($triggerText !== null)
+            {{ $triggerText }}
+        @else
+            <x-icon :name="$triggerIcon" class="size-4" />
+        @endif
     </button>
 
     <template x-teleport="body">

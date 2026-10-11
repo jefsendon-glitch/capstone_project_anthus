@@ -49,7 +49,23 @@
                                 <td class="px-6 py-3 text-sm text-slate-600 dark:text-slate-300">{{ $product->size }}</td>
                                 <td class="px-6 py-3 font-mono text-sm text-slate-900 dark:text-white">₱{{ number_format($product->unit_price, 2) }}</td>
                                 <td class="px-6 py-3">
-                                    <x-badge :color="$product->is_low_stock ? 'danger' : 'success'">{{ $product->stock_quantity }}</x-badge>
+                                    @if(! $archived)
+                                        @can('update', $product)
+                                            <x-stock-action-modal
+                                                :action-url="route('admin.products.stock.adjust', $product)"
+                                                :title="'Adjust Stock — '.$product->name"
+                                                mode="adjust"
+                                                :trigger-text="$product->stock_quantity"
+                                                :trigger-color="$product->is_low_stock
+                                                    ? 'inline-flex cursor-pointer items-center rounded-full bg-danger-50 px-2.5 py-1 text-xs font-medium text-danger-700 hover:bg-danger-100 focus:outline-none focus:ring-2 focus:ring-danger-500 dark:bg-danger-500/10 dark:text-danger-500'
+                                                    : 'inline-flex cursor-pointer items-center rounded-full bg-success-50 px-2.5 py-1 text-xs font-medium text-success-700 hover:bg-success-100 focus:outline-none focus:ring-2 focus:ring-success-500 dark:bg-success-500/10 dark:text-success-500'"
+                                            />
+                                        @else
+                                            <x-badge :color="$product->is_low_stock ? 'danger' : 'success'">{{ $product->stock_quantity }}</x-badge>
+                                        @endcan
+                                    @else
+                                        <x-badge :color="$product->is_low_stock ? 'danger' : 'success'">{{ $product->stock_quantity }}</x-badge>
+                                    @endif
                                 </td>
                                 <td class="px-6 py-3">
                                     <x-badge :color="$product->is_active ? 'success' : 'slate'">{{ $product->is_active ? 'Active' : 'Inactive' }}</x-badge>
@@ -75,21 +91,7 @@
                                                 </form>
                                             @endcan
                                         @else
-                                            @can('addStock', $product)
-                                                <x-stock-action-modal
-                                                    :action-url="route('admin.products.stock.add', $product)"
-                                                    :title="'Add Stock — '.$product->name"
-                                                    mode="add"
-                                                    trigger-icon="plus"
-                                                />
-                                            @endcan
                                             @can('update', $product)
-                                                <x-stock-action-modal
-                                                    :action-url="route('admin.products.stock.adjust', $product)"
-                                                    :title="'Adjust Stock — '.$product->name"
-                                                    mode="adjust"
-                                                    trigger-icon="swap"
-                                                />
                                                 <a href="{{ route('admin.products.edit', $product) }}" class="text-slate-500 hover:text-primary-600" title="Edit">
                                                     <x-icon name="pencil" class="size-4" />
                                                 </a>
