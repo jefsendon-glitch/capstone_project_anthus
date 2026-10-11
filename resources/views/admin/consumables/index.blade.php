@@ -1,4 +1,15 @@
-<x-layouts.app title="Supply Inventory" :heading="'Supply Inventory'">
+<x-layouts.app title="Supplies Inventory" :heading="'Supplies Inventory'">
+    <x-card class="mb-6">
+        <p class="text-sm text-slate-600 dark:text-slate-300">Manage materials used in water production and daily operations.</p>
+        <ul class="mt-3 grid gap-2 text-sm text-slate-600 sm:grid-cols-2 dark:text-slate-300">
+            <li>• Filter cartridges and treatment materials</li>
+            <li>• Bottle caps and seals</li>
+            <li>• Labels and packaging</li>
+            <li>• Cleaning and sanitation supplies</li>
+            <li>• Stock quantity and reorder level</li>
+        </ul>
+    </x-card>
+
     <div class="mb-6 flex justify-end">
         @can('create', \App\Models\Consumable::class)
             <x-button as="a" href="{{ route('admin.consumables.create') }}">
