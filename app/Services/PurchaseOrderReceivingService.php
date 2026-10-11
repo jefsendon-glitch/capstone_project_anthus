@@ -38,7 +38,7 @@ class PurchaseOrderReceivingService
 
                 if ($itemable instanceof Product && $itemable->category === 'container') {
                     $gallonStock = GallonStock::firstOrCreate(
-                        ['product_id' => $itemable->id, 'status' => 'company_owned'],
+                        ['product_id' => $itemable->id, 'status' => 'empty'],
                         ['quantity' => 0],
                     );
                     $gallonBefore = $gallonStock->quantity;

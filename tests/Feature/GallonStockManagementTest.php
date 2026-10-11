@@ -21,33 +21,33 @@ beforeEach(function () {
 
 test('staff can add gallon stock', function () {
     $response = $this->actingAs($this->staffUser)->post(route('admin.gallon-stocks.add', $this->container), [
-        'status' => 'company_owned',
+        'status' => 'empty',
         'quantity' => 20,
         'notes' => 'Opening stock count',
     ]);
 
     $response->assertRedirect();
-    expect(GallonStock::where('product_id', $this->container->id)->where('status', 'company_owned')->first()->quantity)->toBe(20);
+    expect(GallonStock::where('product_id', $this->container->id)->where('status', 'empty')->first()->quantity)->toBe(20);
 });
 
 test('staff cannot transfer gallon stock but admin can', function () {
-    GallonStock::where('product_id', $this->container->id)->where('status', 'company_owned')->update(['quantity' => 20]);
+    GallonStock::where('product_id', $this->container->id)->where('status', 'empty')->update(['quantity' => 20]);
 
     $this->actingAs($this->staffUser)->post(route('admin.gallon-stocks.transfer', $this->container), [
-        'from_status' => 'company_owned',
+        'from_status' => 'empty',
         'to_status' => 'filled',
         'quantity' => 5,
         'notes' => 'Filled for station stock',
     ])->assertForbidden();
 
     $this->actingAs($this->admin)->post(route('admin.gallon-stocks.transfer', $this->container), [
-        'from_status' => 'company_owned',
+        'from_status' => 'empty',
         'to_status' => 'filled',
         'quantity' => 5,
         'notes' => 'Filled for station stock',
     ]);
 
-    expect(GallonStock::where('product_id', $this->container->id)->where('status', 'company_owned')->first()->quantity)->toBe(15);
+    expect(GallonStock::where('product_id', $this->container->id)->where('status', 'empty')->first()->quantity)->toBe(15);
     expect(GallonStock::where('product_id', $this->container->id)->where('status', 'filled')->first()->quantity)->toBe(5);
 });
 

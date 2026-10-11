@@ -12,7 +12,8 @@ class GallonStock extends Model
 {
     use HasFactory;
 
-    public const STATUSES = ['filled', 'empty', 'customer_owned', 'company_owned', 'returned', 'damaged', 'missing'];
+    /** Every physical station gallon belongs to exactly one of these buckets. */
+    public const STATUSES = ['empty', 'filled', 'customer_owned', 'damaged', 'missing'];
 
     protected $fillable = ['product_id', 'status', 'quantity'];
 
