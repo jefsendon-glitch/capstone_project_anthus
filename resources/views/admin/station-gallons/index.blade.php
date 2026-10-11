@@ -28,7 +28,6 @@
                 <div><x-input-label for="opening-quantity" value="Opening empty gallons" /><x-text-input id="opening-quantity" name="quantity" type="number" min="1" max="1000000" required /></div>
                 <x-button type="submit">Register Gallons</x-button>
             </form>
-            </details>
         </x-card>
         <x-card padding="p-3">
             <details @if($errors->any() && old('action')) open @endif><summary class="cursor-pointer text-sm font-semibold">Record Gallon Movement</summary>
@@ -49,7 +48,6 @@
                     <x-button type="submit">Save Movement</x-button>
                 </form>
             @endif
-            </details>
         </x-card>
     </div>
 
@@ -94,7 +92,6 @@
         <div class="overflow-x-auto"><table class="min-w-full text-left text-sm"><thead><tr><th class="px-3 py-2">Customer</th><th class="px-3 py-2">Gallon Type</th><th class="px-3 py-2">Borrowed</th></tr></thead><tbody>
             @forelse($loans as $loan)<tr class="border-t border-slate-100"><td class="px-3 py-2">{{ $loan->customer_name }}</td><td class="px-3 py-2">{{ $loan->name }} / {{ $loan->size }}</td><td class="px-3 py-2">{{ $loan->quantity }}</td></tr>@empty<tr><td colspan="3" class="p-3 text-slate-500">No outstanding borrowed gallons.</td></tr>@endforelse
         </tbody></table></div>
-        </details>
     </x-card>
 
     <x-card padding="p-3">
