@@ -44,7 +44,7 @@
                     </thead>
                     <tbody class="divide-y divide-slate-100 dark:divide-white/5">
                         @foreach($products as $product)
-                            <tr x-data="{ addOpen: false, transferOpen: false, fillOpen: false, releaseOpen: false, returnOpen: false }">
+                            <tr x-data="{ addOpen: false, editOpen: false, transferOpen: false, fillOpen: false, releaseOpen: false, returnOpen: false }">
                                 <td class="px-4 py-3 font-mono text-xs text-slate-500">GAL-{{ str_pad((string) $product->id, 4, '0', STR_PAD_LEFT) }}</td>
                                 <td class="px-4 py-3 text-sm font-medium text-slate-900 dark:text-white">{{ str($product->name)->before(' ')->title() }}</td>
                                 <td class="px-4 py-3 text-sm text-slate-600 dark:text-slate-300">{{ $product->size }}</td>
@@ -64,7 +64,7 @@
                                             </button>
                                         @endcan
                                         @can('adjust', \App\Models\GallonStock::class)
-                                            <a href="{{ route('admin.products.edit', $product) }}" class="text-slate-500 hover:text-primary-600" title="Edit gallon type"><x-icon name="pencil" class="size-4" /></a>
+                                            <button type="button" x-on:click="editOpen = true" class="text-slate-500 hover:text-primary-600" title="Edit gallon type"><x-icon name="pencil" class="size-4" /></button>
                                             <form method="POST" action="{{ route('admin.products.destroy', $product) }}" onsubmit="return confirm('Archive this gallon type?')">@csrf @method('DELETE')<button type="submit" class="text-slate-500 hover:text-danger-600" title="Archive gallon type"><x-icon name="archive" class="size-4" /></button></form>
                                             <button type="button" x-on:click="fillOpen = true" class="text-slate-500 hover:text-primary-600" title="Fill gallons"><x-icon name="droplet" class="size-4" /></button>
                                             <button type="button" x-on:click="releaseOpen = true" class="text-slate-500 hover:text-primary-600" title="Release to customer"><x-icon name="truck" class="size-4" /></button>
@@ -93,6 +93,22 @@
                                                     <x-textarea name="notes" required></x-textarea>
                                                 </div>
                                                 <x-button type="submit" class="w-full">Add Stock</x-button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </template>
+
+                                <template x-teleport="body">
+                                    <div x-show="editOpen" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4">
+                                        <div class="fixed inset-0 bg-slate-900/50" x-on:click="editOpen = false"></div>
+                                        <div class="relative w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl dark:bg-slate-900">
+                                            <h3 class="text-base font-semibold text-slate-900 dark:text-white">Edit Gallon Type</h3>
+                                            <form method="POST" action="{{ route('admin.gallon-stocks.update', $product) }}" class="mt-4 space-y-3">
+                                                @csrf @method('PATCH')
+                                                <div><x-input-label value="Gallon type / name" /><x-text-input name="name" :value="$product->name" required /></div>
+                                                <div><x-input-label value="Size" /><x-text-input name="size" :value="$product->size" required /></div>
+                                                <div><x-input-label value="Reorder level" /><x-text-input type="number" min="0" name="low_stock_threshold" :value="$product->low_stock_threshold" required /></div>
+                                                <div class="flex justify-end gap-3"><x-button type="button" x-on:click="editOpen = false" variant="secondary">Cancel</x-button><x-button type="submit">Save Changes</x-button></div>
                                             </form>
                                         </div>
                                     </div>

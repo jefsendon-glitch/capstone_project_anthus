@@ -37,6 +37,7 @@ Route::middleware(['auth', 'role:admin|staff'])->group(function () {
         Route::post('consumables/{consumable}/stock/adjust', [ConsumableStockController::class, 'adjust'])->name('consumables.stock.adjust');
 
         Route::get('gallon-stocks', [GallonStockController::class, 'index'])->name('gallon-stocks.index');
+        Route::patch('gallon-stocks/{product}', [GallonStockController::class, 'update'])->name('gallon-stocks.update');
         Route::post('gallon-stocks/{product}/add', [GallonStockMovementController::class, 'addStock'])->name('gallon-stocks.add');
         Route::post('gallon-stocks/{product}/transfer', [GallonStockMovementController::class, 'transfer'])->name('gallon-stocks.transfer');
         Route::post('gallon-stocks/{product}/fill', [GallonStockController::class, 'fill'])->name('gallon-stocks.fill');

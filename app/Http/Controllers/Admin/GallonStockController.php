@@ -71,6 +71,22 @@ class GallonStockController extends Controller
         return $this->move($request, $product, 'empty', 'filled', 'fill', 'Gallons filled');
     }
 
+    public function update(Request $request, Product $product): RedirectResponse
+    {
+        $this->ensureContainer($product);
+        $this->authorize('adjust', GallonStock::class);
+
+        $data = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'size' => ['required', 'string', 'max:100'],
+            'low_stock_threshold' => ['required', 'integer', 'min:0'],
+        ]);
+
+        $product->update($data);
+
+        return back()->with('success', 'Gallon type updated successfully.');
+    }
+
     public function release(Request $request, Product $product): RedirectResponse
     {
         $this->ensureContainer($product);
