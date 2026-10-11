@@ -37,7 +37,7 @@ $procurementActive = request()->routeIs('admin.suppliers*') || request()->routeI
                 <span>Products</span>
             </a>
             <a href="{{ route('admin.consumables.index') }}" class="flex items-center gap-3 rounded-xl py-2 pl-11 pr-3 text-sm font-medium {{ $navLink('admin.consumables') }}">
-                <span>Supply Inventory</span>
+                <span>Consumable Inventory</span>
             </a>
             <a href="{{ route('admin.gallon-stocks.index') }}" class="flex items-center gap-3 rounded-xl py-2 pl-11 pr-3 text-sm font-medium {{ $navLink('admin.gallon-stocks') }}">
                 <span>Gallon Inventory</span>
@@ -115,7 +115,7 @@ $procurementActive = request()->routeIs('admin.suppliers*') || request()->routeI
         </button>
         <div x-show="open" x-transition x-bind:class="$store.sidebar.collapsed && 'lg:hidden'" class="space-y-1 py-1">
             <a href="{{ route('admin.products.index') }}" class="flex items-center gap-3 rounded-xl py-2 pl-11 pr-3 text-sm font-medium {{ $navLink('admin.products') }}">Products</a>
-            <a href="{{ route('admin.consumables.index') }}" class="flex items-center gap-3 rounded-xl py-2 pl-11 pr-3 text-sm font-medium {{ $navLink('admin.consumables') }}">Supply Inventory</a>
+            <a href="{{ route('admin.consumables.index') }}" class="flex items-center gap-3 rounded-xl py-2 pl-11 pr-3 text-sm font-medium {{ $navLink('admin.consumables') }}">Consumable Inventory</a>
             <a href="{{ route('admin.gallon-stocks.index') }}" class="flex items-center gap-3 rounded-xl py-2 pl-11 pr-3 text-sm font-medium {{ $navLink('admin.gallon-stocks') }}">Gallon Inventory</a>
             <a href="{{ route('admin.water-production.index') }}" class="flex items-center gap-3 rounded-xl py-2 pl-11 pr-3 text-sm font-medium {{ $navLink('admin.water-production') }}">Water Production</a>
             <a href="{{ route('admin.maintenance.index') }}" class="flex items-center gap-3 rounded-xl py-2 pl-11 pr-3 text-sm font-medium {{ $navLink('admin.maintenance') }}">Maintenance</a>

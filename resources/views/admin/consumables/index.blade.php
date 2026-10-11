@@ -1,4 +1,4 @@
-<x-layouts.app title="Supplies Inventory" :heading="'Supplies Inventory'">
+<x-layouts.app title="Consumable Inventory" :heading="'Consumable Inventory'">
     <x-card class="mb-6">
         <p class="text-sm text-slate-600 dark:text-slate-300">Manage materials used in water production and daily operations.</p>
         <ul class="mt-3 grid gap-2 text-sm text-slate-600 sm:grid-cols-2 dark:text-slate-300">
@@ -13,7 +13,7 @@
     <div class="mb-6 flex justify-end">
         @can('create', \App\Models\Consumable::class)
             <x-button as="a" href="{{ route('admin.consumables.create') }}">
-                <x-icon name="plus" class="size-4" /> Add Supply
+                <x-icon name="plus" class="size-4" /> Add Consumable
             </x-button>
         @endcan
     </div>
@@ -21,7 +21,7 @@
     <x-card padding="p-0">
         @if($consumables->isEmpty())
             <div class="p-6">
-                <x-empty-state icon="archive" title="No supplies yet" description="Track bottle caps, seals, labels, plastic bags, water filters, UV lamps, and cleaning supplies here." />
+                <x-empty-state icon="archive" title="No consumables yet" description="Add materials used in water production and daily operations." />
             </div>
         @else
             <div class="overflow-x-auto">
@@ -31,6 +31,7 @@
                             <th class="px-6 py-3">Name</th>
                             <th class="px-6 py-3">Category</th>
                             <th class="px-6 py-3">Quantity</th>
+                            <th class="px-6 py-3">Reorder level</th>
                             <th class="px-6 py-3">Status</th>
                             <th class="px-6 py-3 text-right">Actions</th>
                         </tr>
@@ -41,6 +42,7 @@
                                 <td class="px-6 py-3 text-sm font-medium text-slate-900 dark:text-white">{{ $consumable->name }}</td>
                                 <td class="px-6 py-3 text-sm text-slate-500 dark:text-slate-400">{{ ucfirst(str_replace('_', ' ', $consumable->category)) }}</td>
                                 <td class="px-6 py-3 font-mono text-sm text-slate-600 dark:text-slate-300">{{ rtrim(rtrim($consumable->quantity, '0'), '.') }} {{ $consumable->unit }}</td>
+                                <td class="px-6 py-3 font-mono text-sm text-slate-600 dark:text-slate-300">{{ rtrim(rtrim($consumable->low_stock_threshold, '0'), '.') }} {{ $consumable->unit }}</td>
                                 <td class="px-6 py-3">
                                     <x-badge :color="$consumable->is_low_stock ? 'danger' : 'success'">{{ $consumable->is_low_stock ? 'Low Stock' : 'Healthy' }}</x-badge>
                                 </td>
