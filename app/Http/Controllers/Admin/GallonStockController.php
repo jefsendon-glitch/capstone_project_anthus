@@ -62,7 +62,42 @@ class GallonStockController extends Controller
         $products = (new LengthAwarePaginator($filtered->forPage($page, $perPage), $filtered->count(), $perPage, $page, ['path' => request()->url()]))->withQueryString();
         $customers = User::role('customer')->orderBy('name')->get(['id', 'name']);
 
-        return view('admin.gallon-stocks.index', compact('products', 'dashboard', 'customers', 'search', 'type', 'stockStatus', 'types'));
+        $gallonOptions = $allProducts->map(fn (Product $product) => [
+            'id' => $product->id,
+            'label' => $this->typeOf($product).' - '.$product->size,
+            'empty' => $product->statusCounts['empty'],
+        ])->values();
+
+        return view('admin.gallon-stocks.index', compact('products', 'dashboard', 'customers', 'search', 'type', 'stockStatus', 'types', 'gallonOptions'));
+    }
+
+    public function store(Request $request): RedirectResponse
+    {
+        $this->authorize('adjust', GallonStock::class);
+        $data = $request->validate([
+            'gallon_type' => ['required', Rule::in(['Round', 'Slim', 'Square'])],
+            'size' => ['required', 'string', 'max:100'],
+            'quantity' => ['required', 'integer', 'min:1'],
+            'low_stock_threshold' => ['required', 'integer', 'min:0'],
+            'notes' => ['nullable', 'string', 'max:1000'],
+        ]);
+
+        DB::transaction(function () use ($data, $request) {
+            $product = Product::create([
+                'name' => $data['gallon_type'].' '.$data['size'],
+                'category' => 'container',
+                'size' => $data['size'],
+                'unit_price' => 0,
+                'stock_quantity' => 0,
+                'low_stock_threshold' => $data['low_stock_threshold'],
+                'is_active' => false,
+            ]);
+            $empty = $product->gallonStocks()->where('status', 'empty')->firstOrFail();
+            $empty->update(['quantity' => $data['quantity']]);
+            StockMovement::record($empty, 'initial', $data['quantity'], 0, $data['quantity'], $request->user()->id, $data['notes'] ?: 'Initial gallon inventory');
+        });
+
+        return back()->with('success', 'Gallon type added successfully.');
     }
 
     public function fill(Request $request, Product $product): RedirectResponse
@@ -123,6 +158,31 @@ class GallonStockController extends Controller
             $balance->decrement('quantity', $request->integer('quantity'));
         });
         return back()->with('success', 'Returned gallons recorded successfully.');
+    }
+
+    public function adjust(Request $request, Product $product): RedirectResponse
+    {
+        $this->ensureContainer($product);
+        $this->authorize('adjust', GallonStock::class);
+        $data = $request->validate([
+            'status' => ['required', Rule::in(['empty', 'filled', 'damaged', 'missing'])],
+            'adjustment_type' => ['required', Rule::in(['increase', 'decrease'])],
+            'quantity' => ['required', 'integer', 'min:1'],
+            'notes' => ['required', 'string', 'max:1000'],
+        ]);
+
+        DB::transaction(function () use ($data, $product, $request) {
+            $row = GallonStock::where(['product_id' => $product->id, 'status' => $data['status']])->lockForUpdate()->firstOrFail();
+            if ($data['adjustment_type'] === 'decrease' && $row->quantity < $data['quantity']) {
+                throw ValidationException::withMessages(['quantity' => "Not enough {$row->status_label} gallons to decrease."]);
+            }
+            $before = $row->quantity;
+            $after = $data['adjustment_type'] === 'increase' ? $before + $data['quantity'] : $before - $data['quantity'];
+            $row->update(['quantity' => $after]);
+            StockMovement::record($row, 'adjustment_'.$data['adjustment_type'], $after - $before, $before, $after, $request->user()->id, $data['notes']);
+        });
+
+        return back()->with('success', 'Gallon stock adjusted successfully.');
     }
 
     private function move(Request $request, Product $product, string $from, string $to, string $type, string $message): RedirectResponse

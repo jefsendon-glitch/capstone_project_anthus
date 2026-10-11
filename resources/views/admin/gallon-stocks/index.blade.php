@@ -8,22 +8,82 @@
         .gallon-records .row-action { display:inline-flex; align-items:center; justify-content:center; width:2rem; height:2rem; border-radius:.4rem; border:1px solid #dce7f4; box-shadow:0 1px 2px rgb(15 23 42 / .06); }.gallon-records .row-action--blue { background:var(--gallon-blue); color:#fff; border-color:var(--gallon-blue); }.gallon-records .row-action--red { background:var(--gallon-red); color:#fff; border-color:var(--gallon-red); }.gallon-records .row-action--green { background:#dcfce7; color:#15803d; border-color:#bbf7d0; }.gallon-records .row-action--orange { background:#fff7ed; color:#c2410c; border-color:#fed7aa; }.gallon-records .row-action--purple { background:#f3e8ff; color:#7e22ce; border-color:#e9d5ff; }
         @media print { @page { size: letter portrait; margin: 10mm; } .no-print { display:none!important; } main { padding:0!important; } th,td{padding:4px!important;font-size:8px!important;} }
     </style>
-    <section class="gallon-records">
+    <section class="gallon-records" x-data='{
+        quickOpen: false, quickAction: "", quickProduct: "", damageStatus: "damaged",
+        fillUrl: @js(route("admin.gallon-stocks.fill", ["product" => "__PRODUCT__"])),
+        releaseUrl: @js(route("admin.gallon-stocks.release", ["product" => "__PRODUCT__"])),
+        returnUrl: @js(route("admin.gallon-stocks.return", ["product" => "__PRODUCT__"])),
+        transferUrl: @js(route("admin.gallon-stocks.transfer", ["product" => "__PRODUCT__"])),
+        adjustUrl: @js(route("admin.gallon-stocks.adjust", ["product" => "__PRODUCT__"])),
+        openQuick(action) { this.quickAction = action; this.quickProduct = ""; this.quickOpen = true; },
+        quickUrl(template) { return template.replace("__PRODUCT__", this.quickProduct); }
+    }'>
     <div class="no-print mb-5 flex flex-col gap-4 rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-100 dark:bg-slate-900 dark:ring-white/10 lg:flex-row lg:items-center lg:justify-between">
         <div><h2 class="text-xl font-bold text-slate-900 dark:text-white">Gallon Records</h2><p class="mt-1 text-sm text-slate-500">List of gallon types and their current inventory status.</p></div>
         <div class="flex flex-wrap gap-2">
-            <a href="{{ route('admin.products.create', ['category' => 'container']) }}" class="gallon-action gallon-action--blue"><x-icon name="plus" class="size-4" /> Add Gallon</a>
-            <a href="#gallon-inventory-table" class="gallon-action gallon-action--green"><x-icon name="droplet" class="size-4" /> Fill Gallons</a>
-            <a href="#gallon-inventory-table" class="gallon-action gallon-action--orange"><x-icon name="truck" class="size-4" /> Release</a>
-            <a href="#gallon-inventory-table" class="gallon-action gallon-action--purple"><x-icon name="swap" class="size-4" /> Return</a>
-            <a href="#gallon-inventory-table" class="gallon-action gallon-action--red"><x-icon name="alert-triangle" class="size-4" /> Damaged/Missing</a>
-            <a href="#gallon-inventory-table" class="gallon-action gallon-action--slate"><x-icon name="cog" class="size-4" /> Adjust Stock</a>
+            @can('adjust', \App\Models\GallonStock::class)
+            <button type="button" x-on:click="openQuick('add')" class="gallon-action gallon-action--blue"><x-icon name="plus" class="size-4" /> Add Gallon</button>
+            <button type="button" x-on:click="openQuick('fill')" class="gallon-action gallon-action--green"><x-icon name="droplet" class="size-4" /> Fill Gallons</button>
+            <button type="button" x-on:click="openQuick('release')" class="gallon-action gallon-action--orange"><x-icon name="truck" class="size-4" /> Release</button>
+            <button type="button" x-on:click="openQuick('return')" class="gallon-action gallon-action--purple"><x-icon name="swap" class="size-4" /> Return</button>
+            <button type="button" x-on:click="openQuick('damage')" class="gallon-action gallon-action--red"><x-icon name="alert-triangle" class="size-4" /> Damaged/Missing</button>
+            <button type="button" x-on:click="openQuick('adjust')" class="gallon-action gallon-action--slate"><x-icon name="cog" class="size-4" /> Adjust Stock</button>
+            @endcan
         </div>
     </div>
+
+    <template x-teleport="body">
+        <div x-show="quickOpen" x-cloak class="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto p-4">
+            <div class="fixed inset-0 bg-slate-950/55" x-on:click="quickOpen = false"></div>
+            <div class="relative my-6 w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl dark:bg-slate-900">
+                <button type="button" x-on:click="quickOpen = false" class="absolute right-4 top-4 text-slate-400 hover:text-slate-700 dark:hover:text-white"><x-icon name="x" class="size-5" /></button>
+                <h3 x-show="quickAction === 'add'" class="text-lg font-bold text-slate-900 dark:text-white">Add Gallon Type</h3>
+                <h3 x-show="quickAction === 'fill'" class="text-lg font-bold text-slate-900 dark:text-white">Fill Gallons</h3>
+                <h3 x-show="quickAction === 'release'" class="text-lg font-bold text-slate-900 dark:text-white">Release to Customer</h3>
+                <h3 x-show="quickAction === 'return'" class="text-lg font-bold text-slate-900 dark:text-white">Return Gallons</h3>
+                <h3 x-show="quickAction === 'damage'" class="text-lg font-bold text-slate-900 dark:text-white">Damaged / Missing Gallons</h3>
+                <h3 x-show="quickAction === 'adjust'" class="text-lg font-bold text-slate-900 dark:text-white">Adjust Stock</h3>
+
+                <form x-show="quickAction === 'add'" method="POST" action="{{ route('admin.gallon-stocks.store') }}" class="mt-5 space-y-3">@csrf
+                    <div><x-input-label value="Gallon Type" /><x-select name="gallon_type" required><option value="Round">Round</option><option value="Slim">Slim</option><option value="Square">Square</option></x-select></div>
+                    <div><x-input-label value="Size" /><x-select name="size" required><option value="5 Gallons">5 Gallons</option><option value="10 Liters">10 Liters</option><option value="20 Liters">20 Liters</option></x-select></div>
+                    <div><x-input-label value="Initial Quantity" /><x-text-input type="number" min="1" name="quantity" required /></div>
+                    <div><x-input-label value="Reorder Level" /><x-text-input type="number" min="0" name="low_stock_threshold" value="10" required /></div>
+                    <div><x-input-label value="Remarks" /><x-textarea name="notes"></x-textarea></div><x-button type="submit" class="w-full">Save Gallon Type</x-button>
+                </form>
+
+                <form x-show="quickAction === 'fill'" method="POST" x-bind:action="quickUrl(fillUrl)" class="mt-5 space-y-3">@csrf
+                    <div><x-input-label value="Gallon Type" /><x-select x-model="quickProduct" required><option value="">Select gallon type</option>@foreach($gallonOptions as $option)<option value="{{ $option['id'] }}">{{ $option['label'] }} — Empty: {{ $option['empty'] }}</option>@endforeach</x-select></div>
+                    <div><x-input-label value="Quantity to Fill" /><x-text-input type="number" min="1" name="quantity" required /></div><div><x-input-label value="Remarks" /><x-textarea name="notes"></x-textarea></div><x-button type="submit" class="w-full">Fill Gallons</x-button>
+                </form>
+
+                <form x-show="quickAction === 'release'" method="POST" x-bind:action="quickUrl(releaseUrl)" class="mt-5 space-y-3">@csrf
+                    <div><x-input-label value="Customer" /><x-select name="customer_id" required><option value="">Select customer</option>@foreach($customers as $customer)<option value="{{ $customer->id }}">{{ $customer->name }}</option>@endforeach</x-select></div>
+                    <div><x-input-label value="Gallon Type" /><x-select x-model="quickProduct" required><option value="">Select gallon type</option>@foreach($gallonOptions as $option)<option value="{{ $option['id'] }}">{{ $option['label'] }}</option>@endforeach</x-select></div><div><x-input-label value="Quantity" /><x-text-input type="number" min="1" name="quantity" required /></div><div><x-input-label value="Reference / Remarks" /><x-textarea name="notes"></x-textarea></div><x-button type="submit" class="w-full">Release Gallons</x-button>
+                </form>
+
+                <form x-show="quickAction === 'return'" method="POST" x-bind:action="quickUrl(returnUrl)" class="mt-5 space-y-3">@csrf
+                    <div><x-input-label value="Customer" /><x-select name="customer_id" required><option value="">Select customer</option>@foreach($customers as $customer)<option value="{{ $customer->id }}">{{ $customer->name }}</option>@endforeach</x-select></div><div><x-input-label value="Gallon Type" /><x-select x-model="quickProduct" required><option value="">Select gallon type</option>@foreach($gallonOptions as $option)<option value="{{ $option['id'] }}">{{ $option['label'] }}</option>@endforeach</x-select></div><div><x-input-label value="Condition" /><x-select name="return_status" required><option value="empty">Usable (Empty)</option><option value="damaged">Damaged</option></x-select></div><div><x-input-label value="Quantity" /><x-text-input type="number" min="1" name="quantity" required /></div><div><x-input-label value="Remarks" /><x-textarea name="notes"></x-textarea></div><x-button type="submit" class="w-full">Return Gallons</x-button>
+                </form>
+
+                <form x-show="quickAction === 'damage'" method="POST" x-bind:action="quickUrl(transferUrl)" class="mt-5 space-y-3">@csrf
+                    <div><x-input-label value="Gallon Type" /><x-select x-model="quickProduct" required><option value="">Select gallon type</option>@foreach($gallonOptions as $option)<option value="{{ $option['id'] }}">{{ $option['label'] }}</option>@endforeach</x-select></div><div><x-input-label value="From" /><x-select name="from_status" required><option value="empty">Empty</option><option value="filled">Filled</option></x-select></div><div><x-input-label value="Type" /><div class="mt-2 flex gap-5 text-sm"><label><input x-model="damageStatus" type="radio" name="to_status" value="damaged" checked> Damaged</label><label><input x-model="damageStatus" type="radio" name="to_status" value="missing"> Missing</label></div></div><div><x-input-label value="Quantity" /><x-text-input type="number" min="1" name="quantity" required /></div><div><x-input-label value="Reason" /><x-textarea name="notes" required></x-textarea></div><x-button type="submit" class="w-full">Save Record</x-button>
+                </form>
+
+                <form x-show="quickAction === 'adjust'" method="POST" x-bind:action="quickUrl(adjustUrl)" class="mt-5 space-y-3">@csrf
+                    <div><x-input-label value="Gallon Type" /><x-select x-model="quickProduct" required><option value="">Select gallon type</option>@foreach($gallonOptions as $option)<option value="{{ $option['id'] }}">{{ $option['label'] }}</option>@endforeach</x-select></div><div><x-input-label value="Stock Bucket" /><x-select name="status" required><option value="empty">Empty</option><option value="filled">Filled</option><option value="damaged">Damaged</option><option value="missing">Missing</option></x-select></div><div><x-input-label value="Adjustment Type" /><div class="mt-2 flex gap-5 text-sm"><label><input type="radio" name="adjustment_type" value="increase" checked> Increase</label><label><input type="radio" name="adjustment_type" value="decrease"> Decrease</label></div></div><div><x-input-label value="Quantity" /><x-text-input type="number" min="1" name="quantity" required /></div><div><x-input-label value="Reason" /><x-textarea name="notes" required></x-textarea></div><x-button type="submit" class="w-full">Save Adjustment</x-button>
+                </form>
+            </div>
+        </div>
+    </template>
     <div class="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         @foreach(['total' => 'Total Gallons', 'empty' => 'Empty Gallons', 'filled' => 'Filled Gallons', 'withCustomers' => 'Gallons with Customers', 'damaged' => 'Damaged Gallons', 'missing' => 'Missing Gallons'] as $key => $label)
             <x-card><p class="text-sm text-slate-500">{{ $label }}</p><p class="mt-1 text-2xl font-bold text-slate-900 dark:text-white">{{ number_format($dashboard[$key]) }}</p></x-card>
         @endforeach
+    </div>
+    <div class="no-print mb-5 flex flex-wrap justify-end gap-2">
+        <a href="{{ route('admin.stock-movements.index', ['item_type' => 'gallon_stock']) }}" class="inline-flex items-center gap-2 rounded-xl border border-primary-200 bg-white px-3.5 py-2 text-sm font-semibold text-primary-700 shadow-sm transition hover:bg-primary-50 dark:border-primary-500/20 dark:bg-slate-900 dark:text-primary-300 dark:hover:bg-primary-500/10"><x-icon name="swap" class="size-4" /> View Movement History</a>
+        <button type="button" onclick="window.print()" class="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 dark:border-white/10 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-white/5"><x-icon name="clipboard" class="size-4" /> Print Report</button>
     </div>
     <x-card class="no-print mb-6">
         <form method="GET" class="grid gap-4 md:grid-cols-4">

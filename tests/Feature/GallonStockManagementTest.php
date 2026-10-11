@@ -38,6 +38,26 @@ test('only admins can add gallon stock', function () {
     expect(GallonStock::where('product_id', $this->container->id)->where('status', 'empty')->first()->quantity)->toBe(20);
 });
 
+test('admin can add a gallon type with opening empty stock', function () {
+    $this->actingAs($this->admin)->post(route('admin.gallon-stocks.store'), [
+        'gallon_type' => 'Round',
+        'size' => '5 Gallons',
+        'quantity' => 25,
+        'low_stock_threshold' => 8,
+        'notes' => 'New supplier delivery',
+    ])->assertRedirect();
+
+    $product = Product::where('name', 'Round 5 Gallons')->firstOrFail();
+    expect($product->category)->toBe('container');
+    expect($product->gallonStocks()->where('status', 'empty')->value('quantity'))->toBe(25);
+    $this->assertDatabaseHas('stock_movements', [
+        'movable_type' => GallonStock::class,
+        'movable_id' => $product->gallonStocks()->where('status', 'empty')->value('id'),
+        'type' => 'initial',
+        'quantity_delta' => 25,
+    ]);
+});
+
 test('staff cannot transfer gallon stock but admin can', function () {
     GallonStock::where('product_id', $this->container->id)->where('status', 'empty')->update(['quantity' => 20]);
 
@@ -98,4 +118,27 @@ test('releasing and returning gallons keeps stock and customer balance in sync',
     expect(GallonCustomerBalance::where(['product_id' => $this->container->id, 'customer_id' => $customer->id])->value('quantity'))->toBe(1);
     $this->assertDatabaseHas('stock_movements', ['type' => 'release', 'recorded_by' => $this->admin->id]);
     $this->assertDatabaseHas('stock_movements', ['type' => 'returned', 'recorded_by' => $this->admin->id]);
+});
+
+test('admin can adjust stock with a reason without allowing negative quantities', function () {
+    GallonStock::where('product_id', $this->container->id)->where('status', 'empty')->update(['quantity' => 8]);
+
+    $this->actingAs($this->admin)->post(route('admin.gallon-stocks.adjust', $this->container), [
+        'status' => 'empty',
+        'adjustment_type' => 'decrease',
+        'quantity' => 3,
+        'notes' => 'Physical count correction',
+    ])->assertRedirect();
+
+    expect(GallonStock::where('product_id', $this->container->id)->where('status', 'empty')->value('quantity'))->toBe(5);
+    $this->assertDatabaseHas('stock_movements', ['type' => 'adjustment_decrease', 'quantity_delta' => -3]);
+
+    $this->actingAs($this->admin)->post(route('admin.gallon-stocks.adjust', $this->container), [
+        'status' => 'empty',
+        'adjustment_type' => 'decrease',
+        'quantity' => 6,
+        'notes' => 'Should be blocked',
+    ])->assertSessionHasErrors('quantity');
+
+    expect(GallonStock::where('product_id', $this->container->id)->where('status', 'empty')->value('quantity'))->toBe(5);
 });

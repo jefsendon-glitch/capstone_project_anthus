@@ -37,12 +37,14 @@ Route::middleware(['auth', 'role:admin|staff'])->group(function () {
         Route::post('consumables/{consumable}/stock/adjust', [ConsumableStockController::class, 'adjust'])->name('consumables.stock.adjust');
 
         Route::get('gallon-stocks', [GallonStockController::class, 'index'])->name('gallon-stocks.index');
+        Route::post('gallon-stocks', [GallonStockController::class, 'store'])->name('gallon-stocks.store');
         Route::patch('gallon-stocks/{product}', [GallonStockController::class, 'update'])->name('gallon-stocks.update');
         Route::post('gallon-stocks/{product}/add', [GallonStockMovementController::class, 'addStock'])->name('gallon-stocks.add');
         Route::post('gallon-stocks/{product}/transfer', [GallonStockMovementController::class, 'transfer'])->name('gallon-stocks.transfer');
         Route::post('gallon-stocks/{product}/fill', [GallonStockController::class, 'fill'])->name('gallon-stocks.fill');
         Route::post('gallon-stocks/{product}/release', [GallonStockController::class, 'release'])->name('gallon-stocks.release');
         Route::post('gallon-stocks/{product}/return', [GallonStockController::class, 'returnFromCustomer'])->name('gallon-stocks.return');
+        Route::post('gallon-stocks/{product}/adjust', [GallonStockController::class, 'adjust'])->name('gallon-stocks.adjust');
 
         Route::resource('water-production', WaterProductionController::class)->only(['index']);
 
