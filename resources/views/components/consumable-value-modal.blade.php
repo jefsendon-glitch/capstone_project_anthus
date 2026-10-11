@@ -1,4 +1,4 @@
-@props(['actionUrl', 'title', 'field', 'label', 'currentValue', 'triggerText', 'requiresReason' => false])
+@props(['actionUrl', 'title', 'field', 'label', 'currentValue', 'triggerText', 'requiresReason' => false, 'adjustmentMode' => false])
 
 <div x-data="{ open: false }" class="inline-flex">
     <button type="button" x-on:click="open = true" class="font-mono text-sm text-primary-600 underline decoration-dotted underline-offset-4 hover:text-primary-700 dark:text-primary-400" title="{{ $title }}">
@@ -13,9 +13,18 @@
                 <form method="POST" action="{{ $actionUrl }}" class="mt-4 space-y-3">
                     @csrf
                     <input type="hidden" name="field" value="{{ $field }}">
+                    @if($adjustmentMode)
+                        <fieldset>
+                            <legend class="text-sm font-medium text-slate-700 dark:text-slate-300">Adjustment type</legend>
+                            <div class="mt-2 flex gap-4">
+                                <label class="inline-flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300"><input type="radio" name="adjustment_type" value="increase" checked> Increase</label>
+                                <label class="inline-flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300"><input type="radio" name="adjustment_type" value="decrease"> Decrease</label>
+                            </div>
+                        </fieldset>
+                    @endif
                     <div>
                         <x-input-label :value="$label" />
-                        <x-text-input type="number" step="1" min="0" name="value" :value="$currentValue" required autofocus />
+                        <x-text-input type="number" step="1" :min="$adjustmentMode ? 1 : 0" name="value" :value="$adjustmentMode ? null : $currentValue" required autofocus />
                     </div>
                     @if($requiresReason)
                         <div>

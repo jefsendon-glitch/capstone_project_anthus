@@ -81,23 +81,27 @@ class ConsumableController extends Controller
     {
         $field = $request->validated('field');
         $value = (float) $request->validated('value');
+        $adjustmentType = $request->validated('adjustment_type');
         $labels = [
             'quantity' => 'Stock quantity',
             'low_stock_threshold' => 'Reorder level',
             'unit_cost' => 'Unit cost',
         ];
 
-        DB::transaction(function () use ($request, $consumable, $field, $value) {
+        DB::transaction(function () use ($request, $consumable, $field, $value, $adjustmentType) {
             $before = (float) $consumable->{$field};
-            $consumable->update([$field => $value]);
+            $after = $field === 'quantity'
+                ? ($adjustmentType === 'decrease' ? max(0, $before - $value) : $before + $value)
+                : $value;
+            $consumable->update([$field => $after]);
 
-            if ($field === 'quantity' && $before !== $value) {
+            if ($field === 'quantity' && $before !== $after) {
                 StockMovement::record(
                     $consumable,
-                    $value > $before ? 'adjustment_increase' : 'adjustment_decrease',
-                    $value - $before,
+                    $after > $before ? 'adjustment_increase' : 'adjustment_decrease',
+                    $after - $before,
                     $before,
-                    $value,
+                    $after,
                     $request->user()->id,
                     $request->validated('notes'),
                 );

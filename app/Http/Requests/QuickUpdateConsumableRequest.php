@@ -16,7 +16,8 @@ class QuickUpdateConsumableRequest extends FormRequest
     {
         return [
             'field' => ['required', Rule::in(['quantity', 'low_stock_threshold', 'unit_cost'])],
-            'value' => ['required', 'integer', 'min:0'],
+            'value' => ['required', 'integer', 'min:0', Rule::when($this->input('field') === 'quantity', ['min:1'])],
+            'adjustment_type' => ['nullable', Rule::in(['increase', 'decrease']), 'required_if:field,quantity'],
             'notes' => ['nullable', 'string', 'max:1000', 'required_if:field,quantity'],
         ];
     }

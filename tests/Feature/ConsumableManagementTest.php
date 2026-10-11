@@ -84,7 +84,8 @@ test('admin can quick-update whole-number consumable values', function () {
 
     $this->actingAs($this->admin)->post(route('admin.consumables.quick-update', $consumable), [
         'field' => 'quantity',
-        'value' => 15,
+        'adjustment_type' => 'increase',
+        'value' => 5,
         'notes' => 'Counted new delivery',
     ])->assertSessionHasNoErrors();
 

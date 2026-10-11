@@ -59,7 +59,7 @@
                                 <td class="px-6 py-3">
                                     @if(! $archived)
                                         @can('update', $consumable)
-                                            <x-consumable-value-modal :action-url="route('admin.consumables.quick-update', $consumable)" title="Adjust Stock Quantity" field="quantity" label="Stock quantity" :current-value="$consumable->quantity" :trigger-text="rtrim(rtrim($consumable->quantity, '0'), '.')" requires-reason />
+                                            <x-consumable-value-modal :action-url="route('admin.consumables.quick-update', $consumable)" title="Adjust Stock Quantity" field="quantity" label="Quantity" :current-value="$consumable->quantity" :trigger-text="rtrim(rtrim($consumable->quantity, '0'), '.')" requires-reason adjustment-mode />
                                         @else
                                             <span class="font-mono text-sm text-slate-600 dark:text-slate-300">{{ rtrim(rtrim($consumable->quantity, '0'), '.') }}</span>
                                         @endcan
