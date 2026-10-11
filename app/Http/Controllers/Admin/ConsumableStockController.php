@@ -36,7 +36,8 @@ class ConsumableStockController extends Controller
 
     public function adjust(AdjustConsumableStockRequest $request, Consumable $consumable): RedirectResponse
     {
-        $delta = (float) $request->validated('delta');
+        $quantity = (float) $request->validated('quantity');
+        $delta = $request->validated('adjustment_type') === 'decrease' ? -$quantity : $quantity;
 
         DB::transaction(function () use ($consumable, $delta, $request) {
             $before = (float) $consumable->quantity;

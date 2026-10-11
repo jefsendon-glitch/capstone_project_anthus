@@ -13,8 +13,8 @@
                 <div>
                     <x-input-label for="category" value="Category" />
                     <x-select id="category" name="category" required>
-                        @foreach(['bottle_caps', 'bottle_seals', 'labels', 'plastic_bags', 'water_filters', 'uv_lamps', 'cleaning_supplies'] as $category)
-                            <option value="{{ $category }}" @selected(old('category') === $category)>{{ ucfirst(str_replace('_', ' ', $category)) }}</option>
+                        @foreach(['filter_treatment_materials' => 'Filter Cartridges and Treatment Materials', 'bottle_caps_seals' => 'Bottle Caps and Seals', 'labels_packaging' => 'Labels and Packaging', 'cleaning_sanitation' => 'Cleaning and Sanitation Supplies'] as $category => $label)
+                            <option value="{{ $category }}" @selected(old('category') === $category)>{{ $label }}</option>
                         @endforeach
                     </x-select>
                     <x-input-error :messages="$errors->get('category')" />

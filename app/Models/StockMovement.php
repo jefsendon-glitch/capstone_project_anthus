@@ -29,7 +29,7 @@ class StockMovement extends Model
 
     public function movable(): MorphTo
     {
-        return $this->morphTo();
+        return $this->morphTo()->withTrashed();
     }
 
     public function recordedBy(): BelongsTo

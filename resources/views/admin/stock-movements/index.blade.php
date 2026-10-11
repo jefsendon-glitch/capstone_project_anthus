@@ -11,7 +11,7 @@ $typeColors = [
     'missing' => 'danger',
     'sale_deduction' => 'primary',
 ];
-$itemTypes = ['product' => 'Product', 'consumable' => 'Supply', 'gallon_stock' => 'Gallon Stock'];
+$itemTypes = ['product' => 'Product', 'consumable' => 'Consumable', 'gallon_stock' => 'Gallon Stock'];
 $movementTypes = ['initial', 'restock', 'adjustment_increase', 'adjustment_decrease', 'damage', 'missing', 'returned', 'sale_deduction', 'production', 'purchase_receive'];
 @endphp
 
@@ -65,6 +65,7 @@ $movementTypes = ['initial', 'restock', 'adjustment_increase', 'adjustment_decre
                             <th class="px-6 py-3">Type</th>
                             <th class="px-6 py-3">Before → After</th>
                             <th class="px-6 py-3">Delta</th>
+                            <th class="px-6 py-3">Reason</th>
                             <th class="px-6 py-3">By</th>
                             <th class="px-6 py-3">Date</th>
                         </tr>
@@ -88,6 +89,7 @@ $movementTypes = ['initial', 'restock', 'adjustment_increase', 'adjustment_decre
                                 <td class="px-6 py-3 font-mono text-sm font-semibold {{ $movement->quantity_delta >= 0 ? 'text-success-600' : 'text-danger-600' }}">
                                     {{ $movement->quantity_delta >= 0 ? '+' : '' }}{{ rtrim(rtrim($movement->quantity_delta, '0'), '.') }}
                                 </td>
+                                <td class="max-w-xs px-6 py-3 text-sm text-slate-500 dark:text-slate-400">{{ $movement->notes ?? '—' }}</td>
                                 <td class="px-6 py-3 text-sm text-slate-500 dark:text-slate-400">{{ $movement->recordedBy?->name ?? '—' }}</td>
                                 <td class="px-6 py-3 text-sm text-slate-500 dark:text-slate-400">{{ $movement->created_at->format('M d, Y g:i A') }}</td>
                             </tr>

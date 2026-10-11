@@ -16,7 +16,7 @@ class UpdateConsumableRequest extends FormRequest
     {
         return [
             'name' => ['required', 'string', 'max:255'],
-            'category' => ['required', Rule::in(['bottle_caps', 'bottle_seals', 'labels', 'plastic_bags', 'water_filters', 'uv_lamps', 'cleaning_supplies'])],
+            'category' => ['required', Rule::in(['filter_treatment_materials', 'bottle_caps_seals', 'labels_packaging', 'cleaning_sanitation', 'bottle_caps', 'bottle_seals', 'labels', 'plastic_bags', 'water_filters', 'treatment_materials', 'uv_lamps', 'cleaning_supplies'])],
             'unit' => ['required', 'string', 'max:50'],
             'quantity' => ['required', 'numeric', 'min:0'],
             'low_stock_threshold' => ['required', 'numeric', 'min:0'],

@@ -7,10 +7,12 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Consumable extends Model
 {
     use HasFactory;
+    use SoftDeletes;
 
     protected $fillable = ['name', 'category', 'unit', 'quantity', 'low_stock_threshold', 'unit_cost', 'supplier_id', 'notes'];
 
@@ -25,7 +27,12 @@ class Consumable extends Model
 
     public function getIsLowStockAttribute(): bool
     {
-        return $this->quantity <= $this->low_stock_threshold;
+        return ! $this->is_out_of_stock && $this->quantity <= $this->low_stock_threshold;
+    }
+
+    public function getIsOutOfStockAttribute(): bool
+    {
+        return $this->quantity <= 0;
     }
 
     public function scopeLowStock(Builder $query): Builder

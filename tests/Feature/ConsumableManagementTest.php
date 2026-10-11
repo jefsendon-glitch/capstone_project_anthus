@@ -30,7 +30,7 @@ test('admin can create a consumable', function () {
     $this->assertDatabaseHas('consumables', ['name' => 'Carbon Filter']);
 });
 
-test('staff cannot create a consumable but can restock one', function () {
+test('only admins can manage consumables', function () {
     $consumable = Consumable::factory()->create(['quantity' => 10]);
 
     $this->actingAs($this->staffUser)->post(route('admin.consumables.store'), [
@@ -42,32 +42,39 @@ test('staff cannot create a consumable but can restock one', function () {
         'unit_cost' => 10,
     ])->assertForbidden();
 
-    $response = $this->actingAs($this->staffUser)->post(route('admin.consumables.restock', $consumable), [
+    $this->actingAs($this->staffUser)->post(route('admin.consumables.restock', $consumable), [
         'quantity_added' => 15,
-    ]);
-
-    $response->assertRedirect();
-    expect((float) $consumable->fresh()->quantity)->toBe(25.0);
-    $this->assertDatabaseHas('stock_movements', [
-        'movable_type' => \App\Models\Consumable::class,
-        'movable_id' => $consumable->id,
-        'type' => 'restock',
-        'quantity_delta' => 15,
-    ]);
+    ])->assertForbidden();
 });
 
 test('staff cannot adjust consumable stock but admin can', function () {
     $consumable = Consumable::factory()->create(['quantity' => 20]);
 
     $this->actingAs($this->staffUser)->post(route('admin.consumables.stock.adjust', $consumable), [
-        'delta' => -5,
+        'adjustment_type' => 'decrease',
+        'quantity' => 5,
         'notes' => 'Damaged in storage',
     ])->assertForbidden();
 
     $this->actingAs($this->admin)->post(route('admin.consumables.stock.adjust', $consumable), [
-        'delta' => -5,
+        'adjustment_type' => 'decrease',
+        'quantity' => 5,
         'notes' => 'Damaged in storage',
     ]);
 
     expect((float) $consumable->fresh()->quantity)->toBe(15.0);
+});
+
+test('admin can archive and restore a consumable', function () {
+    $consumable = Consumable::factory()->create();
+
+    $this->actingAs($this->admin)->delete(route('admin.consumables.destroy', $consumable))
+        ->assertRedirect(route('admin.consumables.index'));
+
+    $this->assertSoftDeleted('consumables', ['id' => $consumable->id]);
+
+    $this->actingAs($this->admin)->post(route('admin.consumables.restore', $consumable->id))
+        ->assertRedirect(route('admin.consumables.index'));
+
+    $this->assertDatabaseHas('consumables', ['id' => $consumable->id, 'deleted_at' => null]);
 });

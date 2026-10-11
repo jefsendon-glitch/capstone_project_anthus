@@ -9,12 +9,12 @@ class ConsumablePolicy
 {
     public function viewAny(User $user): bool
     {
-        return $user->isAdmin() || $user->isStaff();
+        return $user->isAdmin();
     }
 
     public function view(User $user, Consumable $consumable): bool
     {
-        return $user->isAdmin() || $user->isStaff();
+        return $user->isAdmin();
     }
 
     public function create(User $user): bool
@@ -32,8 +32,13 @@ class ConsumablePolicy
         return $user->isAdmin();
     }
 
+    public function restore(User $user, Consumable $consumable): bool
+    {
+        return $user->isAdmin();
+    }
+
     public function restock(User $user): bool
     {
-        return $user->isAdmin() || $user->isStaff();
+        return $user->isAdmin();
     }
 }
