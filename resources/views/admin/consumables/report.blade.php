@@ -49,7 +49,7 @@
         <form method="GET" class="grid gap-4 md:grid-cols-3">
             <div>
                 <x-input-label value="Categories" />
-                <x-select name="categories[]">
+                <x-select name="categories[]" onchange="this.form.requestSubmit()">
                     <option value="">All categories</option>
                     @foreach($availableCategories as $category)
                         <option value="{{ $category }}" @selected(in_array($category, $categories, true))>{{ $categoryLabels[$category] ?? ucfirst(str_replace('_', ' ', $category)) }}</option>
@@ -65,9 +65,8 @@
                     <option value="out_of_stock" @selected($status === 'out_of_stock')>Out-of-stock items</option>
                 </x-select>
             </div>
-            <div class="flex items-end gap-3">
+            <div class="flex items-end">
                 <x-button as="a" href="{{ route('admin.consumables.report') }}" variant="secondary">Reset</x-button>
-                <x-button type="submit">Generate Report</x-button>
             </div>
         </form>
     </x-card>
