@@ -68,7 +68,7 @@ test('admin pages render without errors', function () {
     $this->get(route('admin.maintenance.index'))->assertOk();
     $this->get(route('admin.maintenance.create'))->assertOk();
     $this->get(route('admin.maintenance.edit', $this->maintenanceLog))->assertOk();
-    $this->get(route('admin.gallon-stocks.index'))->assertOk();
+    $this->get(route('admin.inventory.gallon-inventory'))->assertOk();
     $this->get(route('admin.water-production.index'))->assertOk();
     $this->get(route('admin.water-production.create'))->assertOk();
     $this->get(route('admin.stock-movements.index'))->assertOk();
@@ -101,7 +101,7 @@ test('staff pages render without errors', function () {
     $this->get(route('admin.products.index'))->assertOk();
     $this->get(route('admin.consumables.index'))->assertOk();
     $this->get(route('admin.maintenance.index'))->assertOk();
-    $this->get(route('admin.gallon-stocks.index'))->assertOk();
+    $this->get(route('admin.inventory.gallon-inventory'))->assertForbidden();
     $this->get(route('admin.water-production.index'))->assertOk();
     $this->get(route('admin.stock-movements.index'))->assertOk();
     $this->get(route('pos.index'))->assertOk();

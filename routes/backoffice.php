@@ -2,14 +2,12 @@
 
 use App\Http\Controllers\Admin\ConsumableController;
 use App\Http\Controllers\Admin\ConsumableStockController;
-use App\Http\Controllers\Admin\GallonStockController;
 use App\Http\Controllers\Admin\MaintenanceController;
 use App\Http\Controllers\Admin\ProductController;
 use App\Http\Controllers\Admin\ProductStockController;
 use App\Http\Controllers\Admin\StockMovementController;
 use App\Http\Controllers\Admin\WaterProductionController;
 use App\Http\Controllers\ConsumableRestockController;
-use App\Http\Controllers\GallonStockMovementController;
 use App\Http\Controllers\Staff\DeliveryController;
 use App\Http\Controllers\Staff\PaymentController;
 use App\Http\Controllers\Staff\POSController;
@@ -36,19 +34,11 @@ Route::middleware(['auth', 'role:admin|staff'])->group(function () {
         Route::post('consumables/{consumable}/stock/update', [ConsumableStockController::class, 'update'])->name('consumables.stock.update');
         Route::post('consumables/{consumable}/stock/adjust', [ConsumableStockController::class, 'adjust'])->name('consumables.stock.adjust');
 
-        // Keep the user-facing Inventory navigation URL explicit. The legacy
-        // gallon-stocks endpoint remains available for existing bookmarks and
-        // form actions, while this route is the canonical menu destination.
-        Route::get('inventory/gallon-inventory', [GallonStockController::class, 'index'])->name('inventory.gallon-inventory');
-        Route::get('gallon-stocks', [GallonStockController::class, 'index'])->name('gallon-stocks.index');
-        Route::post('gallon-stocks', [GallonStockController::class, 'store'])->name('gallon-stocks.store');
-        Route::patch('gallon-stocks/{product}', [GallonStockController::class, 'update'])->name('gallon-stocks.update');
-        Route::post('gallon-stocks/{product}/add', [GallonStockMovementController::class, 'addStock'])->name('gallon-stocks.add');
-        Route::post('gallon-stocks/{product}/transfer', [GallonStockMovementController::class, 'transfer'])->name('gallon-stocks.transfer');
-        Route::post('gallon-stocks/{product}/fill', [GallonStockController::class, 'fill'])->name('gallon-stocks.fill');
-        Route::post('gallon-stocks/{product}/release', [GallonStockController::class, 'release'])->name('gallon-stocks.release');
-        Route::post('gallon-stocks/{product}/return', [GallonStockController::class, 'returnFromCustomer'])->name('gallon-stocks.return');
-        Route::post('gallon-stocks/{product}/adjust', [GallonStockController::class, 'adjust'])->name('gallon-stocks.adjust');
+        Route::middleware('role:admin')->group(function () {
+            Route::get('inventory/gallon-inventory', [\App\Http\Controllers\Admin\StationGallonController::class, 'index'])->name('inventory.gallon-inventory');
+            Route::post('inventory/gallon-inventory', [\App\Http\Controllers\Admin\StationGallonController::class, 'store'])->name('inventory.gallon-inventory.store');
+            Route::post('inventory/gallon-inventory/movements', [\App\Http\Controllers\Admin\StationGallonController::class, 'move'])->name('inventory.gallon-inventory.move');
+        });
 
         Route::resource('water-production', WaterProductionController::class)->only(['index']);
 
