@@ -23,6 +23,7 @@ test('staff can add gallon stock', function () {
     $response = $this->actingAs($this->staffUser)->post(route('admin.gallon-stocks.add', $this->container), [
         'status' => 'company_owned',
         'quantity' => 20,
+        'notes' => 'Opening stock count',
     ]);
 
     $response->assertRedirect();

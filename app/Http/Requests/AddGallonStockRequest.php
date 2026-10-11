@@ -18,7 +18,7 @@ class AddGallonStockRequest extends FormRequest
         return [
             'status' => ['required', Rule::in(GallonStock::STATUSES)],
             'quantity' => ['required', 'integer', 'min:1'],
-            'notes' => ['nullable', 'string', 'max:1000'],
+            'notes' => ['required', 'string', 'max:1000'],
         ];
     }
 }
