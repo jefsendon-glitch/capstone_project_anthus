@@ -7,7 +7,7 @@ $navLink = function (string $route) {
         : 'sidebar-nav-link text-secondary-100/80 hover:bg-white/10 hover:text-white';
 };
 
-$inventoryActive = request()->routeIs('admin.products*') || request()->routeIs('admin.consumables*') || request()->routeIs('admin.maintenance*')
+$inventoryActive = request()->routeIs('admin.products*') || request()->routeIs('admin.consumables*') || (auth()->user()->isStaff() && request()->routeIs('admin.maintenance*'))
     || request()->routeIs('admin.gallon-stocks*') || request()->routeIs('admin.inventory.gallon-inventory*') || request()->routeIs('admin.water-production*') || request()->routeIs('admin.stock-movements*');
 $procurementActive = request()->routeIs('admin.suppliers*') || request()->routeIs('admin.purchase-orders*');
 @endphp
@@ -42,14 +42,16 @@ $procurementActive = request()->routeIs('admin.suppliers*') || request()->routeI
             <a href="{{ route('admin.water-production.index') }}" class="flex items-center gap-3 rounded-xl py-2 pl-11 pr-3 text-sm font-medium {{ $navLink('admin.water-production') }}">
                 <span>Water Production</span>
             </a>
-            <a href="{{ route('admin.maintenance.index') }}" class="flex items-center gap-3 rounded-xl py-2 pl-11 pr-3 text-sm font-medium {{ $navLink('admin.maintenance') }}">
-                <span>Maintenance</span>
-            </a>
             <a href="{{ route('admin.stock-movements.index') }}" class="flex items-center gap-3 rounded-xl py-2 pl-11 pr-3 text-sm font-medium {{ $navLink('admin.stock-movements') }}">
                 <span>Stock Movements</span>
             </a>
         </div>
     </div>
+
+    <a href="{{ route('admin.maintenance.index') }}" class="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium {{ $navLink('admin.maintenance') }}">
+        <x-icon name="cog" class="size-5 shrink-0" />
+        <span x-bind:class="$store.sidebar.collapsed && 'lg:hidden'">Maintenance</span>
+    </a>
 
     <div x-data="{ open: {{ $procurementActive ? 'true' : 'false' }} }">
         <button
