@@ -19,8 +19,29 @@
 <x-layouts.app title="Stock Report" :heading="'Consumable Stock Report'">
     <style>
         @media print {
+            @page {
+                size: letter portrait;
+                margin: 10mm;
+            }
+
+            body {
+                background: #fff !important;
+                color: #000 !important;
+            }
+
             .no-print { display: none !important; }
-            main { padding: 0 !important; }
+            main { max-width: none !important; padding: 0 !important; }
+            main > * { box-shadow: none !important; }
+            table { width: 100% !important; table-layout: fixed; }
+            thead { display: table-header-group; }
+            tr { break-inside: avoid; page-break-inside: avoid; }
+            th, td {
+                padding: 5px 4px !important;
+                font-size: 8px !important;
+                line-height: 1.2 !important;
+                overflow-wrap: anywhere;
+            }
+            th { font-size: 7px !important; }
         }
     </style>
 
