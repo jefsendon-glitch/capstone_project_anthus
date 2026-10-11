@@ -68,6 +68,8 @@ $movementTypes = ['initial', 'restock', 'adjustment_increase', 'adjustment_decre
                             <th class="px-6 py-3">Before → After</th>
                             <th class="px-6 py-3">Delta</th>
                             <th class="px-6 py-3">Reason</th>
+                            <th class="px-6 py-3">Customer</th>
+                            <th class="px-6 py-3">Reference</th>
                             <th class="px-6 py-3">By</th>
                             <th class="px-6 py-3">Date</th>
                         </tr>
@@ -92,6 +94,8 @@ $movementTypes = ['initial', 'restock', 'adjustment_increase', 'adjustment_decre
                                     {{ $movement->quantity_delta >= 0 ? '+' : '' }}{{ rtrim(rtrim($movement->quantity_delta, '0'), '.') }}
                                 </td>
                                 <td class="max-w-xs px-6 py-3 text-sm text-slate-500 dark:text-slate-400">{{ $movement->notes ?? '—' }}</td>
+                                <td class="px-6 py-3 text-sm text-slate-500 dark:text-slate-400">{{ $movement->customer?->name ?? '—' }}</td>
+                                <td class="px-6 py-3 font-mono text-xs text-slate-500 dark:text-slate-400">{{ $movement->reference_code ?? '—' }}</td>
                                 <td class="px-6 py-3 text-sm text-slate-500 dark:text-slate-400">{{ $movement->recordedBy?->name ?? '—' }}</td>
                                 <td class="px-6 py-3 text-sm text-slate-500 dark:text-slate-400">{{ $movement->created_at->format('M d, Y g:i A') }}</td>
                             </tr>

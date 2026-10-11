@@ -26,7 +26,7 @@ class StockMovementController extends Controller
         $dateFrom = request('date_from');
         $dateTo = request('date_to');
 
-        $movements = StockMovement::with(['movable', 'recordedBy'])
+        $movements = StockMovement::with(['movable', 'recordedBy', 'customer'])
             ->when($itemType && isset(self::ITEM_TYPES[$itemType]), fn ($q) => $q->where('movable_type', self::ITEM_TYPES[$itemType]))
             ->when($type, fn ($q) => $q->ofType($type))
             ->between($dateFrom, $dateTo)

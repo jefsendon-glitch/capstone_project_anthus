@@ -11,6 +11,7 @@ use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
@@ -133,7 +134,7 @@ class GallonStockController extends Controller
         $this->authorize('adjust', GallonStock::class);
         DB::transaction(function () use ($request, $product, $customer) {
             $notes = 'Customer: '.$customer->name.($request->notes ? ' — '.$request->notes : '');
-            $this->moveRows($product, 'filled', 'customer_owned', (int) $request->quantity, 'release', $request->user()->id, $notes);
+            $this->moveRows($product, 'filled', 'customer_owned', (int) $request->quantity, 'release', $request->user()->id, $notes, $customer->id, 'GAL-'.strtoupper(Str::random(12)));
             $balance = GallonCustomerBalance::firstOrCreate(['product_id' => $product->id, 'customer_id' => $request->integer('customer_id')]);
             $balance->increment('quantity', $request->integer('quantity'));
         });
@@ -154,7 +155,7 @@ class GallonStockController extends Controller
             if ($balance->quantity < $request->integer('quantity')) throw ValidationException::withMessages(['quantity' => 'Return quantity exceeds this customer\'s outstanding gallon balance.']);
             $returnStatus = $request->string('return_status')->toString();
             $notes = 'Customer: '.$customer->name.($request->notes ? ' — '.$request->notes : '');
-            $this->moveRows($product, 'customer_owned', $returnStatus, (int) $request->quantity, $returnStatus === 'damaged' ? 'damage' : 'returned', $request->user()->id, $notes);
+            $this->moveRows($product, 'customer_owned', $returnStatus, (int) $request->quantity, $returnStatus === 'damaged' ? 'damage' : 'returned', $request->user()->id, $notes, $customer->id, 'GAL-'.strtoupper(Str::random(12)));
             $balance->decrement('quantity', $request->integer('quantity'));
         });
         return back()->with('success', 'Returned gallons recorded successfully.');
@@ -193,15 +194,15 @@ class GallonStockController extends Controller
         return back()->with('success', $message.' successfully.');
     }
 
-    private function moveRows(Product $product, string $from, string $to, int $quantity, string $type, int $userId, ?string $notes): void
+    private function moveRows(Product $product, string $from, string $to, int $quantity, string $type, int $userId, ?string $notes, ?int $customerId = null, ?string $referenceCode = null): void
     {
         $fromRow = GallonStock::where(['product_id' => $product->id, 'status' => $from])->lockForUpdate()->firstOrFail();
         if ($fromRow->quantity < $quantity) throw ValidationException::withMessages(['quantity' => "Not enough {$fromRow->status_label} gallons available."]);
         $toRow = GallonStock::where(['product_id' => $product->id, 'status' => $to])->lockForUpdate()->firstOrFail();
         $before = $fromRow->quantity; $fromRow->decrement('quantity', $quantity);
-        StockMovement::record($fromRow, $type, -$quantity, $before, $before - $quantity, $userId, $notes);
+        StockMovement::record($fromRow, $type, -$quantity, $before, $before - $quantity, $userId, $notes, null, $customerId, $referenceCode);
         $before = $toRow->quantity; $toRow->increment('quantity', $quantity);
-        StockMovement::record($toRow, $type, $quantity, $before, $before + $quantity, $userId, $notes);
+        StockMovement::record($toRow, $type, $quantity, $before, $before + $quantity, $userId, $notes, null, $customerId, $referenceCode);
     }
 
     private function typeOf(Product $product): string

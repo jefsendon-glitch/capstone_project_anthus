@@ -116,8 +116,8 @@ test('releasing and returning gallons keeps stock and customer balance in sync',
     expect(GallonStock::where('product_id', $this->container->id)->where('status', 'customer_owned')->value('quantity'))->toBe(1);
     expect(GallonStock::where('product_id', $this->container->id)->where('status', 'empty')->value('quantity'))->toBe(2);
     expect(GallonCustomerBalance::where(['product_id' => $this->container->id, 'customer_id' => $customer->id])->value('quantity'))->toBe(1);
-    $this->assertDatabaseHas('stock_movements', ['type' => 'release', 'recorded_by' => $this->admin->id]);
-    $this->assertDatabaseHas('stock_movements', ['type' => 'returned', 'recorded_by' => $this->admin->id]);
+    $this->assertDatabaseHas('stock_movements', ['type' => 'release', 'recorded_by' => $this->admin->id, 'customer_id' => $customer->id]);
+    $this->assertDatabaseHas('stock_movements', ['type' => 'returned', 'recorded_by' => $this->admin->id, 'customer_id' => $customer->id]);
 });
 
 test('admin can adjust stock with a reason without allowing negative quantities', function () {

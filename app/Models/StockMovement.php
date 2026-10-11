@@ -7,14 +7,15 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
+use Illuminate\Support\Str;
 
 class StockMovement extends Model
 {
     use HasFactory;
 
     protected $fillable = [
-        'movable_type', 'movable_id', 'type', 'quantity_before', 'quantity_after',
-        'quantity_delta', 'unit_cost', 'notes', 'recorded_by',
+        'reference_code', 'movable_type', 'movable_id', 'type', 'quantity_before', 'quantity_after',
+        'quantity_delta', 'unit_cost', 'notes', 'recorded_by', 'customer_id',
     ];
 
     protected function casts(): array
@@ -35,6 +36,16 @@ class StockMovement extends Model
     public function recordedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'recorded_by');
+    }
+
+    public function customer(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'customer_id');
+    }
+
+    public static function newReference(): string
+    {
+        return 'MOV-'.strtoupper(Str::random(12));
     }
 
     public function scopeOfType(Builder $query, string $type): Builder
@@ -58,8 +69,11 @@ class StockMovement extends Model
         ?int $recordedBy,
         ?string $notes = null,
         ?float $unitCost = null,
+        ?int $customerId = null,
+        ?string $referenceCode = null,
     ): self {
         return $movable->stockMovements()->create([
+            'reference_code' => $referenceCode ?: self::newReference(),
             'type' => $type,
             'quantity_before' => $before,
             'quantity_after' => $after,
@@ -67,6 +81,7 @@ class StockMovement extends Model
             'unit_cost' => $unitCost,
             'notes' => $notes,
             'recorded_by' => $recordedBy,
+            'customer_id' => $customerId,
         ]);
     }
 }
