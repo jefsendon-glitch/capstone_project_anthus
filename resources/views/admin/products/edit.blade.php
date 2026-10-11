@@ -42,7 +42,7 @@
             <div class="grid grid-cols-3 gap-5">
                 <div>
                     <x-input-label for="unit_price" value="Unit price (₱)" />
-                    <x-text-input id="unit_price" type="number" step="0.01" min="0" name="unit_price" :value="old('unit_price', $product->unit_price)" required />
+                    <x-text-input id="unit_price" type="number" step="1" min="0" name="unit_price" :value="old('unit_price', $product->unit_price)" required />
                     <x-input-error :messages="$errors->get('unit_price')" />
                 </div>
 
