@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\GallonStock;
+use App\Models\GallonCustomerBalance;
 use App\Models\Product;
 use App\Models\Staff;
 use App\Models\User;
@@ -68,4 +69,33 @@ test('transferring to damaged requires a reason', function () {
     ])->assertSessionHasErrors('notes');
 
     expect(GallonStock::where('product_id', $this->container->id)->where('status', 'damaged')->first()->quantity)->toBe(0);
+});
+
+test('releasing and returning gallons keeps stock and customer balance in sync', function () {
+    $customer = User::factory()->create();
+    $customer->assignRole('customer');
+    GallonStock::where('product_id', $this->container->id)->where('status', 'filled')->update(['quantity' => 10]);
+
+    $this->actingAs($this->admin)->post(route('admin.gallon-stocks.release', $this->container), [
+        'customer_id' => $customer->id,
+        'quantity' => 3,
+        'notes' => 'Delivery DEL-001',
+    ])->assertRedirect();
+
+    expect(GallonStock::where('product_id', $this->container->id)->where('status', 'filled')->value('quantity'))->toBe(7);
+    expect(GallonStock::where('product_id', $this->container->id)->where('status', 'customer_owned')->value('quantity'))->toBe(3);
+    expect(GallonCustomerBalance::where(['product_id' => $this->container->id, 'customer_id' => $customer->id])->value('quantity'))->toBe(3);
+
+    $this->actingAs($this->admin)->post(route('admin.gallon-stocks.return', $this->container), [
+        'customer_id' => $customer->id,
+        'return_status' => 'empty',
+        'quantity' => 2,
+        'notes' => 'Returned in good condition',
+    ])->assertRedirect();
+
+    expect(GallonStock::where('product_id', $this->container->id)->where('status', 'customer_owned')->value('quantity'))->toBe(1);
+    expect(GallonStock::where('product_id', $this->container->id)->where('status', 'empty')->value('quantity'))->toBe(2);
+    expect(GallonCustomerBalance::where(['product_id' => $this->container->id, 'customer_id' => $customer->id])->value('quantity'))->toBe(1);
+    $this->assertDatabaseHas('stock_movements', ['type' => 'release', 'recorded_by' => $this->admin->id]);
+    $this->assertDatabaseHas('stock_movements', ['type' => 'returned', 'recorded_by' => $this->admin->id]);
 });

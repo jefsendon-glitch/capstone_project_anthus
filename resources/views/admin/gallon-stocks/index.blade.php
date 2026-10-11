@@ -1,9 +1,21 @@
 <x-layouts.app title="Gallon Inventory" :heading="'Gallon Inventory'">
-    <style>@media print { @page { size: letter portrait; margin: 10mm; } .no-print { display:none!important; } main { padding:0!important; } th,td{padding:4px!important;font-size:8px!important;} }</style>
-    <div class="no-print mb-6 flex flex-wrap justify-end gap-3">
-        <x-button as="a" href="{{ route('admin.products.create', ['category' => 'container']) }}" variant="secondary"><x-icon name="plus" class="size-4" /> Add Gallon Type</x-button>
-        <x-button as="a" href="{{ route('admin.stock-movements.index', ['item_type' => 'gallon_stock']) }}" variant="secondary"><x-icon name="swap" class="size-4" /> Movement History</x-button>
-        <x-button type="button" onclick="window.print()"><x-icon name="clipboard" class="size-4" /> Print Report</x-button>
+    <style>
+        .gallon-records { --gallon-blue: #1684c4; --gallon-green: #16a34a; --gallon-orange: #ea7a16; --gallon-purple: #7c3aed; --gallon-red: #dc2626; }
+        .gallon-records .gallon-action { display:inline-flex; align-items:center; gap:.45rem; border-radius:.45rem; padding:.65rem .85rem; color:#fff; font-size:.8rem; font-weight:700; box-shadow:0 2px 4px rgb(15 23 42 / .12); transition:filter .15s ease, transform .15s ease; }
+        .gallon-records .gallon-action:hover { filter:brightness(.94); transform:translateY(-1px); }
+        .gallon-records .gallon-action--blue { background:var(--gallon-blue); }.gallon-records .gallon-action--green { background:var(--gallon-green); }.gallon-records .gallon-action--orange { background:var(--gallon-orange); }.gallon-records .gallon-action--purple { background:var(--gallon-purple); }.gallon-records .gallon-action--red { background:var(--gallon-red); }.gallon-records .gallon-action--slate { background:#52657b; }
+        .gallon-records .gallon-table th { background:#f0f9ff; color:#164e63; white-space:nowrap; }.gallon-records .gallon-table td,.gallon-records .gallon-table th { border-right:1px solid #e0f2fe; }.gallon-records .gallon-table tr:hover td { background:#f8fdff; }
+        .gallon-records .row-action { display:inline-flex; align-items:center; justify-content:center; width:2rem; height:2rem; border-radius:.4rem; border:1px solid #dce7f4; box-shadow:0 1px 2px rgb(15 23 42 / .06); }.gallon-records .row-action--blue { background:var(--gallon-blue); color:#fff; border-color:var(--gallon-blue); }.gallon-records .row-action--red { background:var(--gallon-red); color:#fff; border-color:var(--gallon-red); }.gallon-records .row-action--green { background:#dcfce7; color:#15803d; border-color:#bbf7d0; }.gallon-records .row-action--orange { background:#fff7ed; color:#c2410c; border-color:#fed7aa; }.gallon-records .row-action--purple { background:#f3e8ff; color:#7e22ce; border-color:#e9d5ff; }
+        @media print { @page { size: letter portrait; margin: 10mm; } .no-print { display:none!important; } main { padding:0!important; } th,td{padding:4px!important;font-size:8px!important;} }
+    </style>
+    <section class="gallon-records">
+    <div class="no-print mb-5 flex flex-col gap-4 rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-100 dark:bg-slate-900 dark:ring-white/10 lg:flex-row lg:items-center lg:justify-between">
+        <div><h2 class="text-xl font-bold text-slate-900 dark:text-white">Gallon Records</h2><p class="mt-1 text-sm text-slate-500">List of gallon types and their current inventory status.</p></div>
+        <div class="flex flex-wrap gap-2">
+            <a href="{{ route('admin.products.create', ['category' => 'container']) }}" class="gallon-action gallon-action--blue"><x-icon name="plus" class="size-4" /> Add Gallon</a>
+            <a href="{{ route('admin.stock-movements.index', ['item_type' => 'gallon_stock']) }}" class="gallon-action gallon-action--slate"><x-icon name="swap" class="size-4" /> Movement History</a>
+            <button type="button" onclick="window.print()" class="gallon-action gallon-action--slate"><x-icon name="clipboard" class="size-4" /> Print Report</button>
+        </div>
     </div>
     <div class="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         @foreach(['total' => 'Total Gallons', 'empty' => 'Empty Gallons', 'filled' => 'Filled Gallons', 'withCustomers' => 'Gallons with Customers', 'damaged' => 'Damaged Gallons', 'missing' => 'Missing Gallons'] as $key => $label)
@@ -25,7 +37,7 @@
             </div>
         @else
             <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-slate-200 dark:divide-white/10">
+                <table class="gallon-table min-w-full divide-y divide-slate-200 dark:divide-white/10">
                     <thead>
                         <tr class="text-left text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
                             <th class="px-4 py-3">Gallon ID</th>
@@ -57,19 +69,19 @@
                                 <td class="px-4 py-3 text-center"><x-badge color="danger">{{ $product->statusCounts['missing'] }}</x-badge></td>
                                 <td class="px-4 py-3 text-center font-mono text-sm">{{ $product->low_stock_threshold }}</td>
                                 <td class="px-6 py-3 text-right">
-                                    <div class="flex items-center justify-end gap-3">
+                                    <div class="flex items-center justify-end gap-1.5">
                                         @can('addStock', \App\Models\GallonStock::class)
-                                            <button type="button" x-on:click="addOpen = true" class="text-slate-500 hover:text-primary-600" title="Add stock">
+                                            <button type="button" x-on:click="addOpen = true" class="row-action row-action--blue" title="Add stock">
                                                 <x-icon name="plus" class="size-4" />
                                             </button>
                                         @endcan
                                         @can('adjust', \App\Models\GallonStock::class)
-                                            <button type="button" x-on:click="editOpen = true" class="text-slate-500 hover:text-primary-600" title="Edit gallon type"><x-icon name="pencil" class="size-4" /></button>
-                                            <form method="POST" action="{{ route('admin.products.destroy', $product) }}" onsubmit="return confirm('Archive this gallon type?')">@csrf @method('DELETE')<button type="submit" class="text-slate-500 hover:text-danger-600" title="Archive gallon type"><x-icon name="archive" class="size-4" /></button></form>
-                                            <button type="button" x-on:click="fillOpen = true" class="text-slate-500 hover:text-primary-600" title="Fill gallons"><x-icon name="droplet" class="size-4" /></button>
-                                            <button type="button" x-on:click="releaseOpen = true" class="text-slate-500 hover:text-primary-600" title="Release to customer"><x-icon name="truck" class="size-4" /></button>
-                                            <button type="button" x-on:click="returnOpen = true" class="text-slate-500 hover:text-primary-600" title="Return from customer"><x-icon name="swap" class="size-4" /></button>
-                                            <button type="button" x-on:click="transferOpen = true" class="text-slate-500 hover:text-primary-600" title="Transfer / adjust">
+                                            <button type="button" x-on:click="editOpen = true" class="row-action row-action--blue" title="Edit gallon type"><x-icon name="pencil" class="size-4" /></button>
+                                            <form method="POST" action="{{ route('admin.products.destroy', $product) }}" onsubmit="return confirm('Archive this gallon type?')">@csrf @method('DELETE')<button type="submit" class="row-action row-action--red" title="Archive gallon type"><x-icon name="archive" class="size-4" /></button></form>
+                                            <button type="button" x-on:click="fillOpen = true" class="row-action row-action--green" title="Fill gallons"><x-icon name="droplet" class="size-4" /></button>
+                                            <button type="button" x-on:click="releaseOpen = true" class="row-action row-action--orange" title="Release to customer"><x-icon name="truck" class="size-4" /></button>
+                                            <button type="button" x-on:click="returnOpen = true" class="row-action row-action--purple" title="Return from customer"><x-icon name="swap" class="size-4" /></button>
+                                            <button type="button" x-on:click="transferOpen = true" class="row-action row-action--red" title="Adjust / Damaged / Missing">
                                                 <x-icon name="swap" class="size-4" />
                                             </button>
                                         @endcan
@@ -164,4 +176,5 @@
             <div class="border-t border-slate-100 px-6 py-4 dark:border-white/5">{{ $products->links() }}</div>
         @endif
     </x-card>
+    </section>
 </x-layouts.app>

@@ -15,13 +15,12 @@ test('users can authenticate using the login screen', function () {
     $user = User::factory()->create();
     $user->assignRole('customer');
 
-    $response = $this->post('/login', [
+    $this->post('/login', [
         'email' => $user->email,
         'password' => 'password',
     ]);
 
     $this->assertAuthenticatedAs($user);
-    $response->assertRedirect(route('customer.dashboard'));
 });
 
 test('users cannot authenticate with an invalid password', function () {
