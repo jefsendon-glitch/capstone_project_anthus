@@ -71,7 +71,7 @@ class ConsumableController extends Controller
             }
         });
 
-        return redirect()->route('admin.consumables.index')->with('success', 'Consumable added successfully.');
+        return redirect()->route('admin.consumables.index')->with('success', 'Supplies added successfully.');
     }
 
     public function edit(Consumable $consumable): View
@@ -94,7 +94,7 @@ class ConsumableController extends Controller
             }
         });
 
-        return redirect()->route('admin.consumables.index')->with('success', 'Consumable updated successfully.');
+        return redirect()->route('admin.consumables.index')->with('success', 'Supplies updated successfully.');
     }
 
     public function quickUpdate(QuickUpdateConsumableRequest $request, Consumable $consumable): RedirectResponse
@@ -137,7 +137,7 @@ class ConsumableController extends Controller
 
         $consumable->delete();
 
-        return redirect()->route('admin.consumables.index')->with('success', 'Consumable archived successfully.');
+        return redirect()->route('admin.consumables.index')->with('success', 'Supplies archived successfully.');
     }
 
     public function restore(int $consumable): RedirectResponse
@@ -146,7 +146,7 @@ class ConsumableController extends Controller
         $this->authorize('restore', $consumable);
         $consumable->restore();
 
-        return redirect()->route('admin.consumables.index')->with('success', 'Consumable restored successfully.');
+        return redirect()->route('admin.consumables.index')->with('success', 'Supplies restored successfully.');
     }
 
     public function forceDelete(int $consumable): RedirectResponse
@@ -156,6 +156,6 @@ class ConsumableController extends Controller
         $consumable->forceDelete();
 
         return redirect()->route('admin.consumables.index', ['archived' => 1])
-            ->with('success', 'Consumable permanently deleted.');
+            ->with('success', 'Supplies permanently deleted.');
     }
 }

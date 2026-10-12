@@ -16,7 +16,7 @@
     $statusLabels = ['all' => 'Complete supply list', 'in_stock' => 'In-stock items', 'low_stock' => 'Low-stock items', 'out_of_stock' => 'Out-of-stock items'];
 @endphp
 
-<x-layouts.app title="Stock Report" :heading="'Consumable Stock Report'">
+<x-layouts.app title="Stock Report" :heading="'Supplies Stock Report'">
     <style>
         @media print {
             @page {
@@ -74,12 +74,12 @@
     <x-card padding="p-0">
         <div class="flex items-start justify-between gap-4 px-6 py-5">
             <div>
-                <h2 class="font-heading text-lg font-bold text-slate-900 dark:text-white">Consumable Stock Report</h2>
+                <h2 class="font-heading text-lg font-bold text-slate-900 dark:text-white">Supplies Stock Report</h2>
                 <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">{{ $statusLabels[$status] }} · Generated {{ now()->format('M d, Y g:i A') }} · {{ $consumables->count() }} {{ Str::plural('supply', $consumables->count()) }}</p>
             </div>
             <div class="no-print flex items-center gap-3">
                 <x-button as="a" href="{{ route('admin.consumables.index') }}" variant="secondary">
-                    <x-icon name="chevron-left" class="size-4" /> Back to Consumable Inventory
+                    <x-icon name="chevron-left" class="size-4" /> Back to Supplies
                 </x-button>
                 <button type="button" onclick="window.print()" class="inline-flex items-center gap-2 rounded-xl bg-primary-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-primary-700"><x-icon name="clipboard" class="size-4" /> Print</button>
             </div>

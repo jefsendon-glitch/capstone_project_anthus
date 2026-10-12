@@ -30,6 +30,6 @@ class ConsumableRestockController extends Controller
             );
         });
 
-        return back()->with('success', 'Consumable restocked successfully.');
+        return back()->with('success', 'Supplies restocked successfully.');
     }
 }

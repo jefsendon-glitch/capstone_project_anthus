@@ -1,4 +1,4 @@
-<x-layouts.app title="Add Consumable" :heading="'Add Consumable'">
+<x-layouts.app title="Add Supplies" :heading="'Add Supplies'">
     <x-card class="mx-auto max-w-xl">
         <form method="POST" action="{{ route('admin.consumables.store') }}" class="space-y-5">
             @csrf
@@ -67,7 +67,7 @@
 
             <div class="flex justify-end gap-3">
                 <x-button as="a" href="{{ route('admin.consumables.index') }}" variant="secondary">Cancel</x-button>
-                <x-button type="submit">Save Consumable</x-button>
+                <x-button type="submit">Save Supplies</x-button>
             </div>
         </form>
     </x-card>

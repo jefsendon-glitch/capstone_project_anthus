@@ -15,7 +15,7 @@
     ];
 @endphp
 
-<x-layouts.app title="Consumable Inventory" :heading="'Consumable Inventory'">
+<x-layouts.app title="Supplies" :heading="'Supplies'">
     <div class="mb-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <x-stat-card label="Total Supplies" :value="$summary['totalSupplies']" icon="archive" color="primary" compact />
         <x-stat-card label="Total Stock" :value="number_format((float) $summary['totalStock'], 2)" icon="cube" color="success" compact />
