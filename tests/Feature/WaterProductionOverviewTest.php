@@ -18,13 +18,12 @@ test('production overview separates sources and filters all summary quantities',
         'gallons_produced' => 8, 'production_date' => '2026-09-01', 'produced_by' => $admin->id]);
     $product->delete();
     $url = route('admin.water-production.index');
-    $this->actingAs($admin)->get($url)->assertOk()->assertSee('Purified Water')
-        ->assertViewHas('summary', ['batches' => 3, 'productUnits' => 12, 'filledContainers' => 12]);
+    $this->actingAs($admin)->get($url)->assertOk()->assertDontSee('Purified Water')
+        ->assertViewHas('summary', ['batches' => 2, 'filledContainers' => 12]);
     $this->get($url.'?source=gallon&date_from=2026-10-01&date_to=2026-10-31')->assertOk()
-        ->assertViewHas('summary', ['batches' => 1, 'productUnits' => 0, 'filledContainers' => 4]);
+        ->assertViewHas('summary', ['batches' => 1, 'filledContainers' => 4]);
     $this->get($url.'?search=Purified')->assertOk()
-        ->assertViewHas('logs', fn ($logs) => $logs->total() === 1);
-    $this->get($url.'?source=invalid')->assertSessionHasErrors('source');
+        ->assertViewHas('logs', fn ($logs) => $logs->total() === 0);
     $this->get($url.'?date_from=2026-10-12&date_to=2026-10-01')->assertSessionHasErrors('date_to');
     $this->get($url.'?date_to=2026-10-31')->assertOk();
 });

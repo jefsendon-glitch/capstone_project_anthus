@@ -74,7 +74,12 @@
                             <tr>
                                 <td class="px-3 py-2 font-mono text-xs">PROD-{{ str_pad((string) $log->id, 5, '0', STR_PAD_LEFT) }}</td>
                                 <td class="px-3 py-2 text-sm font-medium text-slate-900 dark:text-white">{{ $log->container_name }} ({{ $log->container_size ?? '—' }})</td>
-                                <td class="px-3 py-2 text-xs text-slate-500">Gallon Tracking · Filled@if($log->station_gallon_movement_id)<p class="mt-1 font-mono">GAL-{{ $log->station_gallon_movement_id }}</p>@endif</td>
+                                <td class="px-3 py-2 text-xs text-slate-500">
+                                    Gallon Tracking · Filled
+                                    @if($log->station_gallon_movement_id)
+                                        <p class="mt-1 font-mono">GAL-{{ $log->station_gallon_movement_id }}</p>
+                                    @endif
+                                </td>
                                 <td class="px-3 py-2 text-right font-mono text-sm text-slate-900 dark:text-white">{{ number_format($log->gallons_produced) }}<p class="text-xs text-slate-500">containers</p></td>
                                 <td class="px-3 py-2 text-sm text-slate-600 dark:text-slate-300">{{ $log->production_date->format('M d, Y') }}</td>
                                 <td class="px-3 py-2 text-sm text-slate-500 dark:text-slate-400">{{ $log->producedBy?->name ?? '—' }}</td>

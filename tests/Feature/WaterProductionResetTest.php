@@ -17,7 +17,7 @@ test('only admin can reset confirmed production logs without changing stock or m
     $product = Product::factory()->create(['category' => 'purified', 'stock_quantity' => 20]);
     foreach (['2026-09-01', '2026-10-01'] as $date) {
         WaterProductionLog::create([
-            'product_id' => $product->id, 'gallons_produced' => 10,
+            'container_name' => 'Round', 'container_size' => '5 gallons', 'gallons_produced' => 10,
             'produced_by' => $admin->id, 'production_date' => $date,
         ]);
     }
