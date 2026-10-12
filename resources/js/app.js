@@ -22,8 +22,12 @@ window.purchaseOrderForm = (payload) => {
         items: Object.values(data.items ?? {}).length ? Object.values(data.items) : [
             { itemable_type: 'product', itemable_id: '', quantity_ordered: 1, unit_cost: 0 },
         ],
+        nextKey: 0,
+        init() {
+            this.items.forEach((item) => { item._key = this.nextKey++; });
+        },
         addItem() {
-            this.items.push({ itemable_type: 'product', itemable_id: '', quantity_ordered: 1, unit_cost: 0 });
+            this.items.push({ _key: this.nextKey++, itemable_type: 'product', itemable_id: '', quantity_ordered: 1, unit_cost: 0 });
         },
         removeItem(index) {
             if (this.items.length > 1) this.items.splice(index, 1);
@@ -47,6 +51,15 @@ window.purchaseOrderForm = (payload) => {
         },
         selectedItem(item) {
             return this.optionsFor(item).find((option) => String(option.id) === String(item.itemable_id));
+        },
+        lineTotal(item) {
+            return Math.round((Number(item.quantity_ordered) || 0) * (Number(item.unit_cost) || 0) * 100) / 100;
+        },
+        get total() {
+            return this.items.reduce((sum, item) => sum + this.lineTotal(item), 0);
+        },
+        money(value) {
+            return new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP' }).format(value);
         },
     };
 };
