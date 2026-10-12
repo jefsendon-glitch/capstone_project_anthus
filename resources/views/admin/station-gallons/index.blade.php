@@ -53,17 +53,20 @@
 
     <x-card padding="p-3" class="mb-3">
         <h3 class="mb-2 text-sm font-semibold">Container Inventory</h3>
-        <div class="overflow-x-auto"><table class="min-w-full text-left text-sm">
-            <thead><tr class="border-b border-slate-200"><th class="px-3 py-2">Type / Size</th>@foreach(['empty', 'filled', 'borrowed', 'damaged', 'missing', 'returned'] as $status)<th class="px-3 py-2">{{ ucfirst($status) }}{{ $status === 'returned' ? ' (All Time)' : '' }}</th>@endforeach<th class="px-3 py-2">Actions</th></tr></thead>
-            <tbody>
+        <div class="overflow-x-auto"><table class="min-w-full text-left text-xs sm:text-sm">
+            <thead><tr class="border-b border-slate-200"><th class="px-2 py-2">Type / Size</th>@foreach(['empty', 'filled', 'borrowed', 'damaged', 'missing', 'returned'] as $status)<th class="px-2 py-2 text-right">{{ ucfirst($status) }}@if($status === 'returned')<span class="block text-[10px] font-normal text-slate-500">All Time</span>@endif</th>@endforeach<th class="px-2 py-2 text-right">Actions</th></tr></thead>
+            <tbody x-data="{ editing: @js((string) old('edit_gallon_id', '')) }">
                 @forelse($gallons as $gallon)
                     <tr class="border-b border-slate-100">
-                        <td class="px-3 py-2 font-medium">{{ $gallon->name }} / {{ $gallon->size }}</td>
-                        @foreach(['empty', 'filled', 'borrowed', 'damaged', 'missing', 'returned'] as $status)<td class="px-3 py-2">{{ number_format($gallon->$status) }}</td>@endforeach
-                        <td class="px-3 py-2 align-top">
-                            <details @if((string) old('edit_gallon_id') === (string) $gallon->id) open @endif>
-                                <summary class="cursor-pointer font-semibold text-primary-600">Edit</summary>
-                                <form method="POST" action="{{ route('admin.inventory.gallon-inventory.update', $gallon->id) }}" class="mt-3 min-w-56 space-y-3">
+                        <td class="px-2 py-2"><span class="block font-medium">{{ $gallon->name }}</span><span class="text-xs text-slate-500">{{ $gallon->size }}</span></td>
+                        @foreach(['empty', 'filled', 'borrowed', 'damaged', 'missing', 'returned'] as $status)<td class="px-2 py-2 text-right tabular-nums">{{ number_format($gallon->$status) }}</td>@endforeach
+                        <td class="px-2 py-2 text-right">
+                            <button type="button" class="rounded-lg px-2 py-1 text-xs font-semibold text-primary-600 hover:bg-primary-50 dark:hover:bg-white/5" x-on:click="editing = editing === '{{ $gallon->id }}' ? '' : '{{ $gallon->id }}'" x-bind:aria-expanded="editing === '{{ $gallon->id }}'" aria-controls="gallon-editor-{{ $gallon->id }}">Edit</button>
+                        </td>
+                    </tr>
+                    <tr id="gallon-editor-{{ $gallon->id }}" x-show="editing === '{{ $gallon->id }}'" x-cloak class="border-b border-slate-100 bg-slate-50/70 dark:bg-white/5">
+                        <td colspan="8" class="p-3">
+                                <form method="POST" action="{{ route('admin.inventory.gallon-inventory.update', $gallon->id) }}" class="grid gap-2 sm:grid-cols-2 lg:grid-cols-4 [&_input]:!py-1.5 [&_select]:!py-1.5 [&_textarea]:!py-1.5 [&_label]:!text-xs">
                                     @csrf
                                     @method('PATCH')
                                     <input type="hidden" name="edit_gallon_id" value="{{ $gallon->id }}">
@@ -84,17 +87,21 @@
                                         </x-select>
                                     </div>
                                     <div>
-                                        <x-input-label for="adjustment-quantity-{{ $gallon->id }}" value="Quantity to increase / decrease" />
+                                        <x-input-label for="adjustment-quantity-{{ $gallon->id }}" value="Quantity" />
                                         <x-text-input id="adjustment-quantity-{{ $gallon->id }}" name="adjustment_quantity" type="number" min="1" max="1000000" :value="(string) old('edit_gallon_id') === (string) $gallon->id ? old('adjustment_quantity') : ''" />
-                                        <p class="mt-1 text-xs text-slate-500">{{ number_format($gallon->empty) }} empty gallons available. Adjustments also update Total Gallons.</p>
                                     </div>
-                                    <div>
+                                    <div class="sm:col-span-2">
                                         <x-input-label for="adjustment-notes-{{ $gallon->id }}" value="Adjustment notes / reason" />
-                                        <x-textarea id="adjustment-notes-{{ $gallon->id }}" name="adjustment_notes" rows="2" maxlength="1000">{{ (string) old('edit_gallon_id') === (string) $gallon->id ? old('adjustment_notes') : '' }}</x-textarea>
+                                        <x-textarea id="adjustment-notes-{{ $gallon->id }}" name="adjustment_notes" rows="1" maxlength="1000">{{ (string) old('edit_gallon_id') === (string) $gallon->id ? old('adjustment_notes') : '' }}</x-textarea>
                                     </div>
-                                    <x-button type="submit">Save Changes</x-button>
+                                    <div class="flex flex-wrap items-end justify-between gap-2 sm:col-span-2">
+                                        <p class="text-xs text-slate-500">{{ number_format($gallon->empty) }} empty available<br>Adjustments update Total Gallons.</p>
+                                        <div class="flex items-center gap-1">
+                                            <x-button type="button" variant="ghost" class="!px-3 !py-1.5 !text-xs" x-on:click="editing = ''">Cancel</x-button>
+                                            <x-button type="submit" class="!px-3 !py-1.5 !text-xs">Save Changes</x-button>
+                                        </div>
+                                    </div>
                                 </form>
-                            </details>
                         </td>
                     </tr>
                 @empty
