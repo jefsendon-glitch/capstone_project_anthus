@@ -20,7 +20,9 @@ class ConsumableController extends Controller
 
         $archived = request()->boolean('archived');
         $query = $archived ? Consumable::onlyTrashed() : Consumable::query();
-        $consumables = $query->orderBy('category')->orderBy('name')->paginate(15)->withQueryString();
+        $consumables = $query->with('supplier')
+            ->when(request('supplier_id'), fn ($query) => $query->where('supplier_id', request('supplier_id')))
+            ->orderBy('category')->orderBy('name')->paginate(15)->withQueryString();
 
         $activeConsumables = Consumable::query();
         $summary = [

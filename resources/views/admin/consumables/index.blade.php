@@ -46,14 +46,21 @@
                 <table class="min-w-full divide-y divide-slate-200 dark:divide-white/10">
                     <thead>
                         <tr class="text-left text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
-                            <th class="px-6 py-3">Supply ID</th><th class="px-6 py-3">Supply Name</th><th class="px-6 py-3">Category</th><th class="px-6 py-3">Unit</th><th class="px-6 py-3">Stock Quantity</th><th class="px-6 py-3">Reorder Level</th><th class="px-6 py-3">Unit Cost</th><th class="px-6 py-3">Stock Status</th><th class="px-6 py-3 text-right">Actions</th>
+                            <th class="px-6 py-3">Supply ID</th><th class="px-6 py-3">Supply Name</th><th class="px-6 py-3">Supplier</th><th class="px-6 py-3">Category</th><th class="px-6 py-3">Unit</th><th class="px-6 py-3">Stock Quantity</th><th class="px-6 py-3">Reorder Level</th><th class="px-6 py-3">Unit Cost</th><th class="px-6 py-3">Stock Status</th><th class="px-6 py-3 text-right">Actions</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100 dark:divide-white/5">
                         @foreach($consumables as $consumable)
                             <tr>
                                 <td class="px-6 py-3 font-mono text-xs text-slate-500 dark:text-slate-400">SUP-{{ str_pad((string) $consumable->id, 4, '0', STR_PAD_LEFT) }}</td>
-                                <td class="px-6 py-3 text-sm font-medium text-slate-900 dark:text-white">{{ $consumable->name }}</td>
+                                <td class="px-6 py-3 text-sm font-medium text-slate-900 dark:text-white">{{ $consumable->name }}</td><td class="px-6 py-3 text-sm">
+ {{ $consumable->supplier?->name ?? 'Unassigned' }}
+ @if(! $archived && $consumable->supplier?->is_active)
+ @can('create', \App\Models\PurchaseOrder::class)
+ <a class="block text-primary-600" href="{{ route('admin.purchase-orders.create', ['consumable_id' => $consumable->id]) }}">Restock via PO</a>
+ @endcan
+ @endif
+ </td>
                                 <td class="px-6 py-3 text-sm text-slate-500 dark:text-slate-400">{{ $categoryLabels[$consumable->category] ?? ucfirst(str_replace('_', ' ', $consumable->category)) }}</td>
                                 <td class="px-6 py-3 text-sm text-slate-600 dark:text-slate-300">{{ $consumable->unit }}</td>
                                 <td class="px-6 py-3">

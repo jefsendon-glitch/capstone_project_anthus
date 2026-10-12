@@ -2,10 +2,9 @@
 
 namespace App\Http\Requests;
 
-use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
-class UpdatePurchaseOrderRequest extends FormRequest
+class UpdatePurchaseOrderRequest extends StorePurchaseOrderRequest
 {
     public function authorize(): bool
     {
@@ -15,7 +14,7 @@ class UpdatePurchaseOrderRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'supplier_id' => ['required', 'exists:suppliers,id'],
+            'supplier_id' => ['required', Rule::exists('suppliers', 'id')->where('is_active', true)],
             'status' => ['required', Rule::in(['draft', 'ordered', 'cancelled'])],
             'ordered_at' => ['nullable', 'date'],
             'expected_date' => ['nullable', 'date'],

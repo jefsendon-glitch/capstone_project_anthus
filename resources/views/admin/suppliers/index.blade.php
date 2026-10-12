@@ -21,7 +21,7 @@
                             <th class="px-6 py-3">Contact Person</th>
                             <th class="px-6 py-3">Phone</th>
                             <th class="px-6 py-3">Email</th>
-                            <th class="px-6 py-3">Status</th>
+                            <th class="px-6 py-3">Status</th><th class="px-6 py-3">Procurement</th>
                             <th class="px-6 py-3 text-right">Actions</th>
                         </tr>
                     </thead>
@@ -35,7 +35,13 @@
                                 <td class="px-6 py-3">
                                     <x-badge :color="$supplier->is_active ? 'success' : 'slate'">{{ $supplier->is_active ? 'Active' : 'Inactive' }}</x-badge>
                                 </td>
-                                <td class="px-6 py-3 text-right">
+                                <td class="px-6 py-3 text-sm text-primary-600">
+ <a href="{{ route('admin.consumables.index', ['supplier_id' => $supplier->id]) }}">{{ $supplier->consumables_count }} supplies</a><br>
+ <a href="{{ route('admin.purchase-orders.index', ['supplier_id' => $supplier->id]) }}">{{ $supplier->purchase_orders_count }} purchase orders</a>
+ @if($supplier->is_active)
+ <div class="mt-2 flex gap-3"><a href="{{ route('admin.consumables.create', ['supplier_id' => $supplier->id]) }}">Add supply</a><a href="{{ route('admin.purchase-orders.create', ['supplier_id' => $supplier->id]) }}">New PO</a></div>
+ @endif
+ </td><td class="px-6 py-3 text-right">
                                     <div class="flex items-center justify-end gap-3">
                                         <a href="{{ route('admin.suppliers.edit', $supplier) }}" class="text-slate-500 hover:text-primary-600">
                                             <x-icon name="pencil" class="size-4" />

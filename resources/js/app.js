@@ -18,6 +18,7 @@ window.purchaseOrderForm = (payload) => {
     return {
         products: data.products ?? [],
         consumables: data.consumables ?? [],
+        supplierId: String(data.supplier_id ?? ''),
         items: data.items?.length ? data.items : [
             { itemable_type: 'product', itemable_id: '', quantity_ordered: 1, unit_cost: 0 },
         ],
@@ -28,7 +29,21 @@ window.purchaseOrderForm = (payload) => {
             if (this.items.length > 1) this.items.splice(index, 1);
         },
         optionsFor(item) {
-            return item.itemable_type === 'product' ? this.products : this.consumables;
+            return item.itemable_type === 'product' ? this.products : this.consumables.filter(
+                (supply) => this.supplierId && (!supply.supplier_id || String(supply.supplier_id) === String(this.supplierId))
+            );
+        },
+        supplierChanged() {
+            this.items.forEach((item) => {
+                if (item.itemable_type === 'consumable' && !this.selectedItem(item)) {
+                    item.itemable_id = '';
+                    item.unit_cost = 0;
+                }
+            });
+        },
+        chooseItem(item, option) {
+            item.itemable_id = option.id;
+            if (option.unit_cost != null) item.unit_cost = option.unit_cost;
         },
         selectedItem(item) {
             return this.optionsFor(item).find((option) => String(option.id) === String(item.itemable_id));

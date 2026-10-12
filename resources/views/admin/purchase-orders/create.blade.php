@@ -1,5 +1,6 @@
 @php
     $purchaseOrderFormData = [
+        'supplier_id' => old('supplier_id', $selectedSupplierId),
         'products' => $products->map(fn ($product) => [
             'id' => $product->id,
             'label' => $product->name.' ('.$product->size.')',
@@ -8,13 +9,15 @@
         'consumables' => $consumables->map(fn ($consumable) => [
             'id' => $consumable->id,
             'label' => $consumable->name,
+            'supplier_id' => $consumable->supplier_id,
+            'unit_cost' => (float) $consumable->unit_cost,
         ])->values(),
-        'items' => [[
-            'itemable_type' => 'product',
-            'itemable_id' => '',
+        'items' => old('items', [[
+            'itemable_type' => $selectedSupply ? 'consumable' : 'product',
+            'itemable_id' => $selectedSupply?->id ?? '',
             'quantity_ordered' => 1,
-            'unit_cost' => 0,
-        ]],
+            'unit_cost' => (float) ($selectedSupply?->unit_cost ?? 0),
+        ]]),
     ];
 @endphp
 
@@ -29,7 +32,7 @@
                     <div>
                         <x-input-label for="supplier_id" value="Supplier" />
                         <p class="mt-1 text-xs text-slate-500">Select the supplier that will provide these items.</p>
-                        <x-select id="supplier_id" name="supplier_id" required>
+                        <x-select id="supplier_id" name="supplier_id" x-model="supplierId" x-on:change="supplierChanged()" required>
                             <option value="">Select supplier</option>
                             @foreach($suppliers as $supplier)
                                 <option value="{{ $supplier->id }}" @selected(old('supplier_id') == $supplier->id)>{{ $supplier->name }}</option>
@@ -81,7 +84,7 @@
                                         </button>
                                         <div x-cloak x-show="open" x-transition class="absolute z-20 mt-1 max-h-60 w-full overflow-y-auto rounded-xl border border-slate-200 bg-white p-1 shadow-xl dark:border-white/10 dark:bg-slate-800">
                                             <template x-for="opt in optionsFor(item)" :key="opt.id">
-                                                <button type="button" x-on:click="item.itemable_id = opt.id; open = false" class="flex w-full items-center gap-3 rounded-lg px-2.5 py-2 text-left text-sm text-slate-700 transition hover:bg-primary-50 hover:text-primary-800 dark:text-slate-200 dark:hover:bg-primary-500/10 dark:hover:text-primary-200">
+                                                <button type="button" x-on:click="chooseItem(item, opt); open = false" class="flex w-full items-center gap-3 rounded-lg px-2.5 py-2 text-left text-sm text-slate-700 transition hover:bg-primary-50 hover:text-primary-800 dark:text-slate-200 dark:hover:bg-primary-500/10 dark:hover:text-primary-200">
                                                     <template x-if="item.itemable_type === 'product' && opt.image_url">
                                                         <img :src="opt.image_url" :alt="opt.label" class="size-10 shrink-0 rounded-lg object-cover">
                                                     </template>

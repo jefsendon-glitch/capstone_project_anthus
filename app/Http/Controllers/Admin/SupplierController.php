@@ -15,7 +15,7 @@ class SupplierController extends Controller
     {
         $this->authorize('viewAny', Supplier::class);
 
-        $suppliers = Supplier::orderBy('name')->paginate(15);
+        $suppliers = Supplier::withCount(['consumables', 'purchaseOrders'])->orderBy('name')->paginate(15);
 
         return view('admin.suppliers.index', compact('suppliers'));
     }
@@ -57,6 +57,10 @@ class SupplierController extends Controller
     public function destroy(Supplier $supplier): RedirectResponse
     {
         $this->authorize('delete', $supplier);
+
+        if ($supplier->consumables()->exists() || $supplier->purchaseOrders()->exists()) {
+            return back()->with('error', 'This supplier has linked supplies or purchase orders. Set it inactive instead.');
+        }
 
         $supplier->delete();
 

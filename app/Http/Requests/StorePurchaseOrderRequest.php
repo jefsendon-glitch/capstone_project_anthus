@@ -19,7 +19,7 @@ class StorePurchaseOrderRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'supplier_id' => ['required', 'exists:suppliers,id'],
+            'supplier_id' => ['required', Rule::exists('suppliers', 'id')->where('is_active', true)],
             'ordered_at' => ['nullable', 'date'],
             'expected_date' => ['nullable', 'date'],
             'notes' => ['nullable', 'string', 'max:1000'],
@@ -48,6 +48,10 @@ class StorePurchaseOrderRequest extends FormRequest
 
                 if (! $exists) {
                     $validator->errors()->add("items.{$index}.itemable_id", 'Select a current '.$type.' from the list.');
+                }
+
+                if ($type === 'consumable' && Consumable::whereKey($id)->whereNotNull('supplier_id')->where('supplier_id', '!=', $this->input('supplier_id'))->exists()) {
+                    $validator->errors()->add("items.{$index}.itemable_id", 'This supply belongs to another supplier.');
                 }
             }
         });

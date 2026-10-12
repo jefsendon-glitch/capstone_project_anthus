@@ -13,6 +13,7 @@ $statusColors = ['draft' => 'slate', 'ordered' => 'primary', 'partially_received
 
     <x-card class="mb-6">
         <form method="GET" class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+ <input type="hidden" name="supplier_id" value="{{ request('supplier_id') }}">
             <div>
                 <x-input-label for="date_from" value="Ordered from" />
                 <x-text-input id="date_from" type="text" name="date_from" data-flatpickr :value="$dateFrom" placeholder="Start date" />

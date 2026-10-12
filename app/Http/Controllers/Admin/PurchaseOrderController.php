@@ -34,6 +34,7 @@ class PurchaseOrderController extends Controller
         $dateTo = request('date_to');
         $purchaseOrders = PurchaseOrder::with('supplier')
             ->withCount('items')
+            ->when(request('supplier_id'), fn ($query) => $query->where('supplier_id', request('supplier_id')))
             ->when($dateFrom, fn ($query) => $query->whereDate('ordered_at', '>=', $dateFrom))
             ->when($dateTo, fn ($query) => $query->whereDate('ordered_at', '<=', $dateTo))
             ->latest()
@@ -47,7 +48,11 @@ class PurchaseOrderController extends Controller
     {
         $this->authorize('create', PurchaseOrder::class);
 
+        $selectedSupply = Consumable::with('supplier')->find(request('consumable_id'));
+
         return view('admin.purchase-orders.create', [
+            'selectedSupply' => $selectedSupply,
+            'selectedSupplierId' => $selectedSupply?->supplier_id ?? request('supplier_id'),
             'suppliers' => Supplier::active()->orderBy('name')->get(),
             'products' => Product::where('category', 'container')->orderBy('name')->get(),
             'consumables' => Consumable::orderBy('name')->get(),
@@ -105,7 +110,7 @@ class PurchaseOrderController extends Controller
         return view('admin.purchase-orders.edit', [
             'purchaseOrder' => $purchase_order,
             'suppliers' => Supplier::active()->orderBy('name')->get(),
-            'products' => Product::orderBy('name')->get(),
+            'products' => Product::where('category', 'container')->orderBy('name')->get(),
             'consumables' => Consumable::orderBy('name')->get(),
         ]);
     }

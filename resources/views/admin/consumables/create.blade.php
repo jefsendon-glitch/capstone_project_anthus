@@ -53,7 +53,7 @@
                 <x-select id="supplier_id" name="supplier_id" data-tom-select>
                     <option value="">— None —</option>
                     @foreach(\App\Models\Supplier::active()->orderBy('name')->get() as $supplier)
-                        <option value="{{ $supplier->id }}" @selected(old('supplier_id') == $supplier->id)>{{ $supplier->name }}</option>
+                        <option value="{{ $supplier->id }}" @selected(old('supplier_id', request('supplier_id')) == $supplier->id)>{{ $supplier->name }}</option>
                     @endforeach
                 </x-select>
                 <x-input-error :messages="$errors->get('supplier_id')" />

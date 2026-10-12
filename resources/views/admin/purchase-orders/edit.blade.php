@@ -7,6 +7,7 @@
     ])->values();
 
     $purchaseOrderFormData = [
+        'supplier_id' => old('supplier_id', $purchaseOrder->supplier_id),
         'products' => $products->map(fn ($product) => [
             'id' => $product->id,
             'label' => $product->name.' ('.$product->size.')',
@@ -14,8 +15,10 @@
         'consumables' => $consumables->map(fn ($consumable) => [
             'id' => $consumable->id,
             'label' => $consumable->name,
+            'supplier_id' => $consumable->supplier_id,
+            'unit_cost' => (float) $consumable->unit_cost,
         ])->values(),
-        'items' => $initialItems,
+        'items' => old('items', $initialItems),
     ];
 @endphp
 
@@ -30,7 +33,7 @@
                 <div class="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
                     <div>
                         <x-input-label for="supplier_id" value="Supplier" />
-                        <x-select id="supplier_id" name="supplier_id" required>
+                        <x-select id="supplier_id" name="supplier_id" x-model="supplierId" x-on:change="supplierChanged()" required>
                             @foreach($suppliers as $supplier)
                                 <option value="{{ $supplier->id }}" @selected(old('supplier_id', $purchaseOrder->supplier_id) == $supplier->id)>{{ $supplier->name }}</option>
                             @endforeach
@@ -59,15 +62,15 @@
                         <template x-for="(item, index) in items" :key="index">
                             <div class="grid gap-3 rounded-2xl border border-slate-200/80 bg-slate-50/80 p-4 shadow-sm dark:border-white/10 dark:bg-white/5 sm:grid-cols-12">
                                 <div class="sm:col-span-3">
-                                    <x-select x-model="item.itemable_type" x-bind:name="'items['+index+'][itemable_type]'">
+                                    <x-select x-model="item.itemable_type" x-on:change="item.itemable_id = ''; item.unit_cost = 0" x-bind:name="'items['+index+'][itemable_type]'">
                                         <option value="product">Product</option>
                                         <option value="consumable">Supply</option>
                                     </x-select>
                                 </div>
                                 <div class="sm:col-span-4">
-                                    <x-select x-model="item.itemable_id" x-bind:name="'items['+index+'][itemable_id]'">
+                                    <x-select x-model="item.itemable_id" x-on:change="if (selectedItem(item)) chooseItem(item, selectedItem(item))" x-bind:name="'items['+index+'][itemable_id]'">
                                         <option value="">Select item</option>
-                                        <template x-for="opt in (item.itemable_type === 'product' ? products : consumables)" :key="opt.id">
+                                        <template x-for="opt in optionsFor(item)" :key="opt.id">
                                             <option :value="opt.id" x-text="opt.label"></option>
                                         </template>
                                     </x-select>

@@ -40,7 +40,7 @@ test('new inventory independently tracks stock, customer loans and returns', fun
         'gallons_produced' => 6, 'produced_by' => $this->admin->id,
     ]);
     $this->assertDatabaseCount('water_production_logs', 1);
-    $this->get(route('admin.water-production.index'))->assertOk()->assertSee('Gallon Inventory');
+    $this->get(route('admin.water-production.index'))->assertOk()->assertSee('Gallon Tracking');
     $this->assertDatabaseCount('gallon_stocks', 0);
     $this->get(route('admin.inventory.gallon-inventory'))->assertOk()->assertSee('Station-Owned Gallon Containers');
     $this->post(route('admin.inventory.gallon-inventory.move'), [
