@@ -75,6 +75,23 @@
                                         <x-input-label for="edit-size-{{ $gallon->id }}" value="Size" />
                                         <x-text-input id="edit-size-{{ $gallon->id }}" name="size" :value="(string) old('edit_gallon_id') === (string) $gallon->id ? old('size', $gallon->size) : $gallon->size" maxlength="100" required />
                                     </div>
+                                    <div>
+                                        <x-input-label for="quantity-action-{{ $gallon->id }}" value="Adjust quantity" />
+                                        <x-select id="quantity-action-{{ $gallon->id }}" name="quantity_action">
+                                            @foreach(['' => 'Keep current quantity', 'increase' => 'Increase empty gallons', 'decrease' => 'Decrease empty gallons'] as $value => $label)
+                                                <option value="{{ $value }}" @selected((string) old('edit_gallon_id') === (string) $gallon->id && old('quantity_action', '') === $value)>{{ $label }}</option>
+                                            @endforeach
+                                        </x-select>
+                                    </div>
+                                    <div>
+                                        <x-input-label for="adjustment-quantity-{{ $gallon->id }}" value="Quantity to increase / decrease" />
+                                        <x-text-input id="adjustment-quantity-{{ $gallon->id }}" name="adjustment_quantity" type="number" min="1" max="1000000" :value="(string) old('edit_gallon_id') === (string) $gallon->id ? old('adjustment_quantity') : ''" />
+                                        <p class="mt-1 text-xs text-slate-500">{{ number_format($gallon->empty) }} empty gallons available. Adjustments also update Total Gallons.</p>
+                                    </div>
+                                    <div>
+                                        <x-input-label for="adjustment-notes-{{ $gallon->id }}" value="Adjustment notes / reason" />
+                                        <x-textarea id="adjustment-notes-{{ $gallon->id }}" name="adjustment_notes" rows="2" maxlength="1000">{{ (string) old('edit_gallon_id') === (string) $gallon->id ? old('adjustment_notes') : '' }}</x-textarea>
+                                    </div>
                                     <x-button type="submit">Save Changes</x-button>
                                 </form>
                             </details>

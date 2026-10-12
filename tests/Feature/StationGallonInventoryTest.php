@@ -72,6 +72,40 @@ test('admin can edit registered gallon details while preserving inventory', func
     $this->assertDatabaseHas('station_gallons', ['id' => $id, 'name' => 'Slim']);
 });
 
+test('edit quantity adjustments update totals and reject excessive deductions atomically', function () {
+    $this->actingAs($this->admin)->post(route('admin.inventory.gallon-inventory.store'), [
+        'name' => 'Round', 'size' => '5 gallons', 'quantity' => 10,
+    ])->assertSessionHasNoErrors();
+    $id = DB::table('station_gallons')->value('id');
+    $url = route('admin.inventory.gallon-inventory.update', $id);
+    $details = ['name' => 'Round', 'size' => '5 gallons', 'edit_gallon_id' => $id];
+
+    $this->patch($url, $details + ['quantity_action' => 'increase', 'adjustment_quantity' => 5])
+        ->assertSessionHasNoErrors();
+    $this->assertDatabaseHas('station_gallons', ['id' => $id, 'empty' => 15]);
+    $this->get(route('admin.inventory.gallon-inventory'))
+        ->assertSee('Total Gallons</p><p class="text-xl font-semibold tabular-nums">15</p>', false);
+
+    $this->patch($url, $details + ['quantity_action' => 'decrease', 'adjustment_quantity' => 15, 'adjustment_notes' => 'Opening count correction'])
+        ->assertSessionHasNoErrors();
+    $this->assertDatabaseHas('station_gallons', ['id' => $id, 'empty' => 0]);
+    $this->assertDatabaseHas('station_gallon_movements', [
+        'station_gallon_id' => $id, 'action' => 'decrease', 'from_status' => 'empty',
+        'to_status' => 'removed', 'quantity' => 15, 'notes' => 'Opening count correction',
+    ]);
+    $this->get(route('admin.inventory.gallon-inventory'))
+        ->assertSee('Total Gallons</p><p class="text-xl font-semibold tabular-nums">0</p>', false);
+
+    $this->patch($url, ['name' => 'Changed', 'size' => '5 gallons', 'quantity_action' => 'decrease', 'adjustment_quantity' => 1])
+        ->assertSessionHasErrors('adjustment_quantity');
+    $this->assertDatabaseHas('station_gallons', ['id' => $id, 'name' => 'Round', 'empty' => 0]);
+    foreach ([null, 0, -1, 1.5, 1000001] as $quantity) {
+        $this->patch($url, $details + ['quantity_action' => 'increase', 'adjustment_quantity' => $quantity])
+            ->assertSessionHasErrors('adjustment_quantity');
+    }
+    $this->assertDatabaseCount('station_gallon_movements', 3);
+});
+
 test('old module is removed and new inventory is admin only', function () {
     $this->actingAs($this->admin)->get('/admin/gallon-stocks')->assertNotFound();
     $this->actingAs($this->customer)->get(route('admin.inventory.gallon-inventory'))->assertForbidden();

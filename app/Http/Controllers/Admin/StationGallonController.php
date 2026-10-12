@@ -55,13 +55,30 @@ class StationGallonController extends Controller
         $data = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'size' => ['required', 'string', 'max:100'],
+            'quantity_action' => ['nullable', Rule::in(['increase', 'decrease'])],
+            'adjustment_quantity' => ['nullable', 'required_with:quantity_action', 'integer', 'min:1', 'max:1000000'],
+            'adjustment_notes' => ['nullable', 'string', 'max:1000'],
         ]);
 
-        DB::table('station_gallons')->where('id', $gallon)->update([
-            'name' => $data['name'],
-            'size' => $data['size'],
-            'updated_at' => now(),
-        ]);
+        DB::transaction(function () use ($request, $data, $gallon) {
+            $stock = DB::table('station_gallons')->where('id', $gallon)->lockForUpdate()->first();
+            abort_unless($stock, 404);
+            $changes = ['name' => $data['name'], 'size' => $data['size'], 'updated_at' => now()];
+            if (! empty($data['quantity_action'])) {
+                $quantity = (int) $data['adjustment_quantity'];
+                $decrease = $data['quantity_action'] === 'decrease';
+                if ($decrease && $quantity > $stock->empty) {
+                    throw ValidationException::withMessages([
+                        'adjustment_quantity' => 'Not enough empty gallons available to decrease by this quantity.',
+                    ]);
+                }
+                $changes['empty'] = $stock->empty + ($decrease ? -$quantity : $quantity);
+                $this->record($gallon, $decrease ? 'decrease' : 'add', $decrease ? 'empty' : null,
+                    $decrease ? 'removed' : 'empty', $quantity, $request->user()->id, null,
+                    $data['adjustment_notes'] ?? 'Quantity adjusted from container inventory.');
+            }
+            DB::table('station_gallons')->where('id', $gallon)->update($changes);
+        });
 
         return back()->with('success', 'Registered gallon updated successfully.');
     }
