@@ -106,6 +106,40 @@ test('edit quantity adjustments update totals and reject excessive deductions at
     $this->assertDatabaseCount('station_gallon_movements', 3);
 });
 
+test('reset requires confirmation and admin access and supports history or entire inventory', function () {
+    $this->actingAs($this->admin)->post(route('admin.inventory.gallon-inventory.store'), [
+        'name' => 'Round', 'size' => '5 gallons', 'quantity' => 10,
+    ])->assertSessionHasNoErrors();
+    $id = DB::table('station_gallons')->value('id');
+    foreach (['fill', 'release'] as $action) {
+        $this->post(route('admin.inventory.gallon-inventory.move'), [
+            'gallon_id' => $id, 'action' => $action, 'quantity' => 2, 'customer_id' => $this->customer->id,
+        ])->assertSessionHasNoErrors();
+    }
+    $url = route('admin.inventory.gallon-inventory.reset');
+    $this->delete($url, ['reset_scope' => 'all'])->assertSessionHasErrors('reset_confirmation');
+    $this->delete($url, ['reset_scope' => 'invalid', 'reset_confirmation' => 'RESET'])->assertSessionHasErrors('reset_scope');
+    $this->assertDatabaseCount('station_gallon_movements', 3);
+    $this->actingAs($this->customer)->delete($url, ['reset_scope' => 'all', 'reset_confirmation' => 'RESET'])->assertForbidden();
+    $this->assertDatabaseCount('station_gallons', 1);
+
+    $this->actingAs($this->admin)->delete($url, ['reset_scope' => 'history', 'reset_confirmation' => 'RESET'])
+        ->assertRedirect(route('admin.inventory.gallon-inventory'))->assertSessionHasNoErrors();
+    $this->assertDatabaseCount('station_gallon_movements', 0);
+    $this->assertDatabaseHas('station_gallons', ['id' => $id, 'empty' => 8, 'borrowed' => 2]);
+    $this->assertDatabaseHas('station_gallon_loans', ['station_gallon_id' => $id, 'quantity' => 2]);
+
+    $this->delete($url, ['reset_scope' => 'all', 'reset_confirmation' => 'RESET'])->assertSessionHasNoErrors();
+    $this->assertDatabaseCount('station_gallon_movements', 0);
+    $this->assertDatabaseCount('station_gallon_loans', 0);
+    $this->assertDatabaseCount('station_gallons', 0);
+    $this->assertDatabaseHas('users', ['id' => $this->customer->id]);
+    $this->post(route('admin.inventory.gallon-inventory.store'), [
+        'name' => 'Slim', 'size' => '5 gallons', 'quantity' => 3,
+    ])->assertSessionHasNoErrors();
+    $this->assertDatabaseHas('station_gallons', ['name' => 'Slim', 'empty' => 3]);
+});
+
 test('old module is removed and new inventory is admin only', function () {
     $this->actingAs($this->admin)->get('/admin/gallon-stocks')->assertNotFound();
     $this->actingAs($this->customer)->get(route('admin.inventory.gallon-inventory'))->assertForbidden();

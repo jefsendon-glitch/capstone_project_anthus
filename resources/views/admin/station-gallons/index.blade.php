@@ -1,7 +1,25 @@
 <x-layouts.app title="Gallon Inventory" :heading="'Gallon Inventory'">
-    <div class="mb-3">
+    <div class="mb-3 flex flex-wrap items-start justify-between gap-2">
+        <div>
         <h2 class="text-xl font-bold text-slate-900 dark:text-white">Station-Owned Gallon Containers</h2>
         <p class="mt-1 text-sm text-slate-500">Shuanti Water Refilling Station — container inventory, customer borrowing, and movement records.</p>
+        </div>
+        <details class="w-full rounded-lg border border-red-200 p-2 sm:w-80 dark:border-red-900" @if($errors->has('reset_scope') || $errors->has('reset_confirmation')) open @endif>
+            <summary class="cursor-pointer text-xs font-semibold text-red-600 dark:text-red-400">Reset Records</summary>
+            <form method="POST" action="{{ route('admin.inventory.gallon-inventory.reset') }}" class="mt-2 space-y-2" onsubmit="return confirm('Clear the selected gallon records? This cannot be undone.')">
+                @csrf
+                @method('DELETE')
+                <x-input-label for="reset-scope" value="Records to reset" />
+                <x-select id="reset-scope" name="reset_scope" required>
+                    <option value="history" @selected(old('reset_scope', 'history') === 'history')>Movement history only</option>
+                    <option value="all" @selected(old('reset_scope') === 'all')>Entire gallon inventory</option>
+                </x-select>
+                <p class="text-xs text-slate-500">History only keeps stock and customer loans. Entire inventory deletes all gallon types, quantities, customer loans, and movements; totals return to zero. This cannot be undone.</p>
+                <x-input-label for="reset-confirmation" value="Type RESET to confirm" />
+                <x-text-input id="reset-confirmation" name="reset_confirmation" placeholder="RESET" pattern="RESET" autocomplete="off" required />
+                <x-button type="submit" variant="danger" class="!px-3 !py-1.5 !text-xs">Reset Records</x-button>
+            </form>
+        </details>
     </div>
 
     <div class="mb-3 grid grid-cols-2 gap-2 sm:grid-cols-4 xl:grid-cols-7">

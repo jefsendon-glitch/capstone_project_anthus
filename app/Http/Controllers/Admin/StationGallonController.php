@@ -83,6 +83,28 @@ class StationGallonController extends Controller
         return back()->with('success', 'Registered gallon updated successfully.');
     }
 
+    public function reset(Request $request)
+    {
+        $data = $request->validate([
+            'reset_scope' => ['required', Rule::in(['history', 'all'])],
+            'reset_confirmation' => ['required', Rule::in(['RESET'])],
+        ]);
+
+        DB::transaction(function () use ($data) {
+            DB::table('station_gallons')->orderBy('id')->lockForUpdate()->get();
+            DB::table('station_gallon_movements')->delete();
+            if ($data['reset_scope'] === 'all') {
+                DB::table('station_gallon_loans')->delete();
+                DB::table('station_gallons')->delete();
+            }
+        });
+
+        return redirect()->route('admin.inventory.gallon-inventory')->with('success',
+            $data['reset_scope'] === 'all'
+                ? 'Gallon inventory, customer loan records, and movement history reset successfully.'
+                : 'Gallon movement history cleared. Inventory quantities and customer loans preserved.');
+    }
+
     public function move(Request $request)
     {
         $data = $request->validate([

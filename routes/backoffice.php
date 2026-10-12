@@ -38,6 +38,7 @@ Route::middleware(['auth', 'role:admin|staff'])->group(function () {
             Route::get('inventory/gallon-inventory', [\App\Http\Controllers\Admin\StationGallonController::class, 'index'])->name('inventory.gallon-inventory');
             Route::post('inventory/gallon-inventory', [\App\Http\Controllers\Admin\StationGallonController::class, 'store'])->name('inventory.gallon-inventory.store');
             Route::post('inventory/gallon-inventory/movements', [\App\Http\Controllers\Admin\StationGallonController::class, 'move'])->name('inventory.gallon-inventory.move');
+            Route::delete('inventory/gallon-inventory/reset', [\App\Http\Controllers\Admin\StationGallonController::class, 'reset'])->name('inventory.gallon-inventory.reset');
             Route::patch('inventory/gallon-inventory/{gallon}', [\App\Http\Controllers\Admin\StationGallonController::class, 'update'])->whereNumber('gallon')->name('inventory.gallon-inventory.update');
         });
 
