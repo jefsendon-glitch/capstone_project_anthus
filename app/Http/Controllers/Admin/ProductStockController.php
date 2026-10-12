@@ -8,7 +8,6 @@ use App\Http\Requests\AdjustProductStockRequest;
 use App\Http\Requests\UpdateProductStockRequest;
 use App\Models\Product;
 use App\Models\StockMovement;
-use App\Models\WaterProductionLog;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -75,23 +74,13 @@ class ProductStockController extends Controller
 
     private function recordIncrease(Product $product, float $quantity, float $before, float $after, int $userId, ?string $notes = null): void
     {
-        if ($product->category !== 'container') {
-            WaterProductionLog::create([
-                'product_id' => $product->id,
-                'gallons_produced' => (int) $quantity,
-                'produced_by' => $userId,
-                'production_date' => today(),
-                'notes' => $notes ?? 'Automatically recorded from a water inventory increase.',
-            ]);
-        }
-
-        StockMovement::record($product, $product->category === 'container' ? 'restock' : 'production', $quantity, $before, $after, $userId, $notes);
+        StockMovement::record($product, 'restock', $quantity, $before, $after, $userId, $notes);
     }
 
     private function ensureWholeWaterQuantity(Product $product, float $quantity): void
     {
         if ($product->category !== 'container' && $quantity > 0 && floor($quantity) !== $quantity) {
-            throw ValidationException::withMessages(['quantity' => 'Water production must be recorded in whole gallons.']);
+            throw ValidationException::withMessages(['quantity' => 'Water product stock must use whole units.']);
         }
     }
 }
