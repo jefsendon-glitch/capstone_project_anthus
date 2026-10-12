@@ -7,9 +7,11 @@ use App\Http\Requests\QuickUpdateConsumableRequest;
 use App\Http\Requests\StoreConsumableRequest;
 use App\Http\Requests\UpdateConsumableRequest;
 use App\Models\Consumable;
+use App\Models\PurchaseOrderItem;
 use App\Models\StockMovement;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
 class ConsumableController extends Controller
@@ -17,6 +19,7 @@ class ConsumableController extends Controller
     public function index(): View
     {
         $this->authorize('viewAny', Consumable::class);
+        request()->validate(['supplier_id' => ['nullable', 'integer', 'exists:suppliers,id']]);
 
         $archived = request()->boolean('archived');
         $query = $archived ? Consumable::onlyTrashed() : Consumable::query();
@@ -24,7 +27,7 @@ class ConsumableController extends Controller
             ->when(request('supplier_id'), fn ($query) => $query->where('supplier_id', request('supplier_id')))
             ->orderBy('category')->orderBy('name')->paginate(15)->withQueryString();
 
-        $activeConsumables = Consumable::query();
+        $activeConsumables = Consumable::query()->when(request('supplier_id'), fn ($query) => $query->where('supplier_id', request('supplier_id')));
         $summary = [
             'totalSupplies' => (clone $activeConsumables)->count(),
             'totalStock' => (clone $activeConsumables)->sum('quantity'),
@@ -86,6 +89,7 @@ class ConsumableController extends Controller
     public function update(UpdateConsumableRequest $request, Consumable $consumable): RedirectResponse
     {
         DB::transaction(function () use ($request, $consumable) {
+            $consumable = Consumable::whereKey($consumable->id)->lockForUpdate()->firstOrFail();
             $data = $request->validated();
             $before = (float) $consumable->quantity;
             $after = (float) $data['quantity'];
@@ -111,10 +115,17 @@ class ConsumableController extends Controller
         ];
 
         DB::transaction(function () use ($request, $consumable, $field, $value, $adjustmentType) {
+            $consumable = Consumable::whereKey($consumable->id)->lockForUpdate()->firstOrFail();
             $before = (float) $consumable->{$field};
+            if ($field === 'quantity' && $adjustmentType === 'decrease' && $value > $before) {
+                throw ValidationException::withMessages(['value' => 'Cannot remove more stock than is available.']);
+            }
             $after = $field === 'quantity'
                 ? ($adjustmentType === 'decrease' ? max(0, $before - $value) : $before + $value)
                 : $value;
+            if ($after > 99999999.99) {
+                throw ValidationException::withMessages(['value' => 'The value exceeds the supply inventory limit.']);
+            }
             $consumable->update([$field => $after]);
 
             if ($field === 'quantity' && $before !== $after) {
@@ -155,6 +166,9 @@ class ConsumableController extends Controller
     {
         $consumable = Consumable::onlyTrashed()->findOrFail($consumable);
         $this->authorize('forceDelete', $consumable);
+        if (PurchaseOrderItem::where('itemable_type', $consumable->getMorphClass())->where('itemable_id', $consumable->id)->exists()) {
+            return back()->with('error', 'This supply is referenced by purchase orders. Keep it archived to preserve purchase history.');
+        }
         $consumable->forceDelete();
 
         return redirect()->route('admin.consumables.index', ['archived' => 1])

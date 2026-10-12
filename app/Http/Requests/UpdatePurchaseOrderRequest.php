@@ -13,17 +13,8 @@ class UpdatePurchaseOrderRequest extends StorePurchaseOrderRequest
 
     public function rules(): array
     {
-        return [
-            'supplier_id' => ['required', Rule::exists('suppliers', 'id')->where('is_active', true)],
+        return array_replace(parent::rules(), [
             'status' => ['required', Rule::in(['draft', 'ordered', 'cancelled'])],
-            'ordered_at' => ['nullable', 'date'],
-            'expected_date' => ['nullable', 'date'],
-            'notes' => ['nullable', 'string', 'max:1000'],
-            'items' => ['required', 'array', 'min:1'],
-            'items.*.itemable_type' => ['required', Rule::in(['product', 'consumable'])],
-            'items.*.itemable_id' => ['required', 'integer'],
-            'items.*.quantity_ordered' => ['required', 'numeric', 'min:0.01'],
-            'items.*.unit_cost' => ['required', 'numeric', 'min:0'],
-        ];
+        ]);
     }
 }

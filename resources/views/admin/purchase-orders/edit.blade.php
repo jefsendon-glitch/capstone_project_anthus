@@ -28,8 +28,14 @@
         <x-card>
             <form method="POST" action="{{ route('admin.purchase-orders.update', $purchaseOrder) }}" class="space-y-6">
                 @csrf
+                @if($errors->any())
+                    <div class="rounded-xl bg-red-50 p-4 text-sm text-red-700" role="alert">
+                        @foreach($errors->all() as $error)<p>{{ $error }}</p>@endforeach
+                    </div>
+                @endif
                 @method('put')
 
+                <div><x-input-label for="ordered_at" value="Order date" /><x-text-input id="ordered_at" name="ordered_at" type="date" :value="old('ordered_at', $purchaseOrder->ordered_at?->format('Y-m-d') ?? now()->toDateString())" required /><x-input-error :messages="$errors->get('ordered_at')" /></div>
                 <div class="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
                     <div>
                         <x-input-label for="supplier_id" value="Supplier" />
@@ -50,7 +56,7 @@
                         <x-input-error :messages="$errors->get('status')" />
                     </div>
                     <div>
-                        <x-input-label for="expected_date" value="Date (optional)" />
+                        <x-input-label for="expected_date" value="Expected delivery date" />
                         <x-text-input id="expected_date" type="text" name="expected_date" data-flatpickr :value="old('expected_date', $purchaseOrder->expected_date?->format('Y-m-d'))" />
                         <x-input-error :messages="$errors->get('expected_date')" />
                     </div>
@@ -76,7 +82,7 @@
                                     </x-select>
                                 </div>
                                 <div class="sm:col-span-2">
-                                    <x-text-input type="number" step="0.01" min="0.01" placeholder="Qty" x-model="item.quantity_ordered" x-bind:name="'items['+index+'][quantity_ordered]'" />
+                                    <x-text-input type="number" x-bind:step="item.itemable_type === 'product' ? 1 : 0.01" x-bind:min="item.itemable_type === 'product' ? 1 : 0.01" placeholder="Qty" x-model="item.quantity_ordered" x-bind:name="'items['+index+'][quantity_ordered]'" />
                                 </div>
                                 <div class="sm:col-span-2">
                                     <x-text-input type="number" step="0.01" min="0" placeholder="Unit cost" x-model="item.unit_cost" x-bind:name="'items['+index+'][unit_cost]'" />

@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Models\Product;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Validator;
@@ -17,8 +18,10 @@ class ReceivePurchaseOrderRequest extends FormRequest
     {
         return [
             'items' => ['required', 'array', 'min:1'],
+            'receipt_token' => ['nullable', 'uuid'],
+            'items.*' => ['required', 'array'],
             'items.*.purchase_order_item_id' => ['required', 'integer', 'distinct', Rule::exists('purchase_order_items', 'id')->where('purchase_order_id', $this->route('purchase_order')->id)],
-            'items.*.quantity_received' => ['required', 'numeric', 'min:0'],
+            'items.*.quantity_received' => ['required', 'numeric', 'decimal:0,2', 'min:0', 'max:9999999999.99'],
         ];
     }
 
@@ -34,10 +37,13 @@ class ReceivePurchaseOrderRequest extends FormRequest
                 $item = $items->get($line['purchase_order_item_id']);
                 $quantity = (float) $line['quantity_received'];
                 $total += $quantity;
+                if ($item->itemable instanceof Product && floor($quantity) !== $quantity) {
+                    $validator->errors()->add("items.{$index}.quantity_received", 'Receive containers in whole pieces.');
+                }
                 if ($quantity > $item->remaining_quantity) {
                     $validator->errors()->add("items.{$index}.quantity_received", 'Quantity exceeds the remaining order quantity.');
                 }
-                if ($quantity > 0 && ! $item->itemable) {
+                if ($quantity > 0 && (! $item->itemable || $item->itemable->trashed())) {
                     $validator->errors()->add("items.{$index}.quantity_received", 'Restore the archived item before receiving stock.');
                 }
             }

@@ -1,7 +1,7 @@
 <?php
 
-use App\Models\Product;
 use App\Models\Consumable;
+use App\Models\Product;
 use App\Models\PurchaseOrder;
 use App\Models\Staff;
 use App\Models\Supplier;
@@ -19,7 +19,7 @@ beforeEach(function () {
     Staff::factory()->create(['user_id' => $this->staffUser->id]);
 
     $this->supplier = Supplier::create(['name' => 'AquaParts Supply']);
-    $this->product = Product::factory()->create(['stock_quantity' => 10]);
+    $this->product = Product::factory()->create(['category' => 'container', 'stock_quantity' => 10]);
 });
 
 test('purchase orders reject supplies assigned to another supplier', function () {

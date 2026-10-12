@@ -29,11 +29,11 @@ class PurchaseOrderItem extends Model
 
     public function itemable(): MorphTo
     {
-        return $this->morphTo();
+        return $this->morphTo()->withTrashed();
     }
 
     public function getRemainingQuantityAttribute(): float
     {
-        return max(0, (float) $this->quantity_ordered - (float) $this->quantity_received);
+        return max(0, round((float) $this->quantity_ordered - (float) $this->quantity_received, 2));
     }
 }

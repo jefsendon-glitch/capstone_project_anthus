@@ -2,8 +2,8 @@
 
 use App\Http\Controllers\Admin\CustomerController;
 use App\Http\Controllers\Admin\DashboardController;
-use App\Http\Controllers\Admin\PurchaseOrderController;
 use App\Http\Controllers\Admin\ProcurementController;
+use App\Http\Controllers\Admin\PurchaseOrderController;
 use App\Http\Controllers\Admin\ReportsController;
 use App\Http\Controllers\Admin\StaffController;
 use App\Http\Controllers\Admin\SupplierController;
@@ -22,6 +22,7 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::get('procurement/reorders', [ProcurementController::class, 'reorders'])->name('procurement.reorders');
     Route::get('procurement/history', [ProcurementController::class, 'history'])->name('procurement.history');
     Route::post('purchase-orders/{purchase_order}/receive', [PurchaseOrderReceiptController::class, 'store'])->name('purchase-orders.receive');
+    Route::post('purchase-orders/{purchase_order}/cancel', [PurchaseOrderController::class, 'cancel'])->name('purchase-orders.cancel');
 
     Route::get('/reports', [ReportsController::class, 'index'])->name('reports.index');
 });

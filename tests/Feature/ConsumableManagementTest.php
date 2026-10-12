@@ -119,7 +119,7 @@ test('consumable stock report only shows the selected stock status', function ()
         ->assertDontSee('Empty Sanitizer');
 });
 
-test('admin can quick-update whole-number consumable values', function () {
+test('admin can quick-update stock and decimal consumable costs', function () {
     $consumable = Consumable::factory()->create(['quantity' => 10, 'low_stock_threshold' => 5, 'unit_cost' => 12]);
 
     $this->actingAs($this->admin)->post(route('admin.consumables.quick-update', $consumable), [
@@ -140,5 +140,6 @@ test('admin can quick-update whole-number consumable values', function () {
     $this->actingAs($this->admin)->post(route('admin.consumables.quick-update', $consumable), [
         'field' => 'unit_cost',
         'value' => 12.5,
-    ])->assertSessionHasErrors('value');
+    ])->assertSessionHasNoErrors();
+    expect((float) $consumable->fresh()->unit_cost)->toBe(12.5);
 });

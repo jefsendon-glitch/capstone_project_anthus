@@ -58,7 +58,7 @@ class SupplierController extends Controller
     {
         $this->authorize('delete', $supplier);
 
-        if ($supplier->consumables()->exists() || $supplier->purchaseOrders()->exists()) {
+        if ($supplier->consumables()->withTrashed()->exists() || $supplier->purchaseOrders()->exists()) {
             return back()->with('error', 'This supplier has linked supplies or purchase orders. Set it inactive instead.');
         }
 

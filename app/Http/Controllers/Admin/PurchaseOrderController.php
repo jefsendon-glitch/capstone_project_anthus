@@ -12,6 +12,8 @@ use App\Models\Supplier;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Redirect;
+use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
 class PurchaseOrderController extends Controller
@@ -25,10 +27,18 @@ class PurchaseOrderController extends Controller
     {
         $this->authorize('viewAny', PurchaseOrder::class);
 
+        request()->validate([
+            'supplier_id' => ['nullable', 'integer', 'exists:suppliers,id'],
+            'status' => ['nullable', 'in:draft,ordered,partially_received,received,cancelled'],
+            'date_from' => ['nullable', 'date'],
+            'date_to' => array_filter(['nullable', 'date', request()->filled('date_from') ? 'after_or_equal:date_from' : null]),
+        ]);
+
         $dateFrom = request('date_from');
         $dateTo = request('date_to');
         $purchaseOrders = PurchaseOrder::with('supplier')
             ->withCount('items')
+            ->when(request('status'), fn ($query) => $query->where('status', request('status')))
             ->when(request('supplier_id'), fn ($query) => $query->where('supplier_id', request('supplier_id')))
             ->when($dateFrom, fn ($query) => $query->whereDate('ordered_at', '>=', $dateFrom))
             ->when($dateTo, fn ($query) => $query->whereDate('ordered_at', '<=', $dateTo))
@@ -36,12 +46,19 @@ class PurchaseOrderController extends Controller
             ->paginate(15)
             ->withQueryString();
 
-        return view('admin.purchase-orders.index', compact('purchaseOrders', 'dateFrom', 'dateTo'));
+        return view('admin.purchase-orders.index', compact('purchaseOrders', 'dateFrom', 'dateTo') + [
+            'suppliers' => Supplier::orderBy('name')->get(),
+        ]);
     }
 
     public function create(): View
     {
         $this->authorize('create', PurchaseOrder::class);
+
+        request()->validate([
+            'supplier_id' => ['nullable', 'integer', 'exists:suppliers,id'],
+            'consumable_id' => ['nullable', 'integer', 'exists:consumables,id'],
+        ]);
 
         $selectedSupply = Consumable::with('supplier')->find(request('consumable_id'));
 
@@ -62,7 +79,7 @@ class PurchaseOrderController extends Controller
             $purchaseOrder = PurchaseOrder::create([
                 'po_number' => $this->generatePoNumber(),
                 'supplier_id' => $validated['supplier_id'],
-                'status' => 'ordered',
+                'status' => $validated['status'] ?? 'ordered',
                 'ordered_at' => $validated['ordered_at'] ?? now()->toDateString(),
                 'expected_date' => $validated['expected_date'] ?? null,
                 'notes' => $validated['notes'] ?? null,
@@ -113,10 +130,14 @@ class PurchaseOrderController extends Controller
         $validated = $request->validated();
 
         DB::transaction(function () use ($validated, $purchase_order) {
+            $purchase_order = PurchaseOrder::whereKey($purchase_order->id)->lockForUpdate()->firstOrFail();
+            if ($purchase_order->status !== 'draft') {
+                throw ValidationException::withMessages(['status' => 'Only draft purchase orders can be edited.']);
+            }
             $purchase_order->update([
                 'supplier_id' => $validated['supplier_id'],
                 'status' => $validated['status'],
-                'ordered_at' => $validated['ordered_at'] ?? null,
+                'ordered_at' => $validated['ordered_at'] ?? $purchase_order->ordered_at ?? now()->toDateString(),
                 'expected_date' => $validated['expected_date'] ?? null,
                 'notes' => $validated['notes'] ?? null,
             ]);
@@ -136,7 +157,13 @@ class PurchaseOrderController extends Controller
             return redirect()->route('admin.purchase-orders.index')->with('error', 'Only draft purchase orders can be deleted.');
         }
 
-        $purchase_order->delete();
+        DB::transaction(function () use ($purchase_order) {
+            $purchase_order = PurchaseOrder::whereKey($purchase_order->id)->lockForUpdate()->firstOrFail();
+            if ($purchase_order->status !== 'draft') {
+                throw ValidationException::withMessages(['status' => 'Only draft purchase orders can be deleted.']);
+            }
+            $purchase_order->delete();
+        });
 
         return redirect()->route('admin.purchase-orders.index')->with('success', 'Purchase order deleted successfully.');
     }
@@ -155,9 +182,20 @@ class PurchaseOrderController extends Controller
 
     private function generatePoNumber(): string
     {
-        $today = now()->format('Ymd');
-        $sequence = PurchaseOrder::where('po_number', 'like', "PO-{$today}-%")->count() + 1;
+        return 'PO-'.now()->format('Ymd').'-'.Str::ulid();
+    }
 
-        return sprintf('PO-%s-%03d', $today, $sequence);
+    public function cancel(PurchaseOrder $purchase_order): RedirectResponse
+    {
+        $this->authorize('update', $purchase_order);
+        DB::transaction(function () use ($purchase_order) {
+            $order = PurchaseOrder::whereKey($purchase_order->id)->lockForUpdate()->firstOrFail();
+            if (! in_array($order->status, ['draft', 'ordered'], true) || $order->items()->where('quantity_received', '>', 0)->exists()) {
+                throw ValidationException::withMessages(['status' => 'Only unreceived orders can be cancelled.']);
+            }
+            $order->update(['status' => 'cancelled']);
+        });
+
+        return redirect()->route('admin.purchase-orders.show', $purchase_order)->with('success', 'Purchase order cancelled.');
     }
 }

@@ -11,6 +11,8 @@
                 </div>
                 <form method="POST" action="{{ route('admin.purchase-orders.receive', $order) }}">
                     @csrf
+                    <input type="hidden" name="receipt_token" value="{{ old('receipt_order_id') == $order->id ? old('receipt_token', (string) \Illuminate\Support\Str::uuid()) : \Illuminate\Support\Str::uuid() }}">
+                    <input type="hidden" name="receipt_order_id" value="{{ $order->id }}">
                     <div class="overflow-x-auto"><table class="mb-4 min-w-full text-left text-sm">
                         <thead><tr class="text-slate-500"><th class="py-2">Supply / Material</th><th>Ordered</th><th>Received</th><th>Remaining</th><th>Delivered now</th></tr></thead>
                         <tbody>
@@ -18,7 +20,7 @@
                                 @if($item->remaining_quantity > 0)
                                     <tr class="border-t border-slate-200 dark:border-white/10">
                                         <td class="py-3">{{ $item->itemable?->name ?? 'Archived or deleted item' }}</td><td>{{ number_format($item->quantity_ordered, 2) }}</td><td>{{ number_format($item->quantity_received, 2) }}</td><td>{{ number_format($item->remaining_quantity, 2) }}</td>
-                                        <td class="w-40"><input type="hidden" name="items[{{ $loop->index }}][purchase_order_item_id]" value="{{ $item->id }}"><x-text-input type="number" step="0.01" min="0" :max="$item->remaining_quantity" name="items[{{ $loop->index }}][quantity_received]" value="0" required /></td>
+                                        <td class="w-40"><input type="hidden" name="items[{{ $loop->index }}][purchase_order_item_id]" value="{{ $item->id }}"><x-text-input type="number" :step="$item->itemable_type === \App\Models\Product::class ? 1 : 0.01" min="0" :max="$item->remaining_quantity" name="items[{{ $loop->index }}][quantity_received]" :value="old('receipt_order_id') == $order->id ? old('items.'.$loop->index.'.quantity_received', 0) : 0" required /></td>
                                     </tr>
                                 @endif
                             @endforeach

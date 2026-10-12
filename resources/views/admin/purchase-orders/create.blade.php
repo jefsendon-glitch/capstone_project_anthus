@@ -27,7 +27,13 @@
         <x-card>
             <form method="POST" action="{{ route('admin.purchase-orders.store') }}" class="space-y-6">
                 @csrf
+                @if($errors->any())
+                    <div class="rounded-xl bg-red-50 p-4 text-sm text-red-700" role="alert">
+                        @foreach($errors->all() as $error)<p>{{ $error }}</p>@endforeach
+                    </div>
+                @endif
 
+                <div><x-input-label for="ordered_at" value="Order date" /><x-text-input id="ordered_at" name="ordered_at" type="date" :value="old('ordered_at', now()->toDateString())" required /><x-input-error :messages="$errors->get('ordered_at')" /></div>
                 <div class="grid gap-5 sm:grid-cols-2">
                     <div>
                         <x-input-label for="supplier_id" value="Supplier" />
@@ -41,8 +47,8 @@
                         <x-input-error :messages="$errors->get('supplier_id')" />
                     </div>
                     <div>
-                        <x-input-label for="expected_date" value="Date (optional)" />
-                        <p class="mt-1 text-xs text-slate-500">Record the relevant purchase-order date.</p>
+                        <x-input-label for="expected_date" value="Expected delivery date" />
+                        <p class="mt-1 text-xs text-slate-500">Choose the expected delivery date.</p>
                         <x-text-input id="expected_date" type="text" name="expected_date" data-flatpickr :value="old('expected_date')" />
                         <x-input-error :messages="$errors->get('expected_date')" />
                     </div>
@@ -50,13 +56,13 @@
 
                 <div>
                     <x-input-label value="Items to purchase" />
-                    <p class="mt-1 text-xs text-slate-500">Products increase product inventory. Supplies increase consumable inventory; container products also update gallon inventory.</p>
+                    <p class="mt-1 text-xs text-slate-500">Delivered supplies update supply stock. Delivered container products update product stock and matching station containers by name and size; a station entry is created when no match exists.</p>
                     <div class="mt-2 space-y-3">
                         <template x-for="(item, index) in items" :key="index">
                             <div class="grid gap-3 rounded-2xl border border-slate-200/80 bg-slate-50/80 p-4 shadow-sm dark:border-white/10 dark:bg-white/5 sm:grid-cols-12">
                                 <div class="sm:col-span-3">
                                     <label class="mb-1 block text-xs font-medium text-slate-500">Item type</label>
-                                    <x-select x-model="item.itemable_type" x-on:change="item.itemable_id = ''" x-bind:name="'items['+index+'][itemable_type]'">
+                                    <x-select x-model="item.itemable_type" x-on:change="item.itemable_id = ''; item.unit_cost = 0" x-bind:name="'items['+index+'][itemable_type]'">
                                         <option value="product">Product</option>
                                         <option value="consumable">Supply</option>
                                     </x-select>
@@ -99,7 +105,7 @@
                                 </div>
                                 <div class="sm:col-span-2">
                                     <label class="mb-1 block text-xs font-medium text-slate-500">Quantity</label>
-                                    <x-text-input type="number" step="0.01" min="0.01" placeholder="Qty" x-model="item.quantity_ordered" x-bind:name="'items['+index+'][quantity_ordered]'" />
+                                    <x-text-input type="number" x-bind:step="item.itemable_type === 'product' ? 1 : 0.01" x-bind:min="item.itemable_type === 'product' ? 1 : 0.01" placeholder="Qty" x-model="item.quantity_ordered" x-bind:name="'items['+index+'][quantity_ordered]'" />
                                 </div>
                                 <div class="sm:col-span-2">
                                     <label class="mb-1 block text-xs font-medium text-slate-500">Unit cost</label>
@@ -131,6 +137,7 @@
                     <span class="pt-0.5 text-xs text-primary-700 dark:text-primary-300">Record delivered quantities in Stock Receiving to update inventory. Partial deliveries remain open until all items are received.</span>
                 </div>
 
+                <div><x-input-label for="status" value="Order status" /><x-select id="status" name="status"><option value="ordered" @selected(old('status', 'ordered') === 'ordered')>Place order</option><option value="draft" @selected(old('status') === 'draft')>Save as draft</option></x-select></div>
                 <div class="flex justify-end gap-3">
                     <x-button as="a" href="{{ route('admin.purchase-orders.index') }}" variant="secondary">Cancel</x-button>
                     <x-button type="submit">Create Purchase Order</x-button>

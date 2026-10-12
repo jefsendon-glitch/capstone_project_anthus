@@ -43,6 +43,7 @@
             </div>
 
             <label class="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300">
+                <input type="hidden" name="is_active" value="0">
                 <input type="checkbox" name="is_active" value="1" @checked(old('is_active', $supplier->is_active)) class="rounded border-slate-300 text-primary-600 focus:ring-primary-600">
                 Active
             </label>

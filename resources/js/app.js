@@ -19,7 +19,7 @@ window.purchaseOrderForm = (payload) => {
         products: data.products ?? [],
         consumables: data.consumables ?? [],
         supplierId: String(data.supplier_id ?? ''),
-        items: data.items?.length ? data.items : [
+        items: Object.values(data.items ?? {}).length ? Object.values(data.items) : [
             { itemable_type: 'product', itemable_id: '', quantity_ordered: 1, unit_cost: 0 },
         ],
         addItem() {
