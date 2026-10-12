@@ -112,6 +112,11 @@ test('staff fulfilling an order on credit updates stock and the customers balanc
     $response->assertRedirect(route('deliveries.show', $order));
 
     expect($order->fresh()->status)->toBe('delivered');
+    $this->assertDatabaseHas('stock_movements', [
+        'movable_type' => $this->product->getMorphClass(), 'movable_id' => $this->product->id,
+        'type' => 'sale_deduction', 'quantity_before' => 50, 'quantity_after' => 47,
+        'quantity_delta' => -3, 'customer_id' => $this->customer->id,
+    ]);
     expect($this->product->fresh()->stock_quantity)->toBe(47);
     expect((float) $this->customer->fresh()->credit_balance)->toBe(75.0);
 

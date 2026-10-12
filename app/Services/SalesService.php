@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Product;
 use App\Models\SalesTransaction;
+use App\Models\StockMovement;
 use App\Models\User;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -96,7 +97,11 @@ class SalesService
                     'notes' => $data['notes'] ?? null,
                 ]));
 
+                $before = (float) $product->stock_quantity;
                 $product->decrement('stock_quantity', $line['quantity']);
+                StockMovement::record($product, 'sale_deduction', -$line['quantity'], $before,
+                    (float) $product->stock_quantity, $processedBy->id, $data['notes'] ?? 'POS sale', null,
+                    $customer?->id, $transactions->last()->transaction_code);
             }
 
             if ($data['payment_method'] === 'loan' && $customer) {

@@ -1,111 +1,48 @@
-@php
-$typeColors = [
-    'initial' => 'slate',
-    'restock' => 'success',
-    'production' => 'success',
-    'purchase_receive' => 'success',
-    'fill' => 'success',
-    'release' => 'primary',
-    'returned' => 'delivery',
-    'adjustment_increase' => 'warning',
-    'adjustment_decrease' => 'warning',
-    'damage' => 'danger',
-    'missing' => 'danger',
-    'sale_deduction' => 'primary',
-];
-$itemTypes = ['product' => 'Product', 'consumable' => 'Consumable', 'gallon_stock' => 'Gallon Stock'];
-$movementTypes = ['initial', 'restock', 'adjustment_increase', 'adjustment_decrease', 'damage', 'missing', 'returned', 'release', 'fill', 'sale_deduction', 'production', 'purchase_receive'];
-@endphp
-
-<x-layouts.app title="Stock Movement History" :heading="'Stock Movement History'">
-    <x-card class="mb-6">
-        <form method="GET" class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <div>
-                <x-input-label value="Item type" />
-                <x-select name="item_type">
-                    <option value="">All items</option>
-                    @foreach($itemTypes as $value => $label)
-                        <option value="{{ $value }}" @selected($itemType === $value)>{{ $label }}</option>
-                    @endforeach
-                </x-select>
-            </div>
-            <div>
-                <x-input-label value="Movement type" />
-                <x-select name="type">
-                    <option value="">All types</option>
-                    @foreach($movementTypes as $value)
-                        <option value="{{ $value }}" @selected($type === $value)>{{ ucfirst(str_replace('_', ' ', $value)) }}</option>
-                    @endforeach
-                </x-select>
-            </div>
-            <div>
-                <x-input-label value="From" />
-                <x-text-input type="text" name="date_from" data-flatpickr :value="$dateFrom" />
-            </div>
-            <div>
-                <x-input-label value="To" />
-                <x-text-input type="text" name="date_to" data-flatpickr :value="$dateTo" />
-            </div>
-            <div class="sm:col-span-2 lg:col-span-4 flex justify-end gap-3">
-                <x-button as="a" href="{{ route('admin.stock-movements.index') }}" variant="secondary">Reset</x-button>
-                <x-button type="submit">Filter</x-button>
-            </div>
+<x-layouts.app title="Stock Movements" :heading="'Stock Movements'">
+    <p class="mb-3 text-xs text-slate-500">Products, supplies, and gallon activity recorded by the system. Gallon transfers change location or condition; only additions and removals change total containers.</p>
+    @if($errors->any())
+        <div role="alert" class="mb-3 rounded-lg bg-red-50 p-3 text-sm text-red-700">@foreach($errors->all() as $error)<p>{{ $error }}</p>@endforeach</div>
+    @endif
+    <x-card padding="p-3" class="mb-3">
+        <form method="GET" class="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+            <div><x-input-label for="movement-item-type" value="Item Type" /><x-select id="movement-item-type" name="item_type"><option value="">All Items</option>@foreach($itemTypes as $value => $label)<option value="{{ $value }}" @selected(($filters['item_type'] ?? '') === $value)>{{ $label }}</option>@endforeach</x-select></div>
+            <div><x-input-label for="movement-type" value="Movement Type" /><x-select id="movement-type" name="type"><option value="">All Movements</option>@foreach($movementTypes as $value => $label)<option value="{{ $value }}" @selected(($filters['type'] ?? '') === $value)>{{ $label }}</option>@endforeach</x-select></div>
+            <div><x-input-label for="movement-from" value="From" /><x-text-input id="movement-from" type="date" name="date_from" :value="$filters['date_from'] ?? ''" /></div>
+            <div><x-input-label for="movement-to" value="To" /><x-text-input id="movement-to" type="date" name="date_to" :value="$filters['date_to'] ?? ''" /></div>
+            <div class="flex justify-end gap-2 sm:col-span-2 lg:col-span-4"><x-button as="a" href="{{ route('admin.stock-movements.index') }}" variant="secondary" class="!py-1.5">Clear Filters</x-button><x-button type="submit" class="!py-1.5">Filter</x-button></div>
         </form>
     </x-card>
-
-    <x-card padding="p-0">
-        @if($movements->isEmpty())
-            <div class="p-6">
-                <x-empty-state icon="swap" title="No stock movements yet" description="Every add, adjustment, restock, and receipt will show up here." />
-            </div>
-        @else
-            <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-slate-200 dark:divide-white/10">
-                    <thead>
-                        <tr class="text-left text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
-                            <th class="px-6 py-3">Item</th>
-                            <th class="px-6 py-3">Type</th>
-                            <th class="px-6 py-3">Before → After</th>
-                            <th class="px-6 py-3">Delta</th>
-                            <th class="px-6 py-3">Reason</th>
-                            <th class="px-6 py-3">Customer</th>
-                            <th class="px-6 py-3">Reference</th>
-                            <th class="px-6 py-3">By</th>
-                            <th class="px-6 py-3">Date</th>
+    <x-card padding="p-3">
+        <p class="mb-2 text-xs text-slate-500">{{ number_format($movements->total()) }} movement records</p>
+        <div class="overflow-x-auto">
+            <table class="min-w-full text-left text-xs">
+                <thead><tr class="border-b border-slate-200">@foreach(['Date', 'Item / Source', 'Movement', 'Stock / Location', 'Quantity', 'Net Change', 'Customer', 'Reference', 'Recorded By', 'Notes'] as $label)<th class="px-2 py-2">{{ $label }}</th>@endforeach</tr></thead>
+                <tbody>
+                    @forelse($movements as $movement)
+                        <tr class="border-b border-slate-100 dark:border-white/10">
+                            <td class="whitespace-nowrap px-2 py-2">{{ \Carbon\Carbon::parse($movement->created_at)->format('M d, Y g:i A') }}</td>
+                            <td class="px-2 py-2"><p class="font-medium">{{ $movement->item_name }} @if($movement->item_detail) / {{ $movement->item_detail }} @endif</p><p class="text-slate-500">{{ $itemTypes[$movement->item_type] ?? 'Other' }}</p></td>
+                            <td class="px-2 py-2">{{ $movementTypes[$movement->type] ?? ucfirst(str_replace('_', ' ', $movement->type)) }}</td>
+                            <td class="whitespace-nowrap px-2 py-2">
+                                @if($movement->item_type === 'station_gallon')
+                                    {{ ucfirst($movement->from_status ?? 'New') }} → {{ ucfirst($movement->to_status) }}
+                                @else
+                                    {{ $movement->quantity_before !== null ? number_format($movement->quantity_before, 2) : '—' }} → {{ $movement->quantity_after !== null ? number_format($movement->quantity_after, 2) : '—' }}
+                                @endif
+                            </td>
+                            <td class="px-2 py-2 tabular-nums">{{ number_format($movement->moved_quantity ?? abs($movement->quantity_delta), 2) }}</td>
+                            <td class="px-2 py-2 font-semibold tabular-nums {{ $movement->quantity_delta > 0 ? 'text-success-600' : ($movement->quantity_delta < 0 ? 'text-danger-600' : 'text-slate-500') }}">{{ $movement->quantity_delta > 0 ? '+' : '' }}{{ number_format($movement->quantity_delta, 2) }}</td>
+                            <td class="px-2 py-2">{{ $movement->customer_name ?? '—' }}</td>
+                            <td class="px-2 py-2 font-mono">{{ $movement->item_type === 'station_gallon' ? 'GAL-'.$movement->id : ($movement->reference_code ?? '—') }}</td>
+                            <td class="px-2 py-2">{{ $movement->recorded_by_name ?? '—' }}</td>
+                            <td class="min-w-40 px-2 py-2 text-slate-500">{{ $movement->notes ?? '—' }}</td>
                         </tr>
-                    </thead>
-                    <tbody class="divide-y divide-slate-100 dark:divide-white/5">
-                        @foreach($movements as $movement)
-                            <tr>
-                                <td class="px-6 py-3 text-sm font-medium text-slate-900 dark:text-white">
-                                    @if($movement->movable instanceof \App\Models\GallonStock)
-                                        {{ $movement->movable->product?->name }} — {{ $movement->movable->status_label }}
-                                    @else
-                                        {{ $movement->movable?->name ?? 'Deleted item' }}
-                                    @endif
-                                </td>
-                                <td class="px-6 py-3">
-                                    <x-badge :color="$typeColors[$movement->type] ?? 'slate'">{{ ucfirst(str_replace('_', ' ', $movement->type)) }}</x-badge>
-                                </td>
-                                <td class="px-6 py-3 font-mono text-sm text-slate-600 dark:text-slate-300">
-                                    {{ $movement->quantity_before ?? '—' }} → {{ $movement->quantity_after ?? '—' }}
-                                </td>
-                                <td class="px-6 py-3 font-mono text-sm font-semibold {{ $movement->quantity_delta >= 0 ? 'text-success-600' : 'text-danger-600' }}">
-                                    {{ $movement->quantity_delta >= 0 ? '+' : '' }}{{ rtrim(rtrim($movement->quantity_delta, '0'), '.') }}
-                                </td>
-                                <td class="max-w-xs px-6 py-3 text-sm text-slate-500 dark:text-slate-400">{{ $movement->notes ?? '—' }}</td>
-                                <td class="px-6 py-3 text-sm text-slate-500 dark:text-slate-400">{{ $movement->customer?->name ?? '—' }}</td>
-                                <td class="px-6 py-3 font-mono text-xs text-slate-500 dark:text-slate-400">{{ $movement->reference_code ?? '—' }}</td>
-                                <td class="px-6 py-3 text-sm text-slate-500 dark:text-slate-400">{{ $movement->recordedBy?->name ?? '—' }}</td>
-                                <td class="px-6 py-3 text-sm text-slate-500 dark:text-slate-400">{{ $movement->created_at->format('M d, Y g:i A') }}</td>
-                            </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-            </div>
-            <div class="border-t border-slate-100 px-6 py-4 dark:border-white/5">
-                {{ $movements->links() }}
-            </div>
-        @endif
+                    @empty
+                        <tr><td colspan="10" class="p-4 text-slate-500">No stock movements match these filters.</td></tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+        <div class="mt-3">{{ $movements->links() }}</div>
     </x-card>
 </x-layouts.app>

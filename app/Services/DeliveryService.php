@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\DeliveryOrder;
 use App\Models\Product;
 use App\Models\SalesTransaction;
+use App\Models\StockMovement;
 use App\Models\User;
 use App\Notifications\NewDeliveryOrderPlaced;
 use App\Notifications\OrderStatusUpdated;
@@ -179,7 +180,11 @@ class DeliveryService
                 'credit_status' => $paymentMethod === 'loan' ? 'outstanding' : 'not_applicable',
                 'processed_by' => $updatedBy->id,
                 ]);
+                $before = (float) $product->stock_quantity;
                 $product->decrement('stock_quantity', $item->quantity);
+                StockMovement::record($product, 'sale_deduction', -$item->quantity, $before,
+                    (float) $product->stock_quantity, $updatedBy->id, 'Delivery '.$order->order_code,
+                    null, $order->customer_id, $transaction->transaction_code);
             }
 
             if ($paymentMethod === 'loan') {

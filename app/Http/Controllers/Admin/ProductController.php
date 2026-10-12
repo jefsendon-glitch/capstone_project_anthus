@@ -52,6 +52,9 @@ class ProductController extends Controller
                 $quantity = (int) $product->stock_quantity;
                 $emptyStock->update(['quantity' => $quantity]);
                 StockMovement::record($emptyStock, 'initial', $quantity, 0, $quantity, $request->user()->id, 'Initial gallon inventory');
+            } elseif ($product->stock_quantity > 0) {
+                $quantity = (float) $product->stock_quantity;
+                StockMovement::record($product, 'initial', $quantity, 0, $quantity, $request->user()->id, 'Opening product stock');
             }
         });
 

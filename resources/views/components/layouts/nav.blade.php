@@ -65,13 +65,13 @@ $procurementActive = request()->routeIs('admin.suppliers*') || request()->routeI
         </button>
         <div x-show="open" x-transition x-bind:class="$store.sidebar.collapsed && 'lg:hidden'" class="space-y-1 py-1">
             <a href="{{ route('admin.suppliers.index') }}" class="flex items-center gap-3 rounded-xl py-2 pl-11 pr-3 text-sm font-medium {{ $navLink('admin.suppliers') }}">
-                <span>Suppliers</span>
-            </a>
-            <a href="{{ route('admin.purchase-orders.index') }}" class="flex items-center gap-3 rounded-xl py-2 pl-11 pr-3 text-sm font-medium {{ $navLink('admin.purchase-orders') }}">
-                <span>Purchase Orders</span>
+                <span>Supplier</span>
             </a>
             <a href="{{ route('admin.consumables.index') }}" class="flex items-center gap-3 rounded-xl py-2 pl-11 pr-3 text-sm font-medium {{ $navLink('admin.consumables') }}">
                 <span>Supplies</span>
+            </a>
+            <a href="{{ route('admin.purchase-orders.index') }}" class="flex items-center gap-3 rounded-xl py-2 pl-11 pr-3 text-sm font-medium {{ $navLink('admin.purchase-orders') }}">
+                <span>Purchase Orders</span>
             </a>
         </div>
     </div>

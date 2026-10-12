@@ -37,6 +37,11 @@ test('recording a cash walk-in sale decrements stock and creates a transaction c
     ]);
 
     $transaction = SalesTransaction::first();
+    $this->assertDatabaseHas('stock_movements', [
+        'movable_type' => $this->product->getMorphClass(), 'movable_id' => $this->product->id,
+        'type' => 'sale_deduction', 'quantity_before' => 100, 'quantity_after' => 97,
+        'quantity_delta' => -3, 'reference_code' => $transaction->transaction_code,
+    ]);
     expect($transaction->transaction_code)->toStartWith('TXN-');
     $response->assertRedirect(route('pos.receipt', ['codes' => $transaction->transaction_code]));
 });
