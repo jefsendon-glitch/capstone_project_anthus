@@ -140,6 +140,42 @@ test('reset requires confirmation and admin access and supports history or entir
     $this->assertDatabaseHas('station_gallons', ['name' => 'Slim', 'empty' => 3]);
 });
 
+test('monthly movement filter and report include only the selected month across pages', function () {
+    $this->actingAs($this->admin)->post(route('admin.inventory.gallon-inventory.store'), [
+        'name' => 'Round', 'size' => '5 gallons', 'quantity' => 10,
+    ])->assertSessionHasNoErrors();
+    $id = DB::table('station_gallons')->value('id');
+    DB::table('station_gallon_movements')->delete();
+    foreach (['2026-09-30 23:59:59', '2026-10-01 00:00:00', '2026-10-31 23:59:59', '2026-11-01 00:00:00'] as $date) {
+        DB::table('station_gallon_movements')->insert([
+            'station_gallon_id' => $id, 'action' => 'add', 'to_status' => 'empty',
+            'quantity' => 3, 'recorded_by' => $this->admin->id, 'notes' => 'Boundary '.$date,
+            'created_at' => $date, 'updated_at' => $date,
+        ]);
+    }
+    for ($i = 0; $i < 21; $i++) {
+        DB::table('station_gallon_movements')->insert([
+            'station_gallon_id' => $id, 'action' => 'fill', 'from_status' => 'empty', 'to_status' => 'filled',
+            'quantity' => 2, 'recorded_by' => $this->admin->id,
+            'created_at' => '2026-10-15 12:00:00', 'updated_at' => '2026-10-15 12:00:00',
+        ]);
+    }
+    $this->get(route('admin.inventory.gallon-inventory', ['month' => '2026-10']))
+        ->assertOk()->assertViewHas('movements', fn ($rows) => $rows->total() === 23)
+        ->assertSee('month=2026-10', false)->assertDontSee('Boundary 2026-11-01');
+    $this->get(route('admin.inventory.gallon-inventory.report', ['month' => '2026-10']))
+        ->assertOk()->assertSee('October 2026')
+        ->assertSee('Boundary 2026-10-01')->assertSee('Boundary 2026-10-31')
+        ->assertDontSee('Boundary 2026-09-30')->assertDontSee('Boundary 2026-11-01')
+        ->assertViewHas('movements', fn ($rows) => $rows->count() === 23)
+        ->assertViewHas('summary', fn ($summary) => $summary['add'] === 6 && $summary['fill'] === 42);
+    $this->get(route('admin.inventory.gallon-inventory.report', ['month' => '2026-08']))
+        ->assertOk()->assertSee('No gallon movements recorded');
+    $this->get(route('admin.inventory.gallon-inventory', ['month' => '2026-13']))->assertSessionHasErrors('month');
+    $this->get(route('admin.inventory.gallon-inventory.report'))->assertSessionHasErrors('month');
+    $this->actingAs($this->customer)->get(route('admin.inventory.gallon-inventory.report', ['month' => '2026-10']))->assertForbidden();
+});
+
 test('old module is removed and new inventory is admin only', function () {
     $this->actingAs($this->admin)->get('/admin/gallon-stocks')->assertNotFound();
     $this->actingAs($this->customer)->get(route('admin.inventory.gallon-inventory'))->assertForbidden();

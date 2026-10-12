@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use Carbon\CarbonImmutable;
+use Illuminate\Database\Query\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
@@ -11,23 +13,47 @@ use Illuminate\Validation\ValidationException;
 
 class StationGallonController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
+        $request->validate(['month' => ['nullable', 'date_format:Y-m']]);
+        $month = $request->input('month') ?: '';
         $gallons = DB::table('station_gallons')->orderBy('name')->get();
         $customers = User::role('customer')->orderBy('name')->get(['id', 'name']);
-        $movements = DB::table('station_gallon_movements as m')
-            ->join('station_gallons as g', 'g.id', '=', 'm.station_gallon_id')
-            ->join('users as u', 'u.id', '=', 'm.recorded_by')
-            ->leftJoin('users as c', 'c.id', '=', 'm.customer_id')
-            ->select('m.*', 'g.name as gallon_name', 'u.name as recorded_by_name', 'c.name as customer_name')
-            ->orderByDesc('m.id')->paginate(20);
+        $movements = $this->movementQuery($month)->orderByDesc('m.created_at')->orderByDesc('m.id')
+            ->paginate(20)->withQueryString();
         $loans = DB::table('station_gallon_loans as l')
             ->join('station_gallons as g', 'g.id', '=', 'l.station_gallon_id')
             ->join('users as u', 'u.id', '=', 'l.customer_id')
             ->where('l.quantity', '>', 0)
             ->select('g.name', 'g.size', 'u.name as customer_name', 'l.quantity')->get();
 
-        return view('admin.station-gallons.index', compact('gallons', 'customers', 'movements', 'loans'));
+        return view('admin.station-gallons.index', compact('gallons', 'customers', 'movements', 'loans', 'month'));
+    }
+
+    public function report(Request $request)
+    {
+        $data = $request->validate(['month' => ['required', 'date_format:Y-m']]);
+        $month = $data['month'];
+        $movements = $this->movementQuery($month)->orderBy('m.created_at')->orderBy('m.id')->get();
+        $summary = $movements->groupBy('action')->map(fn ($rows) => $rows->sum('quantity'));
+        $monthLabel = CarbonImmutable::createFromFormat('!Y-m', $month)->format('F Y');
+
+        return view('admin.station-gallons.report', compact('month', 'monthLabel', 'movements', 'summary'));
+    }
+
+    private function movementQuery(string $month): Builder
+    {
+        $query = DB::table('station_gallon_movements as m')
+            ->join('station_gallons as g', 'g.id', '=', 'm.station_gallon_id')
+            ->join('users as u', 'u.id', '=', 'm.recorded_by')
+            ->leftJoin('users as c', 'c.id', '=', 'm.customer_id')
+            ->select('m.*', 'g.name as gallon_name', 'g.size as gallon_size', 'u.name as recorded_by_name', 'c.name as customer_name');
+        if ($month !== '') {
+            $start = CarbonImmutable::createFromFormat('!Y-m', $month, config('app.timezone'));
+            $query->where('m.created_at', '>=', $start)->where('m.created_at', '<', $start->addMonth());
+        }
+
+        return $query;
     }
 
     public function store(Request $request)

@@ -137,7 +137,14 @@
     </x-card>
 
     <x-card padding="p-3">
-        <details @if(request()->has('page')) open @endif><summary class="mb-2 cursor-pointer text-sm font-semibold">Gallon Movement History <span class="ml-1 text-xs font-normal text-slate-500">({{ $movements->total() }})</span></summary>
+        <details @if(request()->has('page') || request()->has('month')) open @endif><summary class="mb-2 cursor-pointer text-sm font-semibold">Gallon Movement History <span class="ml-1 text-xs font-normal text-slate-500">({{ $movements->total() }})</span></summary>
+        <form method="GET" action="{{ route('admin.inventory.gallon-inventory') }}" class="mb-3 flex flex-wrap items-end gap-2">
+            <div><x-input-label for="movement-month" value="Movement month" /><x-text-input id="movement-month" name="month" type="month" :value="$month" class="!py-1.5" /></div>
+            <x-button type="submit" class="!px-3 !py-1.5 !text-xs">Filter</x-button>
+            <x-button as="a" href="{{ route('admin.inventory.gallon-inventory', ['month' => '']) }}" variant="secondary" class="!px-3 !py-1.5 !text-xs">All Months</x-button>
+            <x-button type="submit" formaction="{{ route('admin.inventory.gallon-inventory.report') }}" variant="secondary" class="!px-3 !py-1.5 !text-xs">Generate Monthly Report</x-button>
+        </form>
+        <p class="mb-2 text-xs text-slate-500">{{ $month ? 'Showing movements for '.$month.'.' : 'Showing movements for all months.' }} Select a month to generate a printable report.</p>
         <div class="overflow-x-auto"><table class="min-w-full text-left text-sm"><thead><tr>@foreach(['Date', 'Gallon', 'Action', 'Movement', 'Quantity', 'Customer', 'Recorded By', 'Notes'] as $label)<th class="px-3 py-2">{{ $label }}</th>@endforeach</tr></thead><tbody>
             @forelse($movements as $movement)<tr class="border-t border-slate-100"><td class="whitespace-nowrap px-3 py-2">{{ $movement->created_at }}</td><td class="px-3 py-2">{{ $movement->gallon_name }}</td><td class="px-3 py-2">{{ ucfirst($movement->action) }}</td><td class="px-3 py-2">{{ $movement->from_status ?? 'New' }} → {{ $movement->to_status }}</td><td class="px-3 py-2">{{ $movement->quantity }}</td><td class="px-3 py-2">{{ $movement->customer_name ?? '—' }}</td><td class="px-3 py-2">{{ $movement->recorded_by_name }}</td><td class="px-3 py-2">{{ $movement->notes }}</td></tr>@empty<tr><td colspan="8" class="p-3 text-slate-500">No movements recorded yet.</td></tr>@endforelse
         </tbody></table></div>
