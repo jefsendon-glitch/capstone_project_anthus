@@ -58,6 +58,7 @@ $canReceive = in_array($purchaseOrder->status, ['ordered', 'partially_received']
                         <h3 class="text-sm font-semibold text-slate-900 dark:text-white">Receive Stock</h3>
                         <form method="POST" action="{{ route('admin.purchase-orders.receive', $purchaseOrder) }}" class="mt-3 space-y-3">
                             @csrf
+                            @foreach($errors->all() as $error)<p class="text-sm text-red-600">{{ $error }}</p>@endforeach
                             @foreach($purchaseOrder->items as $item)
                                 @if($item->remaining_quantity > 0)
                                     <div class="flex items-center gap-3">

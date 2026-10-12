@@ -127,8 +127,8 @@
                 </div>
 
                 <div class="flex items-start gap-3 rounded-2xl border border-primary-100 bg-primary-50/60 p-4 text-sm dark:border-primary-500/20 dark:bg-primary-500/10">
-                    <x-badge color="success"><x-icon name="check-circle" class="size-4" /> Inventory received automatically</x-badge>
-                    <span class="pt-0.5 text-xs text-primary-700 dark:text-primary-300">Every new purchase order immediately updates product and supply stock. Container products also update gallon inventory.</span>
+                    <x-badge color="primary">Awaiting delivery</x-badge>
+                    <span class="pt-0.5 text-xs text-primary-700 dark:text-primary-300">Record delivered quantities in Stock Receiving to update inventory. Partial deliveries remain open until all items are received.</span>
                 </div>
 
                 <div class="flex justify-end gap-3">

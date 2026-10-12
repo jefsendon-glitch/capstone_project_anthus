@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\CustomerController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\PurchaseOrderController;
+use App\Http\Controllers\Admin\ProcurementController;
 use App\Http\Controllers\Admin\ReportsController;
 use App\Http\Controllers\Admin\StaffController;
 use App\Http\Controllers\Admin\SupplierController;
@@ -17,6 +18,9 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::resource('customers', CustomerController::class)->only(['index', 'show', 'edit', 'update']);
     Route::resource('suppliers', SupplierController::class)->except('show');
     Route::resource('purchase-orders', PurchaseOrderController::class);
+    Route::get('procurement/receiving', [ProcurementController::class, 'receiving'])->name('procurement.receiving');
+    Route::get('procurement/reorders', [ProcurementController::class, 'reorders'])->name('procurement.reorders');
+    Route::get('procurement/history', [ProcurementController::class, 'history'])->name('procurement.history');
     Route::post('purchase-orders/{purchase_order}/receive', [PurchaseOrderReceiptController::class, 'store'])->name('purchase-orders.receive');
 
     Route::get('/reports', [ReportsController::class, 'index'])->name('reports.index');

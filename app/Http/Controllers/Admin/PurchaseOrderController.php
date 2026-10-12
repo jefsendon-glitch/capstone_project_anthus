@@ -9,7 +9,6 @@ use App\Models\Consumable;
 use App\Models\Product;
 use App\Models\PurchaseOrder;
 use App\Models\Supplier;
-use App\Services\PurchaseOrderReceivingService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Redirect;
@@ -21,10 +20,6 @@ class PurchaseOrderController extends Controller
         'product' => Product::class,
         'consumable' => Consumable::class,
     ];
-
-    public function __construct(private readonly PurchaseOrderReceivingService $receiving)
-    {
-    }
 
     public function index(): View
     {
@@ -75,12 +70,6 @@ class PurchaseOrderController extends Controller
             ]);
 
             $this->syncItems($purchaseOrder, $validated['items']);
-
-            $purchaseOrder->load('items');
-            $this->receiving->receive($purchaseOrder, $purchaseOrder->items->map(fn ($item) => [
-                'purchase_order_item_id' => $item->id,
-                'quantity_received' => $item->quantity_ordered,
-            ])->all(), $request->user());
 
             return $purchaseOrder;
         });

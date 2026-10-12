@@ -9,7 +9,7 @@ $navLink = function (string $route) {
 
 $inventoryActive = request()->routeIs('admin.products*') || (auth()->user()->isStaff() && request()->routeIs('admin.maintenance*'))
     || request()->routeIs('admin.inventory.gallon-inventory*') || request()->routeIs('admin.water-production*') || request()->routeIs('admin.stock-movements*');
-$procurementActive = request()->routeIs('admin.suppliers*') || request()->routeIs('admin.purchase-orders*') || request()->routeIs('admin.consumables*');
+$procurementActive = request()->routeIs('admin.suppliers*') || request()->routeIs('admin.purchase-orders*') || request()->routeIs('admin.consumables*') || request()->routeIs('admin.procurement.*');
 @endphp
 
 @if(auth()->user()->isAdmin())
@@ -65,7 +65,7 @@ $procurementActive = request()->routeIs('admin.suppliers*') || request()->routeI
         </button>
         <div x-show="open" x-transition x-bind:class="$store.sidebar.collapsed && 'lg:hidden'" class="space-y-1 py-1">
             <a href="{{ route('admin.suppliers.index') }}" class="flex items-center gap-3 rounded-xl py-2 pl-11 pr-3 text-sm font-medium {{ $navLink('admin.suppliers') }}">
-                <span>Supplier</span>
+                <span>Supplier Management</span>
             </a>
             <a href="{{ route('admin.consumables.index') }}" class="flex items-center gap-3 rounded-xl py-2 pl-11 pr-3 text-sm font-medium {{ $navLink('admin.consumables') }}">
                 <span>Supplies</span>
@@ -73,6 +73,9 @@ $procurementActive = request()->routeIs('admin.suppliers*') || request()->routeI
             <a href="{{ route('admin.purchase-orders.index') }}" class="flex items-center gap-3 rounded-xl py-2 pl-11 pr-3 text-sm font-medium {{ $navLink('admin.purchase-orders') }}">
                 <span>Purchase Orders</span>
             </a>
+            <a href="{{ route('admin.procurement.receiving') }}" class="flex items-center gap-3 rounded-xl py-2 pl-11 pr-3 text-sm font-medium {{ $navLink('admin.procurement.receiving') }}"><span>Stock Receiving</span></a>
+            <a href="{{ route('admin.procurement.reorders') }}" class="flex items-center gap-3 rounded-xl py-2 pl-11 pr-3 text-sm font-medium {{ $navLink('admin.procurement.reorders') }}"><span>Reorder Monitoring</span></a>
+            <a href="{{ route('admin.procurement.history') }}" class="flex items-center gap-3 rounded-xl py-2 pl-11 pr-3 text-sm font-medium {{ $navLink('admin.procurement.history') }}"><span>Purchase History</span></a>
         </div>
     </div>
 

@@ -9,6 +9,7 @@ use App\Models\PurchaseOrderItem;
 use App\Models\StockMovement;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 class PurchaseOrderReceivingService
 {
@@ -16,25 +17,31 @@ class PurchaseOrderReceivingService
     public function receive(PurchaseOrder $purchaseOrder, array $lines, User $receivedBy): void
     {
         DB::transaction(function () use ($purchaseOrder, $lines, $receivedBy) {
-            $purchaseOrder->refresh();
+            $purchaseOrder = PurchaseOrder::whereKey($purchaseOrder->id)->lockForUpdate()->firstOrFail();
+            if (! in_array($purchaseOrder->status, ['ordered', 'partially_received'], true)) {
+                throw ValidationException::withMessages(['items' => 'This order is no longer awaiting stock.']);
+            }
 
             foreach ($lines as $line) {
                 $item = PurchaseOrderItem::where('purchase_order_id', $purchaseOrder->id)
-                    ->findOrFail($line['purchase_order_item_id']);
-                $quantity = min((float) $line['quantity_received'], $item->remaining_quantity);
+                    ->lockForUpdate()->findOrFail($line['purchase_order_item_id']);
+                $quantity = (float) $line['quantity_received'];
+                if ($quantity > $item->remaining_quantity) {
+                    throw ValidationException::withMessages(['items' => 'Delivered quantity exceeds the remaining order quantity. Refresh and try again.']);
+                }
 
                 if ($quantity <= 0 || ! $item->itemable) {
                     continue;
                 }
 
-                $itemable = $item->itemable;
+                $itemable = $item->itemable()->lockForUpdate()->firstOrFail();
                 $before = (float) ($itemable->stock_quantity ?? $itemable->quantity);
                 $itemable instanceof Product
                     ? $itemable->increment('stock_quantity', $quantity)
                     : $itemable->increment('quantity', $quantity);
                 $after = (float) ($itemable->fresh()->stock_quantity ?? $itemable->fresh()->quantity);
 
-                StockMovement::record($itemable, 'purchase_receive', $quantity, $before, $after, $receivedBy->id, null, (float) $item->unit_cost);
+                StockMovement::record($itemable, 'purchase_receive', $quantity, $before, $after, $receivedBy->id, 'Received against '.$purchaseOrder->po_number, (float) $item->unit_cost);
 
                 if ($itemable instanceof Product && $itemable->category === 'container') {
                     $gallonStock = GallonStock::firstOrCreate(

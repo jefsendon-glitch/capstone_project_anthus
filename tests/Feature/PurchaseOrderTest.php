@@ -52,7 +52,7 @@ test('a supplier with linked supplies cannot be deleted', function () {
     $this->assertDatabaseHas('suppliers', ['id' => $this->supplier->id]);
 });
 
-test('admin creates a purchase order and receives its items immediately', function () {
+test('admin creates a purchase order awaiting stock receiving', function () {
     $response = $this->actingAs($this->admin)->post(route('admin.purchase-orders.store'), [
         'supplier_id' => $this->supplier->id,
         'items' => [
@@ -62,15 +62,15 @@ test('admin creates a purchase order and receives its items immediately', functi
 
     $purchaseOrder = PurchaseOrder::latest()->first();
     $response->assertRedirect(route('admin.purchase-orders.show', $purchaseOrder));
-    expect($purchaseOrder->fresh()->status)->toBe('received');
+    expect($purchaseOrder->fresh()->status)->toBe('ordered');
     expect($purchaseOrder->items)->toHaveCount(1);
-    expect($this->product->fresh()->stock_quantity)->toBe(30);
+    expect($this->product->fresh()->stock_quantity)->toBe(10);
 });
 
-test('purchase order creation always receives items even if an old client sends an unchecked flag', function () {
+test('old immediate receiving flags do not bypass stock receiving', function () {
     $response = $this->actingAs($this->admin)->post(route('admin.purchase-orders.store'), [
         'supplier_id' => $this->supplier->id,
-        'receive_immediately' => '0',
+        'receive_immediately' => '1',
         'items' => [
             ['itemable_type' => 'product', 'itemable_id' => $this->product->id, 'quantity_ordered' => 20, 'unit_cost' => 15],
         ],
@@ -79,8 +79,8 @@ test('purchase order creation always receives items even if an old client sends 
     $purchaseOrder = PurchaseOrder::latest()->first();
 
     $response->assertRedirect(route('admin.purchase-orders.show', $purchaseOrder));
-    expect($purchaseOrder->fresh()->status)->toBe('received');
-    expect($this->product->fresh()->stock_quantity)->toBe(30);
+    expect($purchaseOrder->fresh()->status)->toBe('ordered');
+    expect($this->product->fresh()->stock_quantity)->toBe(10);
 });
 
 test('staff cannot access purchase orders', function () {
