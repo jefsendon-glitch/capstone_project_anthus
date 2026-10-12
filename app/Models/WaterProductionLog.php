@@ -10,7 +10,8 @@ class WaterProductionLog extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['product_id', 'gallons_produced', 'produced_by', 'production_date', 'notes'];
+    protected $fillable = ['product_id', 'gallons_produced', 'produced_by', 'production_date', 'notes',
+        'station_gallon_movement_id', 'container_name', 'container_size'];
 
     protected function casts(): array
     {

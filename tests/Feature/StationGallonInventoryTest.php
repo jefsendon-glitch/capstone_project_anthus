@@ -35,6 +35,12 @@ test('new inventory independently tracks stock, customer loans and returns', fun
     ]);
     $this->assertDatabaseHas('station_gallon_loans', ['customer_id' => $this->customer->id, 'quantity' => 1]);
     $this->assertDatabaseCount('station_gallon_movements', 7);
+    $this->assertDatabaseHas('water_production_logs', [
+        'product_id' => null, 'container_name' => 'Round', 'container_size' => '5 gallons',
+        'gallons_produced' => 6, 'produced_by' => $this->admin->id,
+    ]);
+    $this->assertDatabaseCount('water_production_logs', 1);
+    $this->get(route('admin.water-production.index'))->assertOk()->assertSee('Gallon Inventory');
     $this->assertDatabaseCount('gallon_stocks', 0);
     $this->get(route('admin.inventory.gallon-inventory'))->assertOk()->assertSee('Station-Owned Gallon Containers');
     $this->post(route('admin.inventory.gallon-inventory.move'), [
@@ -46,6 +52,7 @@ test('new inventory independently tracks stock, customer loans and returns', fun
         'gallon_id' => $id, 'action' => 'fill', 'quantity' => 5,
     ])->assertSessionHasErrors('quantity');
     $this->assertDatabaseHas('station_gallons', ['id' => $id, 'empty' => 4, 'filled' => 2]);
+    $this->assertDatabaseCount('water_production_logs', 1);
 });
 
 test('admin can edit registered gallon details while preserving inventory', function () {
@@ -134,6 +141,10 @@ test('reset requires confirmation and admin access and supports history or entir
     $this->assertDatabaseCount('station_gallon_loans', 0);
     $this->assertDatabaseCount('station_gallons', 0);
     $this->assertDatabaseHas('users', ['id' => $this->customer->id]);
+    $this->assertDatabaseHas('water_production_logs', [
+        'container_name' => 'Round', 'gallons_produced' => 2, 'station_gallon_movement_id' => null,
+    ]);
+    $this->get(route('admin.water-production.index'))->assertOk()->assertSee('Round');
     $this->post(route('admin.inventory.gallon-inventory.store'), [
         'name' => 'Slim', 'size' => '5 gallons', 'quantity' => 3,
     ])->assertSessionHasNoErrors();

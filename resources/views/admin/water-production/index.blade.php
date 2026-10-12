@@ -21,6 +21,7 @@
     @endif
     <div class="mb-6 flex items-start gap-3 rounded-2xl border border-primary-100 bg-primary-50/60 p-4 text-sm dark:border-primary-500/20 dark:bg-primary-500/10">
         <x-badge color="success"><x-icon name="check-circle" class="size-4" /> Automatic production tracking</x-badge>
+        <p class="pt-0.5 text-xs text-primary-700 dark:text-primary-300">Fill movements in Gallon Inventory automatically log the filled container quantity here.</p>
         <p class="pt-0.5 text-xs text-primary-700 dark:text-primary-300">Increasing a water product’s inventory automatically creates its production log and stock movement.</p>
     </div>
 
@@ -51,7 +52,8 @@
                 <table class="min-w-full divide-y divide-slate-200 dark:divide-white/10">
                     <thead>
                         <tr class="text-left text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
-                            <th class="px-6 py-3">Product</th>
+                            <th class="px-6 py-3">Product / Container</th>
+                            <th class="px-6 py-3">Source</th>
                             <th class="px-6 py-3">Gallons Produced</th>
                             <th class="px-6 py-3">Date</th>
                             <th class="px-6 py-3">Logged By</th>
@@ -60,7 +62,8 @@
                     <tbody class="divide-y divide-slate-100 dark:divide-white/5">
                         @foreach($logs as $log)
                             <tr>
-                                <td class="px-6 py-3 text-sm font-medium text-slate-900 dark:text-white">{{ $log->product->name }} ({{ $log->product->size }})</td>
+                                <td class="px-6 py-3 text-sm font-medium text-slate-900 dark:text-white">{{ $log->container_name ?? $log->product?->name ?? 'Unavailable product' }} ({{ $log->container_size ?? $log->product?->size ?? '—' }})</td>
+                                <td class="px-6 py-3 text-xs text-slate-500">{{ $log->container_name !== null ? 'Gallon Inventory · Filled' : 'Product Inventory' }}</td>
                                 <td class="px-6 py-3 font-mono text-sm text-slate-900 dark:text-white">{{ number_format($log->gallons_produced) }}</td>
                                 <td class="px-6 py-3 text-sm text-slate-600 dark:text-slate-300">{{ $log->production_date->format('M d, Y') }}</td>
                                 <td class="px-6 py-3 text-sm text-slate-500 dark:text-slate-400">{{ $log->producedBy?->name ?? '—' }}</td>

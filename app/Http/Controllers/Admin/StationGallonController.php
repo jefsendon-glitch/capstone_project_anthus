@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Models\WaterProductionLog;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Http\Request;
@@ -181,15 +182,26 @@ class StationGallonController extends Controller
             if ($from) $changes[$from] = $gallon->$from - $quantity;
             if ($data['action'] === 'return') $changes['returned'] = $gallon->returned + $quantity;
             DB::table('station_gallons')->where('id', $gallon->id)->update($changes);
-            $this->record($gallon->id, $data['action'], $from, $to, $quantity, $request->user()->id, $customerId, $data['notes'] ?? null);
+            $movementId = $this->record($gallon->id, $data['action'], $from, $to, $quantity, $request->user()->id, $customerId, $data['notes'] ?? null);
+            if ($data['action'] === 'fill') {
+                WaterProductionLog::create([
+                    'station_gallon_movement_id' => $movementId,
+                    'container_name' => $gallon->name,
+                    'container_size' => $gallon->size,
+                    'gallons_produced' => $quantity,
+                    'produced_by' => $request->user()->id,
+                    'production_date' => now()->toDateString(),
+                    'notes' => $data['notes'] ?? null,
+                ]);
+            }
         });
 
         return back()->with('success', 'Gallon inventory and movement history updated.');
     }
 
-    private function record(int $id, string $action, ?string $from, string $to, int $quantity, int $userId, ?int $customerId = null, ?string $notes = null): void
+    private function record(int $id, string $action, ?string $from, string $to, int $quantity, int $userId, ?int $customerId = null, ?string $notes = null): int
     {
-        DB::table('station_gallon_movements')->insert([
+        return DB::table('station_gallon_movements')->insertGetId([
             'station_gallon_id' => $id, 'action' => $action, 'from_status' => $from, 'to_status' => $to,
             'quantity' => $quantity, 'recorded_by' => $userId, 'customer_id' => $customerId, 'notes' => $notes,
             'created_at' => now(), 'updated_at' => now(),

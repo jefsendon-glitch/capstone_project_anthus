@@ -89,6 +89,9 @@ class WaterProductionController extends Controller
     {
         $this->authorize('delete', $water_production);
 
+        // Container fills are historical activity; reversing them needs a gallon movement.
+        abort_if($water_production->container_name !== null, 422, 'Manage filled containers through Gallon Inventory.');
+
         DB::transaction(function () use ($water_production) {
             $product = $water_production->product;
             $before = $product->stock_quantity;
