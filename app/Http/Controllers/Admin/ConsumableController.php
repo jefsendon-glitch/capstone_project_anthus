@@ -148,4 +148,14 @@ class ConsumableController extends Controller
 
         return redirect()->route('admin.consumables.index')->with('success', 'Consumable restored successfully.');
     }
+
+    public function forceDelete(int $consumable): RedirectResponse
+    {
+        $consumable = Consumable::onlyTrashed()->findOrFail($consumable);
+        $this->authorize('forceDelete', $consumable);
+        $consumable->forceDelete();
+
+        return redirect()->route('admin.consumables.index', ['archived' => 1])
+            ->with('success', 'Consumable permanently deleted.');
+    }
 }

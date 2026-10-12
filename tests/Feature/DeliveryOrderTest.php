@@ -18,6 +18,32 @@ beforeEach(function () {
     $this->product = Product::factory()->create(['unit_price' => 25, 'stock_quantity' => 50]);
 });
 
+test('admin can reset all delivery orders while retaining sales and stock', function () {
+    $admin = User::factory()->create();
+    $admin->assignRole('admin');
+    $service = app(\App\Services\DeliveryService::class);
+    $data = ['product_id' => $this->product->id, 'quantity' => 2, 'customer_address' => 'Somewhere', 'payment_method' => 'cash'];
+    $completed = $service->placeOrder($data, $this->customer);
+    $service->updateStatus($completed, 'confirmed', $this->staffUser);
+    $sale = $service->fulfill($completed, 'cash', $this->staffUser);
+    $service->placeOrder($data, $this->customer);
+    $url = route('deliveries.reset');
+
+    $this->actingAs($this->staffUser)->delete($url, ['reset_confirmation' => 'RESET'])->assertForbidden();
+    $this->actingAs($this->customer)->delete($url, ['reset_confirmation' => 'RESET'])->assertForbidden();
+    $this->actingAs($admin)->delete($url)->assertSessionHasErrors('reset_confirmation');
+    $this->delete($url, ['reset_confirmation' => 'wrong'])->assertSessionHasErrors('reset_confirmation');
+    $this->assertDatabaseCount('delivery_orders', 2);
+    $this->delete($url, ['reset_confirmation' => 'RESET', 'status' => 'delivered'])
+        ->assertRedirect(route('deliveries.index'))->assertSessionHasNoErrors();
+    $this->assertDatabaseCount('delivery_orders', 0);
+    $this->assertDatabaseCount('delivery_order_items', 0);
+    $this->assertDatabaseHas('sales_transactions', ['id' => $sale->id, 'delivery_order_id' => null]);
+    $this->assertDatabaseHas('products', ['id' => $this->product->id, 'stock_quantity' => 48]);
+    $this->assertDatabaseHas('users', ['id' => $this->customer->id, 'credit_balance' => 0]);
+    $this->get(route('deliveries.index'))->assertOk()->assertSee('No delivery orders found');
+});
+
 test('customer can place a delivery order', function () {
     $response = $this->actingAs($this->customer)->post(route('customer.orders.store'), [
         'product_id' => $this->product->id,

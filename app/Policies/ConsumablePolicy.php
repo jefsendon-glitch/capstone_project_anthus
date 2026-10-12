@@ -41,4 +41,9 @@ class ConsumablePolicy
     {
         return $user->isAdmin();
     }
+
+    public function forceDelete(User $user, Consumable $consumable): bool
+    {
+        return $user->isAdmin() && $consumable->trashed();
+    }
 }

@@ -27,6 +27,7 @@ Route::middleware(['auth', 'role:admin|staff'])->group(function () {
         Route::get('consumables/report', [ConsumableController::class, 'report'])->name('consumables.report');
         Route::resource('consumables', ConsumableController::class)->except('show');
         Route::post('consumables/{consumable}/restore', [ConsumableController::class, 'restore'])->name('consumables.restore');
+        Route::delete('consumables/{consumable}/permanent', [ConsumableController::class, 'forceDelete'])->name('consumables.force-delete');
         Route::post('consumables/{consumable}/quick-update', [ConsumableController::class, 'quickUpdate'])->name('consumables.quick-update');
         Route::resource('maintenance', MaintenanceController::class)->except('show');
 
@@ -53,6 +54,8 @@ Route::middleware(['auth', 'role:admin|staff'])->group(function () {
     Route::resource('pos', POSController::class, ['parameters' => ['pos' => 'transaction']])->only(['index', 'create', 'store', 'show']);
     Route::get('pos-receipt', [POSController::class, 'receipt'])->name('pos.receipt');
 
+    Route::delete('deliveries/reset', [DeliveryController::class, 'reset'])
+        ->middleware('role:admin')->name('deliveries.reset');
     Route::resource('deliveries', DeliveryController::class)->only(['index', 'show']);
     Route::patch('deliveries/{delivery}/status', [DeliveryController::class, 'updateStatus'])->name('deliveries.update-status');
     Route::post('deliveries/{delivery}/fulfill', [DeliveryController::class, 'fulfill'])->name('deliveries.fulfill');

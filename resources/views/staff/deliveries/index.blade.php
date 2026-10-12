@@ -1,4 +1,24 @@
 <x-layouts.app title="Delivery Orders" :heading="'Delivery Orders'" :subheading="'Manage customer orders from confirmation through fulfillment'">
+    @if($errors->any())
+        <div role="alert" class="mb-3 rounded-xl bg-red-50 p-3 text-sm text-red-700">
+            @foreach($errors->all() as $error)<p>{{ $error }}</p>@endforeach
+        </div>
+    @endif
+    @if(auth()->user()->isAdmin())
+        <div class="mb-3 flex justify-end">
+            <details class="w-full rounded-lg border border-red-200 p-2 sm:w-80 dark:border-red-900" @if($errors->has('reset_confirmation')) open @endif>
+                <summary class="cursor-pointer text-xs font-semibold text-red-600 dark:text-red-400">Reset Delivery Orders</summary>
+                <form method="POST" action="{{ route('deliveries.reset') }}" class="mt-2 space-y-2" onsubmit="return confirm('Permanently delete ALL delivery orders, including pending orders and orders outside the current filter? This cannot be undone.')">
+                    @csrf
+                    @method('DELETE')
+                    <p class="text-xs text-slate-500">Deletes every delivery order and its items, including pending orders and orders outside the current filter. Sales, payments, and product stock are preserved. This cannot be undone.</p>
+                    <x-input-label for="delivery-reset-confirmation" value="Type RESET to confirm" />
+                    <x-text-input id="delivery-reset-confirmation" name="reset_confirmation" placeholder="RESET" pattern="RESET" autocomplete="off" required />
+                    <x-button type="submit" variant="danger" class="!px-3 !py-1.5 !text-xs">Reset Delivery Orders</x-button>
+                </form>
+            </details>
+        </div>
+    @endif
     <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <x-stat-card variant="solid" label="Pending" :value="$deliveryStats['pending']" hint="Need confirmation" icon="clock" color="warning" />
         <x-stat-card variant="solid" label="Confirmed" :value="$deliveryStats['confirmed']" hint="Ready to dispatch" icon="check-circle" color="primary" />

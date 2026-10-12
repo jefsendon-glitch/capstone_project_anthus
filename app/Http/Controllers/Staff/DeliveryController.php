@@ -10,6 +10,7 @@ use App\Notifications\OrderStatusUpdated;
 use App\Services\DeliveryService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 class DeliveryController extends Controller
@@ -55,6 +56,23 @@ class DeliveryController extends Controller
         $delivery->load(['customer', 'items.product', 'placedBy', 'updatedBy']);
 
         return view('staff.deliveries.show', ['order' => $delivery]);
+    }
+
+    public function reset(Request $request): RedirectResponse
+    {
+        abort_unless($request->user()->isAdmin(), 403);
+        $request->validate(['reset_confirmation' => ['required', 'in:RESET']]);
+
+        DB::transaction(function () use ($request) {
+            $orders = DeliveryOrder::query()->orderBy('id')->lockForUpdate()->get(['id']);
+            DeliveryOrder::query()->delete();
+            activity('delivery_orders')->causedBy($request->user())->event('reset')
+                ->withProperties(['orders_deleted' => $orders->count()])
+                ->log('Reset all delivery orders');
+        });
+
+        return redirect()->route('deliveries.index')
+            ->with('success', 'Delivery orders reset successfully. Sales, payments, and inventory preserved.');
     }
 
     public function updateStatus(UpdateDeliveryStatusRequest $request, DeliveryOrder $delivery): RedirectResponse
