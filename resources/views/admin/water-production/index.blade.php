@@ -33,7 +33,7 @@
     <p class="mb-3 text-xs text-slate-500">Fill movements from Gallon Tracking are automatically recorded as water production.</p>
 
     <x-card class="mb-3" padding="p-3">
-        <form method="GET" class="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+        <form method="GET" class="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
             <div><x-input-label for="production-search" value="Gallon Type / Size" /><x-text-input id="production-search" name="search" :value="$filters['search'] ?? ''" placeholder="Search name or size..." maxlength="255" /></div>
             <div>
                 <x-input-label for="date_from" value="Produced from" />
@@ -43,7 +43,7 @@
                 <x-input-label for="date_to" value="Produced to" />
                 <x-text-input id="date_to" type="date" name="date_to" :value="$dateTo" />
             </div>
-            <div class="flex items-end justify-end gap-2 sm:col-span-2 lg:col-span-4">
+            <div class="flex items-end justify-end gap-2 sm:col-span-2 lg:col-span-3">
                 <x-button as="a" href="{{ route('admin.water-production.index') }}" variant="secondary">Clear Filters</x-button>
                 <x-button type="submit">Filter</x-button>
             </div>
