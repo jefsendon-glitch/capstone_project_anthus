@@ -8,6 +8,7 @@ use App\Models\Product;
 use App\Models\StockMovement;
 use App\Models\WaterProductionLog;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
@@ -37,6 +38,21 @@ class WaterProductionController extends Controller
         $products = Product::where('category', '!=', 'container')->orderBy('name')->get();
 
         return view('admin.water-production.create', compact('products'));
+    }
+
+    public function reset(Request $request): RedirectResponse
+    {
+        abort_unless($request->user()->isAdmin(), 403);
+        $request->validate([
+            'reset_confirmation' => ['required', 'in:RESET'],
+        ]);
+
+        DB::transaction(function () {
+            WaterProductionLog::query()->delete();
+        });
+
+        return redirect()->route('admin.water-production.index')
+            ->with('success', 'Water production logs reset successfully. Product stock and stock movement history preserved.');
     }
 
     public function store(StoreWaterProductionLogRequest $request): RedirectResponse

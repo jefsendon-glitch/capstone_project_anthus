@@ -1,4 +1,24 @@
 <x-layouts.app title="Water Production" :heading="'Water Production Log'">
+    @if($errors->any())
+        <div role="alert" class="mb-3 rounded-xl bg-red-50 p-3 text-sm text-red-700">
+            @foreach($errors->all() as $error)<p>{{ $error }}</p>@endforeach
+        </div>
+    @endif
+    @if(auth()->user()->isAdmin())
+        <div class="mb-3 flex justify-end">
+            <details class="w-full rounded-lg border border-red-200 p-2 sm:w-80 dark:border-red-900" @if($errors->has('reset_confirmation')) open @endif>
+                <summary class="cursor-pointer text-xs font-semibold text-red-600 dark:text-red-400">Reset Production Records</summary>
+                <form method="POST" action="{{ route('admin.water-production.reset') }}" class="mt-2 space-y-2" onsubmit="return confirm('Delete ALL water production logs, including records outside the current date filter? This cannot be undone.')">
+                    @csrf
+                    @method('DELETE')
+                    <p class="text-xs text-slate-500">Deletes all production logs, including records outside the date filter. Current product stock and stock movement history stay unchanged. This cannot be undone.</p>
+                    <x-input-label for="production-reset-confirmation" value="Type RESET to confirm" />
+                    <x-text-input id="production-reset-confirmation" name="reset_confirmation" placeholder="RESET" pattern="RESET" autocomplete="off" required />
+                    <x-button type="submit" variant="danger" class="!px-3 !py-1.5 !text-xs">Reset Production Records</x-button>
+                </form>
+            </details>
+        </div>
+    @endif
     <div class="mb-6 flex items-start gap-3 rounded-2xl border border-primary-100 bg-primary-50/60 p-4 text-sm dark:border-primary-500/20 dark:bg-primary-500/10">
         <x-badge color="success"><x-icon name="check-circle" class="size-4" /> Automatic production tracking</x-badge>
         <p class="pt-0.5 text-xs text-primary-700 dark:text-primary-300">Increasing a water product’s inventory automatically creates its production log and stock movement.</p>
@@ -15,7 +35,7 @@
                 <x-text-input id="date_to" type="text" name="date_to" data-flatpickr :value="$dateTo" placeholder="End date" />
             </div>
             <div class="flex items-end justify-end gap-3">
-                <x-button as="a" href="{{ route('admin.water-production.index') }}" variant="secondary">Reset</x-button>
+                <x-button as="a" href="{{ route('admin.water-production.index') }}" variant="secondary">Clear Filters</x-button>
                 <x-button type="submit">Filter</x-button>
             </div>
         </form>

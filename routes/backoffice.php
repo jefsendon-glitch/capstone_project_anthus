@@ -44,6 +44,8 @@ Route::middleware(['auth', 'role:admin|staff'])->group(function () {
         });
 
         Route::resource('water-production', WaterProductionController::class)->only(['index']);
+        Route::delete('water-production/reset', [WaterProductionController::class, 'reset'])
+            ->middleware('role:admin')->name('water-production.reset');
 
         Route::get('stock-movements', [StockMovementController::class, 'index'])->name('stock-movements.index');
     });
