@@ -1,28 +1,10 @@
 <x-layouts.app title="Stock Movements" :heading="'Stock Movements'">
-    <div class="mb-3 flex items-start justify-between gap-3">
-        <p class="text-xs text-slate-500">Products, supplies, and gallon activity recorded by the system. Gallon transfers change location or condition; only additions and removals change total containers.</p>
-        @if(auth()->user()->isAdmin())
-            <div x-data="{ resetOpen: {{ $errors->has('reset_confirmation') ? 'true' : 'false' }} }" x-on:keydown.escape.window="resetOpen = false">
-                <button type="button" x-on:click="resetOpen = true; $nextTick(() => $refs.resetInput.focus())" class="flex size-7 shrink-0 items-center justify-center rounded-full hover:bg-danger-50 dark:hover:bg-danger-500/10" title="Reset all stock movement history" aria-label="Reset all stock movement history">
-                    <span class="size-2.5 rounded-full bg-danger-500" aria-hidden="true"></span>
-                </button>
-                <div x-show="resetOpen" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="stock-reset-title">
-                    <div class="absolute inset-0 bg-slate-950/50" x-on:click="resetOpen = false"></div>
-                    <div class="relative w-full max-w-sm rounded-xl border border-slate-200 bg-white p-5 shadow-xl dark:border-slate-800 dark:bg-slate-900">
-                        <h2 id="stock-reset-title" class="text-base font-semibold">Reset Stock Movement History</h2>
-                        <p class="mt-2 text-xs leading-relaxed text-slate-500">Deletes all product, supply and gallon movement records across every date and filter. Stock quantities, customer loans, sales and payments stay unchanged. A local backup is saved first. This cannot be undone from this page.</p>
-                        <form method="POST" action="{{ route('admin.stock-movements.reset') }}" class="mt-4 space-y-3">
-                            @csrf @method('DELETE')
-                            <x-input-label for="stock-reset-confirmation" value="Type RESET to confirm" />
-                            <x-text-input id="stock-reset-confirmation" x-ref="resetInput" name="reset_confirmation" placeholder="RESET" pattern="RESET" autocomplete="off" required />
-                            <x-input-error :messages="$errors->get('reset_confirmation')" />
-                            <div class="flex justify-end gap-2"><x-button type="button" variant="secondary" x-on:click="resetOpen = false">Cancel</x-button><x-button type="submit" variant="danger">Reset History</x-button></div>
-                        </form>
-                    </div>
-                </div>
-            </div>
-        @endif
-    </div>
+    @push('admin-reset-actions')
+    @if(auth()->user()->isAdmin())
+        <x-reset-dot :action="route('admin.stock-movements.reset')" title="Reset Stock Movement History" description="Deletes all product, supply and gallon movement records across every date and filter. Stock quantities, customer loans, sales and payments stay unchanged. A local backup is saved first. This cannot be undone from this page." />
+    @endif
+    @endpush
+    <p class="mb-3 text-xs text-slate-500">Products, supplies, and gallon activity recorded by the system. Only additions and removals change total containers.</p>
     @if($errors->any())
         <div role="alert" class="mb-3 rounded-lg bg-red-50 p-3 text-sm text-red-700">@foreach($errors->all() as $error)<p>{{ $error }}</p>@endforeach</div>
     @endif

@@ -1,19 +1,11 @@
-<div class="mb-3 flex justify-end">
-    <details class="w-full rounded-lg border border-red-200 p-3 sm:max-w-sm dark:border-red-900" @if($errors->has('reset_confirmation')) open @endif>
-        <summary class="cursor-pointer text-xs font-semibold text-danger-600 dark:text-danger-400">Reset Collections &amp; Payment History</summary>
-        <form method="POST" action="{{ route('admin.financial.collections.reset') }}" class="mt-3 space-y-3" onsubmit="return confirm('Permanently delete customer payment records in the selected period? Collection totals will change. Customer balances and paid credit amounts stay unchanged. This cannot be undone.')">
-            @csrf @method('DELETE')
-            <input type="hidden" name="date_from" value="{{ $from }}">
-            <input type="hidden" name="date_to" value="{{ $to }}">
+    @push('admin-reset-actions')
+    @if(auth()->user()->isAdmin())
+        <x-reset-dot :action="route('admin.financial.collections.reset')" title="Reset Collections &amp; Payment History" description="Deletes payment records for the applied period across all history pages. Period Collections and payment history will reset. Customer balances and credit allocations are not reversed. Saved financial reports remain. This cannot be undone." :fields="['date_from' => $from, 'date_to' => $to]" :disabled="$payments->total() === 0">
             <p class="text-xs font-semibold">{{ \Illuminate\Support\Carbon::parse($from)->format('M d, Y') }} – {{ \Illuminate\Support\Carbon::parse($to)->format('M d, Y') }}</p>
-            <p class="text-xs leading-relaxed text-slate-500">Deletes all {{ $payments->total() }} payment records in this applied period, across all history pages. Period Collections will reset and these entries will disappear from payment history throughout the system. Customer balances and credit allocations are not reversed. Saved financial reports remain unchanged. This cannot be undone.</p>
-            <x-input-label for="collection-reset-confirmation" value="Type RESET to confirm" />
-            <x-text-input id="collection-reset-confirmation" name="reset_confirmation" placeholder="RESET" pattern="RESET" autocomplete="off" required />
-            <x-input-error :messages="$errors->get('reset_confirmation')" />
-            <x-button type="submit" variant="danger" class="w-full" :disabled="$payments->total() === 0">Delete Period Payment Records</x-button>
-        </form>
-    </details>
-</div>
+            <p class="text-xs text-slate-500">{{ $payments->total() }} payment records in this period.</p>
+        </x-reset-dot>
+    @endif
+    @endpush
 <div class="mb-4 grid grid-cols-1 gap-2 sm:grid-cols-3">
     <x-stat-card compact label="Period Collections" :value="'₱'.number_format($summary['Customer Collections'], 2)" icon="dollar" color="success" />
     <x-stat-card compact label="Current Receivables" :value="'₱'.number_format($summary['Current Receivables'], 2)" icon="credit-card" color="warning" />

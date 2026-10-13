@@ -1,19 +1,9 @@
 <x-layouts.app title="Point of Sale" :heading="'Point of Sale'">
+    @push('admin-reset-actions')
     @if(auth()->user()->isAdmin())
-        <div class="mb-3 flex justify-end">
-            <details class="w-full rounded-lg border border-red-200 p-3 sm:max-w-sm dark:border-red-900" @if($errors->has('reset_confirmation')) open @endif>
-                <summary class="cursor-pointer text-xs font-semibold text-danger-600 dark:text-danger-400">Reset Transactions</summary>
-                <form method="POST" action="{{ route('pos.reset') }}" class="mt-3 space-y-3" onsubmit="return confirm('Permanently delete all cash and settled credit transactions, including records outside the current filters? This cannot be undone.')">
-                    @csrf @method('DELETE')
-                    <p class="text-xs leading-relaxed text-slate-500">Deletes cash and fully paid credit sales across all dates and filters. Unpaid credits, customer balances, payments, stock, delivery orders, and saved financial reports stay unchanged. Deleted sales disappear from live sales totals. This cannot be undone.</p>
-                    <x-input-label for="pos-reset-confirmation" value="Type RESET to confirm" />
-                    <x-text-input id="pos-reset-confirmation" name="reset_confirmation" placeholder="RESET" pattern="RESET" autocomplete="off" required />
-                    <x-input-error :messages="$errors->get('reset_confirmation')" />
-                    <x-button type="submit" variant="danger" class="w-full">Delete Transactions</x-button>
-                </form>
-            </details>
-        </div>
+        <x-reset-dot :action="route('pos.reset')" title="Reset Transactions" description="Deletes cash and fully paid credit sales across all dates and filters. Unpaid credit records, balances, payments, stock, delivery orders and saved reports remain. Deleted sales disappear from live sales totals. This cannot be undone." />
     @endif
+    @endpush
     <div class="mb-4 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
         <form method="GET" action="{{ route('pos.index') }}" class="grid min-w-0 flex-1 grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:items-center">
             <div class="relative col-span-2 min-w-0 sm:w-72">

@@ -4,21 +4,11 @@
             @foreach($errors->all() as $error)<p>{{ $error }}</p>@endforeach
         </div>
     @endif
+    @push('admin-reset-actions')
     @if(auth()->user()->isAdmin())
-        <div class="mb-3 flex justify-end">
-            <details class="w-full rounded-lg border border-red-200 p-2 sm:w-80 dark:border-red-900" @if($errors->has('reset_confirmation')) open @endif>
-                <summary class="cursor-pointer text-xs font-semibold text-red-600 dark:text-red-400">Reset Production Records</summary>
-                <form method="POST" action="{{ route('admin.water-production.reset') }}" class="mt-2 space-y-2" onsubmit="return confirm('Delete ALL water production logs, including records outside the current date filter? This cannot be undone.')">
-                    @csrf
-                    @method('DELETE')
-                    <p class="text-xs text-slate-500">Deletes all production logs, including records outside the date filter. Gallon inventory and movement history stay unchanged. This cannot be undone.</p>
-                    <x-input-label for="production-reset-confirmation" value="Type RESET to confirm" />
-                    <x-text-input id="production-reset-confirmation" name="reset_confirmation" placeholder="RESET" pattern="RESET" autocomplete="off" required />
-                    <x-button type="submit" variant="danger" class="!px-3 !py-1.5 !text-xs">Reset Production Records</x-button>
-                </form>
-            </details>
-        </div>
+        <x-reset-dot :action="route('admin.water-production.reset')" title="Reset Production Records" description="Deletes all production logs, including records outside the current date filter. Gallon inventory and movement history remain. This cannot be undone." />
     @endif
+    @endpush
     <div class="mb-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
         @foreach(['batches' => 'Production Batches', 'filledContainers' => 'Gallon Containers Filled'] as $key => $label)
             <x-stat-card compact :label="$label" :value="number_format($summary[$key])" :icon="$key === 'batches' ? 'clipboard' : 'droplet'" :color="$key === 'batches' ? 'primary' : 'secondary'" />

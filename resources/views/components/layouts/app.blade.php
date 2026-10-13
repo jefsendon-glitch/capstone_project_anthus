@@ -131,10 +131,15 @@
                         type="button"
                         x-on:click="$store.theme.toggle()"
                         class="rounded-xl border border-transparent p-2.5 text-slate-500 transition hover:border-slate-200 hover:bg-slate-100 hover:text-primary-600 dark:text-slate-300 dark:hover:border-white/10 dark:hover:bg-white/5"
+                        aria-label="Toggle dark mode"
                     >
                         <x-icon name="moon" class="size-5" x-show="!$store.theme.dark" />
                         <x-icon name="sun" class="size-5" x-show="$store.theme.dark" x-cloak />
                     </button>
+
+                    @if(auth()->user()->isAdmin())
+                        @stack('admin-reset-actions')
+                    @endif
 
                     {{-- Notification bell --}}
                     @php
