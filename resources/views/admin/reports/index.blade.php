@@ -1,130 +1,57 @@
-<x-layouts.app title="Financial Reports" :heading="'Financial Reports'">
+<x-layouts.app title="Financial Reports" heading="Financial Reports">
     @include('admin.financial.nav', ['section' => 'overview'])
-    <div id="printable-report" class="space-y-6">
-        <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-            <div class="flex items-start gap-3">
-                <img
-                    src="{{ asset('images/shaunti-water-logo.svg') }}"
-                    alt="{{ $business->business_name }}"
-                    class="hidden size-12 shrink-0 rounded-2xl bg-white object-contain p-1.5 shadow-sm ring-1 ring-slate-900/5 sm:block dark:bg-white/90"
-                >
-                <div>
-                    <p class="text-sm font-medium text-primary-600 dark:text-primary-400">Overview · Financial summaries, trends and performance</p>
-                    <h2 class="mt-1 text-2xl font-bold text-slate-950 dark:text-white">Revenue at a glance</h2>
-                    <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">Live figures from completed sales records for {{ $reportStart->format('M d, Y') }} to {{ $reportEnd->format('M d, Y') }}.</p>
-                </div>
-            </div>
-            <x-button class="no-print" type="button" variant="secondary" onclick="window.print()">
-                <x-icon name="clipboard" class="size-4" /> Print / Save PDF
-            </x-button>
+    <div class="space-y-4">
+        <div class="flex flex-wrap items-center justify-between gap-2">
+            <div><h2 class="text-lg font-semibold text-slate-900 dark:text-white">Financial Overview</h2><p class="mt-1 text-xs text-slate-500">{{ $reportStart->format('M d, Y') }} – {{ $reportEnd->format('M d, Y') }}</p></div>
+            <a href="{{ route('admin.financial.section', ['section' => 'exports']) }}" class="text-sm font-medium text-primary-600 dark:text-primary-400">Reports &amp; Export <span aria-hidden="true">→</span></a>
         </div>
-
-        <x-card class="no-print !p-4 sm:!p-5">
-            <form method="GET" action="{{ route('admin.reports.index') }}" class="grid gap-4 sm:grid-cols-[1fr_1fr_auto_auto] sm:items-end">
-                <div>
-                    <x-input-label for="date_from" value="From" />
-                    <x-text-input id="date_from" type="date" name="date_from" :value="$reportStart->toDateString()" required />
-                </div>
-                <div>
-                    <x-input-label for="date_to" value="To" />
-                    <x-text-input id="date_to" type="date" name="date_to" :value="$reportEnd->toDateString()" required />
-                </div>
-                <x-button type="submit" class="w-full sm:w-auto"><x-icon name="chart" class="size-4" /> Generate report</x-button>
-                <a href="{{ route('admin.reports.index') }}" class="inline-flex items-center justify-center rounded-xl px-3 py-2.5 text-sm font-semibold text-slate-500 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-white/5">Last 7 days</a>
+        @if($errors->any())<div role="alert" class="rounded-lg bg-danger-50 p-3 text-sm text-danger-700">@foreach($errors->all() as $error)<p>{{ $error }}</p>@endforeach</div>@endif
+        <x-card padding="p-3">
+            <form method="GET" action="{{ route('admin.reports.index') }}" class="grid grid-cols-2 items-end gap-3 sm:flex sm:flex-wrap">
+                <div class="min-w-0"><x-input-label for="date_from" value="From" /><x-text-input id="date_from" type="date" name="date_from" :value="$reportStart->toDateString()" required /></div>
+                <div class="min-w-0"><x-input-label for="date_to" value="To" /><x-text-input id="date_to" type="date" name="date_to" :value="$reportEnd->toDateString()" required /></div>
+                <x-button type="submit">Apply</x-button><x-button as="a" :href="route('admin.reports.index')" variant="secondary">Last 7 Days</x-button>
             </form>
         </x-card>
-
-        <div class="hidden print:flex print:items-center print:gap-4 print:border-b-2 print:border-slate-900 print:pb-4">
-            <img src="{{ asset('images/shaunti-water-logo.svg') }}" alt="{{ $business->business_name }}" class="h-16 w-16 shrink-0 object-contain">
-            <div>
-                <h1 class="text-2xl font-bold text-slate-950">{{ $business->business_name }}</h1>
-                @if($business->address)
-                    <p class="text-xs text-slate-600">{{ $business->address }}</p>
-                @endif
-                @if($business->contact_number || $business->contact_email)
-                    <p class="text-xs text-slate-600">{{ collect([$business->contact_number, $business->contact_email])->filter()->implode(' · ') }}</p>
-                @endif
-                <p class="mt-1 text-sm font-semibold text-slate-700">Financial report · {{ $reportStart->format('F d, Y') }} – {{ $reportEnd->format('F d, Y') }}</p>
-            </div>
-        </div>
-
-        <div class="grid grid-cols-2 gap-3 xl:grid-cols-5">
-            <x-stat-card compact label="Today's Revenue" value="₱{{ number_format($revenueToday, 2) }}" hint="{{ now()->format('M d, Y') }}" icon="dollar" color="delivery" variant="solid" />
-            <x-stat-card compact label="Period Revenue" value="₱{{ number_format($reportRevenue, 2) }}" hint="Selected date range" icon="dollar" color="primary" variant="solid" />
-            <x-stat-card compact label="Transactions" value="{{ number_format($reportTransactions) }}" hint="Sales transactions" icon="clipboard" color="secondary" variant="solid" />
-            <x-stat-card compact label="Average Sale" value="₱{{ number_format($averageTransaction, 2) }}" hint="Per transaction" icon="chart" color="success" variant="solid" />
-            <x-stat-card compact label="Top Product" value="{{ $bestSellers->first()?->product_name ?? '—' }}" hint="{{ $bestSellers->first() ? number_format($bestSellers->first()->total_quantity).' units sold' : 'No sales in this period' }}" icon="cube" color="delivery" variant="solid" />
-        </div>
-
         <div class="grid grid-cols-2 gap-3 xl:grid-cols-4">
-            <x-stat-card compact label="Recorded Expenses" :value="'₱'.number_format($financialSummary['Recorded Expenses'], 2)" icon="clipboard" color="danger" />
-            <x-stat-card compact label="Sales Less Recorded Expenses" :value="'₱'.number_format($financialSummary['Sales Less Recorded Expenses'], 2)" icon="chart" color="primary" />
-            <x-stat-card compact label="Period Collections" :value="'₱'.number_format($financialSummary['Customer Collections'], 2)" icon="dollar" color="success" />
-            <x-stat-card compact label="Current Receivables" :value="'₱'.number_format($financialSummary['Current Receivables'], 2)" icon="credit-card" color="warning" />
+            <x-stat-card compact label="Sales Revenue" :value="'₱'.number_format($reportRevenue, 2)" hint="Selected period" icon="chart" color="primary" />
+            <x-stat-card compact label="Recorded Expenses" :value="'₱'.number_format($financialSummary['Recorded Expenses'], 2)" hint="Selected period" icon="clipboard" color="danger" />
+            <x-stat-card compact label="Collections" :value="'₱'.number_format($financialSummary['Customer Collections'], 2)" hint="Customer payments in period" icon="dollar" color="success" />
+            <x-stat-card compact label="Receivables" :value="'₱'.number_format($financialSummary['Current Receivables'], 2)" hint="Current outstanding balance" icon="credit-card" color="warning" />
         </div>
-
-        <x-card>
-            <div class="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
-                <div>
-                    <h2 class="text-base font-semibold text-slate-950 dark:text-white">Revenue trend</h2>
-                    <p class="text-sm text-slate-500 dark:text-slate-400">Daily sales recorded in the selected period.</p>
+        <div class="grid min-w-0 items-start gap-4 lg:grid-cols-3">
+            <x-card class="min-w-0 lg:col-span-2">
+                <div class="flex flex-wrap items-center justify-between gap-2"><h3 class="text-sm font-semibold text-slate-900 dark:text-white">Sales Revenue Trend</h3><span class="text-xs text-slate-500">Daily totals</span></div>
+                <div class="relative mt-4 h-48 sm:h-60"><canvas id="salesTrendChart" aria-label="Daily sales revenue" role="img"></canvas></div>
+                <div class="mt-4 grid grid-cols-2 gap-3 border-t border-slate-100 pt-3 dark:border-white/10">
+                    <div><p class="text-xs text-slate-500">Transactions</p><p class="mt-1 text-sm font-semibold">{{ number_format($reportTransactions) }}</p></div>
+                    <div><p class="text-xs text-slate-500">Average Sale</p><p class="mt-1 text-sm font-semibold">₱{{ number_format($averageTransaction, 2) }}</p></div>
                 </div>
-                <span class="inline-flex w-fit items-center gap-2 rounded-full bg-primary-50 px-3 py-1 text-xs font-semibold text-primary-700 dark:bg-primary-500/10 dark:text-primary-300"><span class="size-2 rounded-full bg-primary-500"></span> Revenue</span>
-            </div>
-            <div class="mt-5 h-72"><canvas id="salesTrendChart" aria-label="Daily revenue trend" role="img"></canvas></div>
-        </x-card>
-
-        <div class="grid grid-cols-1 gap-6 xl:grid-cols-2">
-            <x-card>
-                <div class="flex items-start justify-between">
-                    <div>
-                        <h2 class="text-base font-semibold text-slate-950 dark:text-white">Payment mix</h2>
-                        <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">Revenue by payment method.</p>
-                    </div>
-                    <span class="rounded-xl bg-success-50 p-2 text-success-600 dark:bg-success-500/10 dark:text-success-400"><x-icon name="credit-card" class="size-5" /></span>
-                </div>
-                <div class="mt-5 h-56"><canvas id="paymentMixChart" aria-label="Payment method revenue split" role="img"></canvas></div>
             </x-card>
-
             <x-card>
-                <div class="flex items-start justify-between">
-                    <div>
-                        <h2 class="text-base font-semibold text-slate-950 dark:text-white">Sales channel</h2>
-                        <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">Walk-in and delivery revenue.</p>
-                    </div>
-                    <span class="rounded-xl bg-delivery-50 p-2 text-delivery-600 dark:bg-delivery-500/10 dark:text-delivery-400"><x-icon name="truck" class="size-5" /></span>
+                <h3 class="text-sm font-semibold text-slate-900 dark:text-white">Sales Breakdown</h3>
+                <div class="mt-4 space-y-4">
+                    @foreach(['Cash Sales' => ['cash', 'success'], 'Credit Sales' => ['loan', 'warning']] as $label => [$key, $color])
+                        @php $amount = (float) $cashVsLoan->get($key, 0); $percent = $reportRevenue > 0 ? min(100, max(0, $amount / $reportRevenue * 100)) : 0; @endphp
+                        <div><div class="flex flex-wrap items-center justify-between gap-1 text-xs"><span class="text-slate-500">{{ $label }}</span><span class="font-semibold">₱{{ number_format($amount, 2) }}</span></div><div class="mt-2 h-1.5 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800"><div class="h-full rounded-full {{ $key === 'cash' ? 'bg-success-500' : 'bg-warning-500' }}" style="width: {{ $percent }}%"></div></div></div>
+                    @endforeach
                 </div>
-                <div class="mt-5 h-56"><canvas id="channelMixChart" aria-label="Sales channel revenue split" role="img"></canvas></div>
+                <dl class="mt-4 space-y-3 border-t border-slate-100 pt-4 text-xs dark:border-white/10">
+                    <div class="flex flex-wrap justify-between gap-1"><dt class="text-slate-500">POS / Walk-in</dt><dd class="font-semibold">₱{{ number_format((float) $walkInVsDelivery->get('walk-in', 0), 2) }}</dd></div>
+                    <div class="flex flex-wrap justify-between gap-1"><dt class="text-slate-500">Delivery</dt><dd class="font-semibold">₱{{ number_format((float) $walkInVsDelivery->get('delivery', 0), 2) }}</dd></div>
+                    <div class="flex flex-wrap justify-between gap-1"><dt class="text-slate-500">Current Overdue Credit</dt><dd class="font-semibold text-danger-600 dark:text-danger-400">₱{{ number_format($financialSummary['Current Overdue Credit'], 2) }}</dd></div>
+                </dl>
+                <div class="mt-4 rounded-lg bg-primary-50 p-3 dark:bg-primary-500/10"><p class="text-xs text-primary-700 dark:text-primary-300">Sales Less Recorded Expenses</p><p class="mt-1 text-lg font-semibold text-primary-700 dark:text-primary-300">₱{{ number_format($financialSummary['Sales Less Recorded Expenses'], 2) }}</p></div>
             </x-card>
         </div>
-
         <x-card padding="p-0">
-            <div class="flex items-center justify-between px-6 py-5">
-                <div>
-                    <h2 class="text-base font-semibold text-slate-950 dark:text-white">Best-selling products</h2>
-                    <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">Ranked by revenue for this report period.</p>
-                </div>
-                <span class="text-xs font-medium text-slate-400">{{ $bestSellers->count() }} products</span>
-            </div>
-            @if($bestSellers->isEmpty())
-                <div class="px-6 pb-6"><x-empty-state icon="cube" title="No sales recorded in this period" /></div>
-            @else
-                <div class="overflow-x-auto">
-                    <table class="min-w-full divide-y divide-slate-200 dark:divide-white/10">
-                        <thead><tr class="bg-slate-50 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 dark:bg-white/5 dark:text-slate-400"><th class="px-6 py-3">Product</th><th class="px-6 py-3">Units sold</th><th class="px-6 py-3 text-right">Revenue</th></tr></thead>
-                        <tbody class="divide-y divide-slate-100 dark:divide-white/5">
-                            @foreach($bestSellers as $row)
-                                <tr><td class="px-6 py-4 text-sm font-semibold text-slate-900 dark:text-white">{{ $row->product_name }}</td><td class="px-6 py-4 text-sm text-slate-600 dark:text-slate-300">{{ number_format($row->total_quantity) }}</td><td class="px-6 py-4 text-right font-mono text-sm font-semibold text-slate-900 dark:text-white">₱{{ number_format($row->total_revenue, 2) }}</td></tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-                </div>
+            <div class="flex flex-wrap items-center justify-between gap-2 px-4 py-3"><h3 class="text-sm font-semibold text-slate-900 dark:text-white">Top Products</h3><a href="{{ route('admin.financial.section', ['section' => 'sales', 'date_from' => $reportStart->toDateString(), 'date_to' => $reportEnd->toDateString()]) }}" class="text-xs font-medium text-primary-600 dark:text-primary-400">View Sales</a></div>
+            @if($bestSellers->isEmpty())<p class="px-4 pb-4 text-sm text-slate-500">No sales recorded in this period.</p>@else
+                <div class="overflow-x-auto"><table class="min-w-full text-left text-sm"><thead class="bg-slate-50 text-xs uppercase text-slate-500 dark:bg-white/5"><tr><th class="px-4 py-2">Product</th><th class="px-4 py-2 text-right">Units Sold</th><th class="px-4 py-2 text-right">Revenue</th></tr></thead><tbody class="divide-y divide-slate-100 dark:divide-white/5">@foreach($bestSellers->take(5) as $row)<tr><td class="px-4 py-2.5 font-medium">{{ $row->product_name }}</td><td class="px-4 py-2.5 text-right">{{ number_format($row->total_quantity) }}</td><td class="px-4 py-2.5 text-right whitespace-nowrap">₱{{ number_format($row->total_revenue, 2) }}</td></tr>@endforeach</tbody></table></div>
             @endif
         </x-card>
-
-        <p class="hidden print:block print:mt-2 print:text-xs print:text-slate-400">Generated by {{ auth()->user()->name }} on {{ now()->format('F d, Y g:i A') }}</p>
+        <p class="text-xs leading-relaxed text-slate-500">Collections are separate from sales revenue. Receivables and overdue credit show current balances; expenses include recorded entries only.</p>
     </div>
-
     @push('scripts')
     <script>
         document.addEventListener('DOMContentLoaded', () => {
@@ -146,12 +73,9 @@
                 charts.splice(0).forEach(chart => chart.destroy());
                 const colors = palette();
                 charts.push(new window.Chart(document.getElementById('salesTrendChart'), {
-                    type: 'line', data: { labels: chartData.labels, datasets: [{ label: 'Revenue', data: chartData.trend, borderColor: '#0284c7', backgroundColor: 'rgba(14, 165, 233, .16)', fill: true, tension: .35, borderWidth: 3, pointRadius: 3, pointHoverRadius: 5, pointBackgroundColor: '#fff', pointBorderColor: '#0284c7' }] },
-                    options: { responsive: true, maintainAspectRatio: false, interaction: { intersect: false, mode: 'index' }, plugins: { legend: { display: false }, tooltip: tooltip() }, scales: { x: { ticks: { color: colors.muted, maxRotation: 0 }, grid: { display: false }, border: { display: false } }, y: { beginAtZero: true, ticks: { color: colors.muted, callback: value => money(value) }, grid: { color: colors.grid }, border: { display: false } } } }
+                    type: 'line', data: { labels: chartData.labels, datasets: [{ label: 'Revenue', data: chartData.trend, borderColor: '#0284c7', backgroundColor: 'rgba(14, 165, 233, .16)', fill: true, tension: .35, borderWidth: 2, pointRadius: 2, pointHoverRadius: 5, pointBackgroundColor: '#fff', pointBorderColor: '#0284c7' }] },
+                    options: { responsive: true, maintainAspectRatio: false, interaction: { intersect: false, mode: 'index' }, plugins: { legend: { display: false }, tooltip: tooltip() }, scales: { x: { ticks: { color: colors.muted, maxRotation: 0, maxTicksLimit: 8 }, grid: { display: false }, border: { display: false } }, y: { beginAtZero: true, ticks: { color: colors.muted, callback: value => money(value) }, grid: { color: colors.grid }, border: { display: false } } } }
                 }));
-                const doughnut = (element, labels, data, colorset) => new window.Chart(document.getElementById(element), { type: 'doughnut', data: { labels, datasets: [{ data, backgroundColor: colorset, borderColor: document.documentElement.classList.contains('dark') ? '#0f172a' : '#fff', borderWidth: 4, hoverOffset: 5 }] }, options: { responsive: true, maintainAspectRatio: false, cutout: '66%', plugins: { legend: { position: 'bottom', labels: { color: colors.text, padding: 18, usePointStyle: true, pointStyle: 'circle' } }, tooltip: tooltip() } } });
-                charts.push(doughnut('paymentMixChart', ['Cash', 'Loan / Credit'], [chartData.cash, chartData.loan], ['#10b981', '#8b5cf6']));
-                charts.push(doughnut('channelMixChart', ['Walk-in', 'Delivery'], [chartData.walkIn, chartData.delivery], ['#0284c7', '#f59e0b']));
             };
             renderCharts();
             new MutationObserver(renderCharts).observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
