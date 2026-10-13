@@ -1,3 +1,18 @@
+@php
+    $legacyCategories = [
+        'water_filters' => 'filter_treatment_materials',
+        'treatment_materials' => 'filter_treatment_materials',
+        'uv_lamps' => 'filter_treatment_materials',
+        'bottle_caps' => 'bottle_caps_seals',
+        'bottle_seals' => 'bottle_caps_seals',
+        'labels' => 'labels_packaging',
+        'plastic_bags' => 'labels_packaging',
+        'cleaning_supplies' => 'cleaning_sanitation',
+    ];
+    $selectedCategory = old('category', $consumable->category);
+    $selectedCategory = $legacyCategories[$selectedCategory] ?? $selectedCategory;
+@endphp
+
 <x-layouts.app title="Edit Supplies" :heading="'Edit Supplies'">
     <x-card class="mx-auto max-w-xl">
         <form method="POST" action="{{ route('admin.consumables.update', $consumable) }}" class="space-y-5">
@@ -14,8 +29,8 @@
                 <div>
                     <x-input-label for="category" value="Category" />
                     <x-select id="category" name="category" required>
-                        @foreach(['filter_treatment_materials' => 'Filter Cartridges and Treatment Materials', 'bottle_caps_seals' => 'Bottle Caps and Seals', 'labels_packaging' => 'Labels and Packaging', 'cleaning_sanitation' => 'Cleaning and Sanitation Supplies', 'water_filters' => 'Water Filters (legacy)', 'treatment_materials' => 'Treatment Materials (legacy)', 'uv_lamps' => 'UV Lamps (legacy)', 'bottle_caps' => 'Bottle Caps (legacy)', 'bottle_seals' => 'Bottle Seals (legacy)', 'labels' => 'Labels (legacy)', 'plastic_bags' => 'Plastic Bags (legacy)', 'cleaning_supplies' => 'Cleaning Supplies (legacy)'] as $category => $label)
-                            <option value="{{ $category }}" @selected(old('category', $consumable->category) === $category)>{{ $label }}</option>
+                        @foreach(['filter_treatment_materials' => 'Filter Cartridges and Treatment Materials', 'bottle_caps_seals' => 'Bottle Caps and Seals', 'labels_packaging' => 'Labels and Packaging', 'cleaning_sanitation' => 'Cleaning and Sanitation Supplies'] as $category => $label)
+                            <option value="{{ $category }}" @selected($selectedCategory === $category)>{{ $label }}</option>
                         @endforeach
                     </x-select>
                     <x-input-error :messages="$errors->get('category')" />
