@@ -15,7 +15,7 @@ $procurementActive = request()->routeIs('admin.suppliers*') || request()->routeI
 @if(auth()->user()->isAdmin())
     <a href="{{ route('admin.dashboard') }}" class="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium {{ $navLink('admin.dashboard') }}">
         <x-icon name="home" class="size-5 shrink-0" />
-        <span x-bind:class="$store.sidebar.collapsed && 'lg:hidden'">Overview</span>
+        <span x-bind:class="$store.sidebar.collapsed && 'lg:hidden'">Dashboard</span>
     </a>
     <a href="{{ route('pos.index') }}" class="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium {{ $navLink('pos') }}">
         <x-icon name="cart" class="size-5 shrink-0" />

@@ -1,4 +1,4 @@
-<x-layouts.app title="Overview" :heading="'Overview'" :subheading="now()->format('l, F j, Y')">
+<x-layouts.app title="Dashboard" :heading="'Dashboard'" :subheading="now()->format('l, F j, Y')">
     <div class="grid grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-5">
         <x-stat-card
             variant="solid" compact
