@@ -1,12 +1,12 @@
 <x-layouts.app title="Customers" :heading="'Customers'" :subheading="'Customer accounts, orders, sales, and credit balances'">
-    <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <x-stat-card variant="tinted" label="Customers" :value="$customerStats['total']" hint="Registered accounts" icon="users" color="primary" />
-        <x-stat-card variant="tinted" label="Active Customers" :value="$customerStats['active']" hint="Available to transact" icon="check-circle" color="success" />
-        <x-stat-card variant="tinted" label="With Balance" :value="$customerStats['withBalance']" hint="Credit payments due" icon="credit-card" color="warning" />
-        <x-stat-card variant="tinted" label="Outstanding Credit" value="₱{{ number_format($customerStats['outstanding'], 2) }}" hint="Across all customers" icon="dollar" color="danger" />
+    <div class="grid grid-cols-2 gap-2 sm:gap-3 xl:grid-cols-4">
+        <x-stat-card variant="tinted" compact label="Customers" :value="$customerStats['total']" hint="Registered accounts" icon="users" color="primary" />
+        <x-stat-card variant="tinted" compact label="Active Customers" :value="$customerStats['active']" hint="Available to transact" icon="check-circle" color="success" />
+        <x-stat-card variant="tinted" compact label="With Balance" :value="$customerStats['withBalance']" hint="Credit payments due" icon="credit-card" color="warning" />
+        <x-stat-card variant="tinted" compact label="Outstanding Credit" value="₱{{ number_format($customerStats['outstanding'], 2) }}" hint="Across all customers" icon="dollar" color="danger" />
     </div>
 
-    <x-card class="mt-6" padding="p-4">
+    <x-card class="mt-4" padding="p-4">
         <form method="GET" class="grid gap-3 md:grid-cols-[minmax(0,1fr)_11rem_11rem_auto]">
             <div class="relative">
                 <x-icon name="search" class="pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-slate-400" />

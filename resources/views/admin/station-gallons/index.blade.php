@@ -23,9 +23,9 @@
     </div>
 
     <div class="mb-3 grid grid-cols-2 gap-2 sm:grid-cols-4 xl:grid-cols-7">
-        <x-card padding="px-3 py-2"><p class="text-xs text-slate-500">Total Gallons</p><p class="text-xl font-semibold tabular-nums">{{ number_format($gallons->sum(fn ($g) => $g->empty + $g->filled + $g->borrowed + $g->damaged + $g->missing)) }}</p></x-card>
+        <x-stat-card compact label="Total Gallons" :value="number_format($gallons->sum(fn ($g) => $g->empty + $g->filled + $g->borrowed + $g->damaged + $g->missing))" icon="cube" color="primary" />
         @foreach(['empty', 'filled', 'borrowed', 'returned', 'damaged', 'missing'] as $status)
-            <x-card padding="px-3 py-2"><p class="text-xs text-slate-500">{{ ucfirst($status) }}{{ $status === 'returned' ? ' (All Time)' : '' }}</p><p class="text-xl font-semibold tabular-nums">{{ number_format($gallons->sum($status)) }}</p></x-card>
+            <x-stat-card compact :label="ucfirst($status).($status === 'returned' ? ' (All Time)' : '')" :value="number_format($gallons->sum($status))" :icon="['empty' => 'archive', 'filled' => 'droplet', 'borrowed' => 'users', 'returned' => 'check-circle', 'damaged' => 'alert-triangle', 'missing' => 'x-circle'][$status]" :color="['empty' => 'secondary', 'filled' => 'success', 'borrowed' => 'delivery', 'returned' => 'primary', 'damaged' => 'warning', 'missing' => 'danger'][$status]" />
         @endforeach
     </div>
     <p class="mb-3 text-xs text-slate-500">Returns are cumulative; returned containers are already included in empty or damaged stock.</p>

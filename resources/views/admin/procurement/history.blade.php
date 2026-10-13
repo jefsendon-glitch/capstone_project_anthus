@@ -3,8 +3,8 @@
     @include('admin.procurement.filters', ['history' => true])
     @foreach($errors->all() as $error)<p class="mb-2 text-sm text-red-600">{{ $error }}</p>@endforeach
     <div class="mb-6 grid gap-4 sm:grid-cols-2">
-        <x-card><p class="text-sm text-slate-500">Ordered value</p><p class="text-2xl font-semibold">₱{{ number_format($totals->ordered_cost, 2) }}</p></x-card>
-        <x-card><p class="text-sm text-slate-500">Received value</p><p class="text-2xl font-semibold">₱{{ number_format($totals->received_cost, 2) }}</p></x-card>
+        <x-stat-card compact label="Ordered Value" :value="'₱'.number_format($totals->ordered_cost, 2)" icon="cart" color="primary" />
+        <x-stat-card compact label="Received Value" :value="'₱'.number_format($totals->received_cost, 2)" icon="check-circle" color="success" />
     </div>
     <p class="mb-4 text-xs text-slate-500">Totals follow selected filters and exclude draft and cancelled orders. Received value reflects stock receipts, rather than payments.</p>
     <x-card>

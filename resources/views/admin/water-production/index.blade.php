@@ -21,7 +21,7 @@
     @endif
     <div class="mb-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
         @foreach(['batches' => 'Production Batches', 'filledContainers' => 'Gallon Containers Filled'] as $key => $label)
-            <div class="rounded-lg border border-slate-200 bg-white px-3 py-2 dark:border-white/10 dark:bg-slate-800"><p class="text-xs text-slate-500">{{ $label }}</p><p class="mt-1 text-xl font-semibold tabular-nums">{{ number_format($summary[$key]) }}</p></div>
+            <x-stat-card compact :label="$label" :value="number_format($summary[$key])" :icon="$key === 'batches' ? 'clipboard' : 'droplet'" :color="$key === 'batches' ? 'primary' : 'secondary'" />
         @endforeach
     </div>
     <div class="mb-3 flex flex-wrap items-center justify-between gap-2">

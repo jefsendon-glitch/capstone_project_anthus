@@ -23,7 +23,7 @@
                 <table class="min-w-full divide-y divide-slate-200 dark:divide-white/10">
                     <thead>
                         <tr class="text-left text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
-                            <th class="px-6 py-3">Code</th>
+                            <th class="px-6 py-3">Transaction No.</th>
                             <th class="px-6 py-3">Type</th>
                             <th class="px-6 py-3">Customer</th>
                             <th class="px-6 py-3">Product</th>

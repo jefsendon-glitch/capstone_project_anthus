@@ -1,6 +1,10 @@
 @props(['label', 'value', 'icon' => 'chart', 'color' => 'primary', 'hint' => null, 'variant' => 'plain', 'compact' => false])
 
 @php
+if (auth()->user()?->isAdmin()) {
+    $variant = 'solid';
+}
+
 $iconColors = [
     'primary' => 'bg-primary-50 text-primary-600 dark:bg-primary-500/10 dark:text-primary-400',
     'secondary' => 'bg-secondary-50 text-secondary-600 dark:bg-secondary-500/10 dark:text-secondary-400',
@@ -50,21 +54,21 @@ $cardPadding = $compact ? 'p-4' : 'p-6';
                 <p class="mt-1 text-xs text-white/70">{{ $hint }}</p>
             @endif
         </div>
-        <div class="{{ $compact ? 'hidden shrink-0 rounded-xl p-2 sm:block' : 'rounded-2xl p-3' }} bg-white/20 text-white">
+        <div class="{{ $compact ? 'shrink-0 rounded-lg p-1.5 sm:p-2' : 'shrink-0 rounded-2xl p-3' }} bg-white/20 text-white">
             <x-icon :name="$icon" :class="$compact ? 'size-4' : 'size-6'" />
         </div>
     </x-card>
 @elseif($variant === 'tinted')
-    <x-card :padding="$cardPadding" class="flex {{ $cardHeight }} items-start justify-between {{ $tintedColors[$color] ?? $tintedColors['warning'] }}">
-        <div>
-            <p class="text-xs font-semibold uppercase tracking-wide {{ $tintedText[$color] ?? $tintedText['warning'] }}">{{ $label }}</p>
-            <p class="mt-2 text-2xl font-bold {{ $tintedText[$color] ?? $tintedText['warning'] }}">{{ $value }}</p>
+    <x-card :padding="$compact ? 'p-3 sm:p-4' : $cardPadding" class="flex {{ $cardHeight }} items-start justify-between gap-2 {{ $tintedColors[$color] ?? $tintedColors['warning'] }}">
+        <div class="min-w-0 flex-1">
+            <p class="{{ $compact ? 'text-[11px] leading-4' : 'text-xs' }} font-semibold uppercase tracking-wide {{ $tintedText[$color] ?? $tintedText['warning'] }}">{{ $label }}</p>
+            <p class="{{ $compact ? 'mt-1 break-words text-lg sm:text-xl' : 'mt-2 text-2xl' }} font-bold {{ $tintedText[$color] ?? $tintedText['warning'] }}">{{ $value }}</p>
             @if($hint)
                 <p class="mt-1 text-xs {{ $tintedText[$color] ?? $tintedText['warning'] }} opacity-80">{{ $hint }}</p>
             @endif
         </div>
-        <div class="rounded-2xl bg-white/50 p-3 dark:bg-white/10 {{ $tintedText[$color] ?? $tintedText['warning'] }}">
-            <x-icon :name="$icon" class="size-6" />
+        <div class="{{ $compact ? 'hidden shrink-0 rounded-lg p-2 sm:block' : 'rounded-2xl p-3' }} bg-white/50 dark:bg-white/10 {{ $tintedText[$color] ?? $tintedText['warning'] }}">
+            <x-icon :name="$icon" :class="$compact ? 'size-4' : 'size-6'" />
         </div>
     </x-card>
 @else
