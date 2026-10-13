@@ -1,7 +1,7 @@
 <x-layouts.app title="Overview" :heading="'Overview'" :subheading="now()->format('l, F j, Y')">
     <div class="grid grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-5">
         <x-stat-card
-            variant="plain" compact
+            variant="solid" compact
             label="Today's Sales"
             value="₱{{ number_format($revenueToday, 0) }}"
             :hint="$transactionsToday.' transactions'"
@@ -9,7 +9,7 @@
             color="primary"
         />
         <x-stat-card
-            variant="plain" compact
+            variant="solid" compact
             label="Weekly Sales"
             value="₱{{ number_format($revenueThisWeek, 0) }}"
             hint="This week"
@@ -17,7 +17,7 @@
             color="secondary"
         />
         <x-stat-card
-            variant="plain" compact
+            variant="solid" compact
             label="Monthly Revenue"
             value="₱{{ number_format($revenueThisMonth, 0) }}"
             hint="This month"
@@ -25,7 +25,7 @@
             color="secondary"
         />
         <x-stat-card
-            variant="plain" compact
+            variant="solid" compact
             label="Total Transactions"
             :value="$totalTransactions"
             hint="All-time"
@@ -33,7 +33,7 @@
             color="primary"
         />
         <x-stat-card
-            variant="plain" compact
+            variant="solid" compact
             label="Total Customers"
             :value="$totalCustomers"
             hint="Registered accounts"
@@ -41,7 +41,7 @@
             color="primary"
         />
         <x-stat-card
-            variant="plain" compact
+            variant="solid" compact
             label="Gallons Sold Today"
             :value="number_format($gallonsSoldToday, 0)"
             hint="Excludes containers"
@@ -49,7 +49,7 @@
             color="secondary"
         />
         <x-stat-card
-            variant="plain" compact
+            variant="solid" compact
             label="Active Deliveries"
             :value="$activeDeliveriesCount"
             hint="Out for delivery"
@@ -57,7 +57,7 @@
             color="delivery"
         />
         <x-stat-card
-            variant="plain" compact
+            variant="solid" compact
             label="Pending Deliveries"
             :value="$pendingDeliveriesCount"
             hint="Awaiting dispatch"
@@ -65,7 +65,7 @@
             color="warning"
         />
         <x-stat-card
-            variant="plain" compact
+            variant="solid" compact
             label="Low Stock Items"
             :value="$lowStockProducts->count() + $lowStockConsumables->count()"
             hint="Restock needed"
@@ -73,7 +73,7 @@
             color="warning"
         />
         <x-stat-card
-            variant="plain" compact
+            variant="solid" compact
             label="Outstanding Balances"
             value="₱{{ number_format($totalOutstandingCredit, 0) }}"
             hint="Owed by customers"
@@ -82,7 +82,8 @@
         />
     </div>
 
-    <div class="mt-4 grid min-w-0 grid-cols-1 gap-3 lg:grid-cols-3">
+    <x-collapsible-section title="Sales Performance & Alerts" open>
+    <div class="grid min-w-0 grid-cols-1 gap-3 lg:grid-cols-3">
         <x-card padding="p-4" class="min-w-0 overflow-hidden lg:col-span-2">
             <div class="flex flex-wrap items-center justify-between gap-2">
                 <h2 class="font-heading text-sm font-bold text-slate-900 dark:text-white">Weekly Revenue (Walk-in vs Delivery)</h2>
@@ -127,8 +128,10 @@
             </div>
         </x-card>
     </div>
+    </x-collapsible-section>
 
-    <div class="mt-4 grid min-w-0 grid-cols-1 gap-3 lg:grid-cols-3">
+    <x-collapsible-section title="Revenue Trend & Notifications">
+    <div class="grid min-w-0 grid-cols-1 gap-3 lg:grid-cols-3">
         <x-card padding="p-4" class="min-w-0 overflow-hidden lg:col-span-2">
             <div class="flex flex-wrap items-center justify-between gap-2">
                 <h2 class="font-heading text-sm font-bold text-slate-900 dark:text-white">Revenue Trend (6 Months)</h2>
@@ -172,8 +175,10 @@
             @endif
         </x-card>
     </div>
+    </x-collapsible-section>
 
-    <div class="mt-4 grid min-w-0 grid-cols-1 gap-3 md:grid-cols-2">
+    <x-collapsible-section title="Inventory Summary">
+    <div class="grid min-w-0 grid-cols-1 gap-3 md:grid-cols-2">
         <x-card padding="p-0">
             <div class="flex flex-wrap items-center justify-between gap-2 px-4 py-3">
                 <h2 class="font-heading text-sm font-bold text-slate-900 dark:text-white">Water Inventory Summary</h2>
@@ -232,8 +237,10 @@
             @endif
         </x-card>
     </div>
+    </x-collapsible-section>
 
-    <div class="mt-4 grid min-w-0 grid-cols-1 gap-3 md:grid-cols-2">
+    <x-collapsible-section title="Products & Customer Balances">
+    <div class="grid min-w-0 grid-cols-1 gap-3 md:grid-cols-2">
         <x-card padding="p-0">
             <div class="flex flex-wrap items-center justify-between gap-2 px-4 py-3">
                 <h2 class="font-heading text-sm font-bold text-slate-900 dark:text-white">Best-Selling Products</h2>
@@ -288,8 +295,10 @@
             @endif
         </x-card>
     </div>
+    </x-collapsible-section>
 
-    <div class="mt-4 grid min-w-0 grid-cols-1 gap-3 md:grid-cols-2">
+    <x-collapsible-section title="Transactions & Deliveries">
+    <div class="grid min-w-0 grid-cols-1 gap-3 md:grid-cols-2">
         <x-card padding="p-0">
             <div class="flex flex-wrap items-center justify-between gap-2 px-4 py-3">
                 <h2 class="font-heading text-sm font-bold text-slate-900 dark:text-white">Recent Transactions</h2>
@@ -350,8 +359,10 @@
             @endif
         </x-card>
     </div>
+    </x-collapsible-section>
 
-    <div id="system-activity-log" data-activity-url="{{ route('admin.dashboard.activities') }}" class="mt-4 min-w-0">
+    <x-collapsible-section title="System Activity Log" :open="request()->hasAny(['activity_date_from', 'activity_date_to', 'activity_page'])">
+    <div id="system-activity-log" data-activity-url="{{ route('admin.dashboard.activities') }}" class="min-w-0">
         <form method="GET" action="{{ route('admin.dashboard') }}" class="mb-3 grid grid-cols-2 items-end gap-2 sm:flex sm:flex-wrap sm:justify-end">
             <div>
                 <x-input-label for="activity_date_from" value="Activity from" />
@@ -373,6 +384,8 @@
             @endif
         </x-card>
     </div>
+
+    </x-collapsible-section>
 
     @push('scripts')
     <script>
@@ -458,6 +471,16 @@
                     y: { beginAtZero: true, ticks: { color: dashboardTickColor() }, grid: { color: dashboardGridColor() } },
                 },
             },
+        });
+
+        document.querySelectorAll('.overview-section').forEach((section) => {
+            section.addEventListener('toggle', () => {
+                if (section.open) {
+                    requestAnimationFrame(() => {
+                        [salesTrendChart, revenueChart].forEach((chart) => chart.resize());
+                    });
+                }
+            });
         });
 
         new MutationObserver(() => {
