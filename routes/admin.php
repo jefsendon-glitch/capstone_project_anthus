@@ -29,6 +29,7 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::get('/reports', [ReportsController::class, 'index'])->name('reports.index');
     Route::get('financial/reports/{report}/export', [\App\Http\Controllers\Admin\FinancialController::class, 'export'])->name('financial.reports.export');
     Route::get('financial/reports/{report}', [\App\Http\Controllers\Admin\FinancialController::class, 'show'])->name('financial.reports.show');
+    Route::delete('financial/reports/{report}', [\App\Http\Controllers\Admin\FinancialController::class, 'destroyReport'])->name('financial.reports.destroy');
     Route::post('financial/reports', [\App\Http\Controllers\Admin\FinancialController::class, 'generate'])->name('financial.reports.generate');
     Route::post('financial/expenses', [\App\Http\Controllers\Admin\FinancialController::class, 'storeExpense'])->name('financial.expenses.store');
     Route::delete('financial/collections/reset', [\App\Http\Controllers\Admin\FinancialController::class, 'resetCollections'])->name('financial.collections.reset');

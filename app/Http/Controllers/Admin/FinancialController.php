@@ -126,6 +126,15 @@ class FinancialController extends Controller
         return view('admin.financial.report', compact('report'));
     }
 
+    public function destroyReport(FinancialReport $report, Request $request): RedirectResponse
+    {
+        abort_unless($request->user()->isAdmin(), 403);
+        $report->delete();
+
+        return redirect()->route('admin.financial.section', ['section' => 'exports'])
+            ->with('success', 'Saved financial report deleted. Sales, expenses, payments, and customer balances preserved.');
+    }
+
     public function export(FinancialReport $report): StreamedResponse
     {
         return response()->streamDownload(function () use ($report) {

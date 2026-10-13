@@ -77,3 +77,21 @@ test('custom reports and financial filters reject reversed date ranges', functio
         ->assertSessionHasErrors('date_to');
     $this->assertDatabaseCount('financial_reports', 0);
 });
+
+test('only admins can delete saved reports without deleting financial source records', function () {
+    $expense = Expense::create(['expense_date' => today(), 'category' => 'Utilities', 'description' => 'Bill', 'amount' => 20]);
+    $report = FinancialReport::create([
+        'period_type' => 'daily', 'date_from' => today(), 'date_to' => today(),
+        'summary' => ['Recorded Expenses' => 20], 'generated_by' => $this->admin->id,
+    ]);
+    $user = User::factory()->create();
+    $this->actingAs($user)->delete(route('admin.financial.reports.destroy', $report))->assertForbidden();
+    $this->assertDatabaseHas('financial_reports', ['id' => $report->id]);
+    $this->actingAs($this->admin)->get(route('admin.financial.section', ['section' => 'exports']))
+        ->assertOk()->assertSee('Delete saved report');
+    $this->delete(route('admin.financial.reports.destroy', $report))
+        ->assertRedirect(route('admin.financial.section', ['section' => 'exports']));
+    $this->assertDatabaseMissing('financial_reports', ['id' => $report->id]);
+    $this->assertDatabaseHas('expenses', ['id' => $expense->id]);
+    $this->get(route('admin.financial.reports.show', $report->id))->assertNotFound();
+});
