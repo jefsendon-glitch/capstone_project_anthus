@@ -10,13 +10,9 @@
                         <td class="py-4 font-medium">{{ $supply->name }}</td><td>{{ $supply->supplier?->name ?? 'Unassigned' }}</td><td>{{ number_format($supply->quantity, 2) }} {{ $supply->unit }}</td><td>{{ number_format($supply->low_stock_threshold, 2) }}</td><td>{{ number_format($pending[$supply->id] ?? 0, 2) }}</td>
                         <td><x-badge :color="$supply->is_out_of_stock ? 'danger' : 'warning'">{{ $supply->is_out_of_stock ? 'Out of stock' : 'Low stock' }}</x-badge></td>
                         <td>
-                            @if($supply->supplier?->is_active)
-                                <x-button as="a" href="{{ route('admin.purchase-orders.create', ['consumable_id' => $supply->id]) }}" class="whitespace-nowrap !px-3 !py-1.5 !text-xs">
-                                    <x-icon name="plus" class="size-4" /> New Purchase Order
-                                </x-button>
-                            @else
-                                <a class="text-primary-600" href="{{ route('admin.consumables.edit', $supply) }}">Assign active supplier</a>
-                            @endif
+                            <x-button as="a" href="{{ route('admin.purchase-orders.create', ['consumable_id' => $supply->id]) }}" class="whitespace-nowrap !px-3 !py-1.5 !text-xs">
+                                <x-icon name="plus" class="size-4" /> New Purchase Order
+                            </x-button>
                         </td>
                     </tr>
                 @empty
