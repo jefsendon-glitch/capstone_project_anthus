@@ -1,5 +1,5 @@
 <x-layouts.app title="Products" :heading="'Products'">
-    <div class="mb-6 flex items-center justify-between">
+    <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
         <div class="inline-flex rounded-xl bg-slate-100 p-1 dark:bg-white/5">
             <a href="{{ route('admin.products.index') }}" class="rounded-lg px-3 py-1.5 text-sm font-medium {{ ! $archived ? 'bg-white text-slate-900 shadow-sm dark:bg-slate-800 dark:text-white' : 'text-slate-500 dark:text-slate-400' }}">Active</a>
             <a href="{{ route('admin.products.index', ['archived' => 1]) }}" class="rounded-lg px-3 py-1.5 text-sm font-medium {{ $archived ? 'bg-white text-slate-900 shadow-sm dark:bg-slate-800 dark:text-white' : 'text-slate-500 dark:text-slate-400' }}">Archived</a>
@@ -11,10 +11,20 @@
         @endcan
     </div>
 
+    <form method="GET" action="{{ route('admin.products.index') }}" class="mb-4 flex flex-wrap items-center gap-2">
+        @if($archived)<input type="hidden" name="archived" value="1">@endif
+        <div class="relative min-w-0 flex-1 sm:max-w-sm">
+            <x-icon name="search" class="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
+            <x-text-input type="search" name="search" :value="request('search')" maxlength="100" placeholder="Search name, category or size..." aria-label="Search products" class="!py-2 !pl-9" />
+        </div>
+        <x-button type="submit" variant="secondary" class="!py-2">Search</x-button>
+        @if(request()->filled('search'))<a href="{{ route('admin.products.index', $archived ? ['archived' => 1] : []) }}" class="px-2 text-xs font-medium text-slate-500 hover:text-primary-600">Clear</a>@endif
+    </form>
+
     <x-card padding="p-0">
         @if($products->isEmpty())
             <div class="p-6">
-                <x-empty-state icon="cube" :title="$archived ? 'No archived products' : 'No products yet'" description="Add purified, alkaline, distilled, mineral, or slim water products here." />
+                <x-empty-state icon="cube" :title="request()->filled('search') ? 'No matching products' : ($archived ? 'No archived products' : 'No products yet')" :description="request()->filled('search') ? 'Try another product name, category or size.' : 'Add purified, alkaline, distilled, mineral, or slim water products here.'" />
             </div>
         @else
             <div class="overflow-x-auto">

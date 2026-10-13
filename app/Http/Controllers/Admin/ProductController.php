@@ -17,10 +17,19 @@ class ProductController extends Controller
     public function index(): View
     {
         $this->authorize('viewAny', Product::class);
+        request()->validate(['search' => ['nullable', 'string', 'max:100']]);
 
         $archived = request()->boolean('archived');
 
         $query = $archived ? Product::onlyTrashed() : Product::query();
+        $search = trim((string) request('search', ''));
+        if ($search !== '') {
+            $query->where(function ($query) use ($search) {
+                $query->where('name', 'like', '%'.$search.'%')
+                    ->orWhere('category', 'like', '%'.$search.'%')
+                    ->orWhere('size', 'like', '%'.$search.'%');
+            });
+        }
         $products = $query->orderBy('category')->orderBy('name')->paginate(15)->withQueryString();
 
         return view('admin.products.index', compact('products', 'archived'));
