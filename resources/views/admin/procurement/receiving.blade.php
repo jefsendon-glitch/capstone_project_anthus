@@ -30,7 +30,7 @@
                 </form>
             </x-card>
         @empty
-            <x-card><x-empty-state icon="clipboard" title="No outstanding deliveries" description="Create a purchase order to start receiving supplies." /><div class="mt-4"><x-button as="a" :href="route('admin.purchase-orders.create')">New Purchase Order</x-button></div></x-card>
+            <x-card><x-empty-state icon="clipboard" title="No outstanding deliveries" description="There are no purchase orders awaiting stock receiving." /></x-card>
         @endforelse
     </div>
     <div class="mt-5">{{ $orders->links() }}</div>
