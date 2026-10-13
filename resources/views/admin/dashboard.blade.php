@@ -1,366 +1,52 @@
-<x-layouts.app title="Dashboard" :heading="'Dashboard'" :subheading="now()->format('l, F j, Y')">
-    <div class="grid grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-5">
-        <x-stat-card
-            variant="solid" compact
-            label="Today's Sales"
-            value="₱{{ number_format($revenueToday, 0) }}"
-            :hint="$transactionsToday.' transactions'"
-            icon="dollar"
-            color="primary"
-        />
-        <x-stat-card
-            variant="solid" compact
-            label="Weekly Sales"
-            value="₱{{ number_format($revenueThisWeek, 0) }}"
-            hint="This week"
-            icon="dollar"
-            color="secondary"
-        />
-        <x-stat-card
-            variant="solid" compact
-            label="Monthly Revenue"
-            value="₱{{ number_format($revenueThisMonth, 0) }}"
-            hint="This month"
-            icon="chart"
-            color="secondary"
-        />
-        <x-stat-card
-            variant="solid" compact
-            label="Total Transactions"
-            :value="$totalTransactions"
-            hint="All-time"
-            icon="cart"
-            color="primary"
-        />
-        <x-stat-card
-            variant="solid" compact
-            label="Total Customers"
-            :value="$totalCustomers"
-            hint="Registered accounts"
-            icon="users"
-            color="primary"
-        />
-        <x-stat-card
-            variant="solid" compact
-            label="Gallons Sold Today"
-            :value="number_format($gallonsSoldToday, 0)"
-            hint="Excludes containers"
-            icon="droplet"
-            color="secondary"
-        />
-        <x-stat-card
-            variant="solid" compact
-            label="Active Deliveries"
-            :value="$activeDeliveriesCount"
-            hint="Out for delivery"
-            icon="truck"
-            color="delivery"
-        />
-        <x-stat-card
-            variant="solid" compact
-            label="Pending Deliveries"
-            :value="$pendingDeliveriesCount"
-            hint="Awaiting dispatch"
-            icon="clock"
-            color="warning"
-        />
-        <x-stat-card
-            variant="solid" compact
-            label="Low Stock Items"
-            :value="$lowStockProducts->count() + $lowStockConsumables->count()"
-            hint="Restock needed"
-            icon="alert-triangle"
-            color="warning"
-        />
-        <x-stat-card
-            variant="solid" compact
-            label="Outstanding Balances"
-            value="₱{{ number_format($totalOutstandingCredit, 0) }}"
-            hint="Owed by customers"
-            icon="credit-card"
-            color="danger"
-        />
-    </div>
-
-    <x-collapsible-section title="Sales Performance & Alerts" open>
-    <div class="grid min-w-0 grid-cols-1 gap-3 lg:grid-cols-3">
-        <x-card padding="p-4" class="min-w-0 overflow-hidden lg:col-span-2">
-            <div class="flex flex-wrap items-center justify-between gap-2">
-                <h2 class="font-heading text-sm font-bold text-slate-900 dark:text-white">Weekly Revenue (Walk-in vs Delivery)</h2>
-                <p class="text-xs text-slate-400">
-                    This week: <span class="font-mono font-semibold text-slate-600 dark:text-slate-300">₱{{ number_format($revenueThisWeek, 0) }}</span>
-                    · This month: <span class="font-mono font-semibold text-slate-600 dark:text-slate-300">₱{{ number_format($revenueThisMonth, 0) }}</span>
-                </p>
-            </div>
-            <div class="relative mt-3 h-44 sm:h-52 rounded-2xl border border-slate-100 bg-slate-50/70 p-3 dark:border-white/5 dark:bg-slate-950/30">
-                <canvas id="salesTrendChart" class="block size-full" aria-label="Weekly sales chart"></canvas>
-            </div>
-            <div class="mt-3 flex items-center justify-center gap-4 text-xs">
-                <span class="flex items-center gap-2 text-slate-600 dark:text-slate-300"><span class="size-2.5 rounded-full bg-secondary-500"></span> Walk-in</span>
-                <span class="flex items-center gap-2 text-slate-600 dark:text-slate-300"><span class="size-2.5 rounded-full bg-delivery-500"></span> Delivery</span>
-            </div>
-        </x-card>
-
-        <x-card padding="p-4" class="overflow-hidden">
-            <h2 class="font-heading text-sm font-bold text-slate-900 dark:text-white">System Alerts</h2>
-            <div class="mt-3 max-h-52 space-y-2 overflow-y-auto">
-                @forelse($lowStockProducts->concat($lowStockConsumables) as $item)
-                    <div class="flex items-center gap-2 rounded-xl bg-warning-50 px-3 py-2.5 text-sm text-warning-700 dark:bg-warning-500/10 dark:text-warning-500">
-                        <x-icon name="alert-triangle" class="size-4 shrink-0" />
-                        <span class="min-w-0 truncate">
-                            @if($item instanceof \App\Models\Product)
-                                {{ $item->name }} ({{ $item->size }}) — only {{ $item->stock_quantity }} left
-                            @else
-                                {{ $item->name }} — only {{ rtrim(rtrim($item->quantity, '0'), '.') }} {{ $item->unit }} left
-                            @endif
-                        </span>
+<x-layouts.app title="Dashboard" heading="Dashboard" :subheading="now()->format('l, F j, Y')">
+    <div class="space-y-4">
+        <div class="grid grid-cols-2 gap-3 xl:grid-cols-4">
+            <x-stat-card compact label="Today's Sales" :value="'₱'.number_format($revenueToday, 0)" :hint="$transactionsToday.' transactions'" icon="dollar" color="primary" />
+            <x-stat-card compact label="Monthly Revenue" :value="'₱'.number_format($revenueThisMonth, 0)" hint="This month" icon="chart" color="secondary" />
+            <x-stat-card compact label="Active Deliveries" :value="number_format($activeDeliveriesCount)" :hint="$pendingDeliveriesCount.' pending dispatch'" icon="truck" color="delivery" />
+            <x-stat-card compact label="Outstanding Balances" :value="'₱'.number_format($totalOutstandingCredit, 0)" hint="Customer receivables" icon="credit-card" color="danger" />
+        </div>
+        <x-collapsible-section title="Sales & Operations" open>
+            <div class="grid min-w-0 gap-4 lg:grid-cols-3">
+                <x-card class="min-w-0 lg:col-span-2">
+                    <div class="flex flex-wrap items-center justify-between gap-2"><h2 class="text-sm font-semibold text-slate-900 dark:text-white">Weekly Sales</h2><a href="{{ route('admin.reports.index') }}" class="text-xs font-medium text-primary-600 dark:text-primary-400">Financial Reports</a></div>
+                    <p class="mt-1 text-xs text-slate-500">₱{{ number_format($revenueThisWeek, 0) }} this week</p>
+                    <div class="relative mt-4 h-48 sm:h-56"><canvas id="salesTrendChart" aria-label="Weekly POS and delivery sales" role="img"></canvas></div>
+                    <div class="mt-3 flex justify-center gap-4 text-xs text-slate-500"><span class="flex items-center gap-2"><span class="size-2 rounded-full bg-secondary-500"></span>POS / Walk-in</span><span class="flex items-center gap-2"><span class="size-2 rounded-full bg-delivery-500"></span>Delivery</span></div>
+                </x-card>
+                <x-card>
+                    <div class="flex items-center justify-between gap-2"><h2 class="text-sm font-semibold text-slate-900 dark:text-white">Needs Attention</h2><x-icon name="alert-triangle" class="size-4 text-warning-600" /></div>
+                    <div class="mt-4 space-y-3">
+                        <a href="{{ route('admin.procurement.reorders') }}" class="flex items-center justify-between gap-2 rounded-lg bg-warning-50 p-3 text-sm text-warning-700 dark:bg-warning-500/10 dark:text-warning-500"><span>Low Stock Supplies</span><span class="font-bold">{{ $lowStockConsumables->count() }}</span></a>
+                        <a href="{{ route('admin.products.index') }}" class="flex items-center justify-between gap-2 rounded-lg bg-warning-50 p-3 text-sm text-warning-700 dark:bg-warning-500/10 dark:text-warning-500"><span>Low Stock Products</span><span class="font-bold">{{ $lowStockProducts->count() }}</span></a>
+                        <a href="{{ route('deliveries.index', ['status' => 'pending']) }}" class="flex items-center justify-between gap-2 rounded-lg bg-delivery-50 p-3 text-sm text-delivery-700 dark:bg-delivery-500/10 dark:text-delivery-400"><span>Pending Deliveries</span><span class="font-bold">{{ $pendingDeliveriesCount }}</span></a>
+                        @if($overdueMaintenance > 0)<a href="{{ route('admin.maintenance.index') }}" class="flex items-center justify-between gap-2 rounded-lg bg-danger-50 p-3 text-sm text-danger-700 dark:bg-danger-500/10 dark:text-danger-400"><span>Overdue Maintenance</span><span class="font-bold">{{ $overdueMaintenance }}</span></a>@endif
                     </div>
-                @empty
-                    <p class="text-sm text-slate-500 dark:text-slate-400">No alerts right now — everything's healthy.</p>
-                @endforelse
-
-                @if($overdueMaintenance > 0)
-                    <div class="flex items-center gap-2 rounded-xl bg-danger-50 px-3 py-2.5 text-sm text-danger-700 dark:bg-danger-500/10 dark:text-danger-500">
-                        <x-icon name="cog" class="size-4 shrink-0" />
-                        <span>{{ $overdueMaintenance }} maintenance {{ Str::plural('task', $overdueMaintenance) }} overdue</span>
+                    <div class="mt-4 flex justify-between border-t border-slate-100 pt-3 text-xs dark:border-white/10"><span class="text-slate-500">Gallons Sold Today</span><span class="font-semibold">{{ number_format($gallonsSoldToday) }}</span></div>
+                </x-card>
+            </div>
+        </x-collapsible-section>
+        <x-collapsible-section title="Recent Transactions & Upcoming Deliveries" open>
+            <div class="grid min-w-0 gap-4 md:grid-cols-2">
+                <x-card padding="p-0">
+                    <div class="flex items-center justify-between gap-2 px-4 py-3"><h2 class="text-sm font-semibold text-slate-900 dark:text-white">Recent Transactions</h2><a href="{{ route('pos.index') }}" class="text-xs font-medium text-primary-600 dark:text-primary-400">View All</a></div>
+                    <div class="divide-y divide-slate-100 dark:divide-white/5">
+                        @forelse($recentTransactions->take(5) as $transaction)
+                            <a href="{{ route('pos.show', $transaction) }}" class="flex items-center gap-3 px-4 py-2.5 hover:bg-slate-50 dark:hover:bg-white/5"><span class="flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary-50 text-primary-600 dark:bg-primary-500/10 dark:text-primary-400"><x-icon :name="$transaction->transaction_type === 'delivery' ? 'truck' : 'cart'" class="size-4" /></span><div class="min-w-0 flex-1"><p class="truncate text-sm font-medium">{{ $transaction->customer_name ?? $transaction->customer?->name ?? 'Guest' }}</p><p class="truncate text-xs text-slate-500">{{ $transaction->transaction_code }} · {{ $transaction->created_at->format('M d, h:i A') }}</p></div><span class="shrink-0 text-sm font-semibold">₱{{ number_format($transaction->total_amount, 0) }}</span></a>
+                        @empty<p class="px-4 pb-4 text-sm text-slate-500">No recent transactions.</p>@endforelse
                     </div>
-                @endif
+                </x-card>
+                <x-card padding="p-0">
+                    <div class="flex items-center justify-between gap-2 px-4 py-3"><h2 class="text-sm font-semibold text-slate-900 dark:text-white">Upcoming Deliveries</h2><a href="{{ route('deliveries.index') }}" class="text-xs font-medium text-primary-600 dark:text-primary-400">View All</a></div>
+                    <div class="divide-y divide-slate-100 dark:divide-white/5">
+                        @forelse($pendingDeliveryOrders->take(5) as $order)
+                            <a href="{{ route('deliveries.show', $order) }}" class="flex items-center gap-3 px-4 py-2.5 hover:bg-slate-50 dark:hover:bg-white/5"><span class="flex size-8 shrink-0 items-center justify-center rounded-lg bg-delivery-50 text-delivery-600 dark:bg-delivery-500/10 dark:text-delivery-400"><x-icon name="truck" class="size-4" /></span><div class="min-w-0 flex-1"><p class="truncate text-sm font-medium">{{ $order->customer_name }}</p><p class="truncate text-xs text-slate-500">{{ $order->order_code }} · {{ $order->preferred_delivery_date?->format('M d, Y') ?? 'Not scheduled' }}</p></div><x-delivery-status-badge :status="$order->status" /></a>
+                        @empty<p class="px-4 pb-4 text-sm text-slate-500">No upcoming deliveries.</p>@endforelse
+                    </div>
+                </x-card>
             </div>
-        </x-card>
+        </x-collapsible-section>
     </div>
-    </x-collapsible-section>
-
-    <x-collapsible-section title="Revenue Trend & Notifications">
-    <div class="grid min-w-0 grid-cols-1 gap-3 lg:grid-cols-3">
-        <x-card padding="p-4" class="min-w-0 overflow-hidden lg:col-span-2">
-            <div class="flex flex-wrap items-center justify-between gap-2">
-                <h2 class="font-heading text-sm font-bold text-slate-900 dark:text-white">Revenue Trend (6 Months)</h2>
-            </div>
-            <div class="relative mt-3 h-40 sm:h-48 rounded-2xl border border-slate-100 bg-slate-50/70 p-3 dark:border-white/5 dark:bg-slate-950/30">
-                <canvas id="revenueChart" class="block size-full" aria-label="Six-month revenue chart"></canvas>
-            </div>
-        </x-card>
-
-        <x-card padding="p-0">
-            <div class="flex flex-wrap items-center justify-between gap-2 px-4 py-3">
-                <h2 class="font-heading text-sm font-bold text-slate-900 dark:text-white">Notifications</h2>
-                @if($recentNotifications->whereNull('read_at')->isNotEmpty())
-                    <form method="POST" action="{{ route('notifications.read-all') }}">
-                        @csrf
-                        <button type="submit" class="text-xs font-medium text-primary-600 hover:text-primary-700">Mark all read</button>
-                    </form>
-                @endif
-            </div>
-
-            @if($recentNotifications->isEmpty())
-                <div class="px-4 pb-4">
-                    <x-empty-state icon="bell" title="No notifications yet" description="Order and delivery alerts will show up here." />
-                </div>
-            @else
-                <div class="max-h-52 divide-y divide-slate-100 overflow-y-auto dark:divide-white/5">
-                    @foreach($recentNotifications as $notification)
-                        <form method="POST" action="{{ route('notifications.read', $notification) }}">
-                            @csrf
-                            <button type="submit" class="flex w-full items-start gap-2.5 px-4 py-2 text-left hover:bg-slate-50 dark:hover:bg-white/5">
-                                <span class="mt-1.5 size-2 shrink-0 rounded-full {{ $notification->read_at ? 'bg-transparent' : 'bg-primary-500' }}"></span>
-                                <span class="min-w-0 flex-1">
-                                    <p class="truncate text-sm font-medium text-slate-900 dark:text-white">{{ $notification->data['title'] ?? 'Notification' }}</p>
-                                    <p class="mt-0.5 truncate text-xs text-slate-500 dark:text-slate-400">{{ $notification->data['message'] ?? '' }}</p>
-                                    <p class="mt-1 text-xs text-slate-400">{{ $notification->created_at->diffForHumans() }}</p>
-                                </span>
-                            </button>
-                        </form>
-                    @endforeach
-                </div>
-            @endif
-        </x-card>
-    </div>
-    </x-collapsible-section>
-
-    <x-collapsible-section title="Inventory Summary">
-    <div class="grid min-w-0 grid-cols-1 gap-3 md:grid-cols-2">
-        <x-card padding="p-0">
-            <div class="flex flex-wrap items-center justify-between gap-2 px-4 py-3">
-                <h2 class="font-heading text-sm font-bold text-slate-900 dark:text-white">Water Inventory Summary</h2>
-                <a href="{{ route('admin.products.index') }}" class="text-sm font-medium text-primary-600 hover:text-primary-700">View all</a>
-            </div>
-
-            @if($waterInventory->isEmpty())
-                <div class="px-4 pb-4">
-                    <x-empty-state icon="droplet" title="No water products yet" description="Add products to track inventory." />
-                </div>
-            @else
-                <div class="max-h-48 divide-y divide-slate-100 overflow-y-auto dark:divide-white/5">
-                    @foreach($waterInventory->groupBy('category') as $category => $products)
-                        <div class="flex items-center gap-3 px-4 py-2">
-                            <span class="flex size-9 shrink-0 items-center justify-center rounded-full bg-secondary-50 text-secondary-600 dark:bg-secondary-500/10 dark:text-secondary-400">
-                                <x-icon name="droplet" class="size-5" />
-                            </span>
-                            <div class="min-w-0 flex-1">
-                                <p class="truncate text-sm font-medium capitalize text-slate-900 dark:text-white">{{ $category }}</p>
-                                <p class="text-xs text-slate-400">{{ $products->count() }} {{ Str::plural('product', $products->count()) }}</p>
-                            </div>
-                            <p class="shrink-0 font-mono text-sm font-semibold text-slate-900 dark:text-white">{{ number_format($products->sum('stock_quantity'), 0) }} {{ $products->first()->stock_unit_label }}</p>
-                        </div>
-                    @endforeach
-                </div>
-            @endif
-        </x-card>
-
-        <x-card padding="p-0">
-            <div class="flex flex-wrap items-center justify-between gap-2 px-4 py-3">
-                <h2 class="font-heading text-sm font-bold text-slate-900 dark:text-white">Bottle Inventory Summary</h2>
-                <a href="{{ route('admin.products.index') }}" class="text-sm font-medium text-primary-600 hover:text-primary-700">View all</a>
-            </div>
-
-            @if($bottleInventory->isEmpty())
-                <div class="px-4 pb-4">
-                    <x-empty-state icon="archive" title="No bottle stock yet" description="Add container products to track inventory." />
-                </div>
-            @else
-                <div class="max-h-48 divide-y divide-slate-100 overflow-y-auto dark:divide-white/5">
-                    @foreach($bottleInventory as $bottle)
-                        <div class="flex items-center gap-3 px-4 py-2">
-                            <span class="flex size-9 shrink-0 items-center justify-center rounded-full bg-primary-50 text-primary-600 dark:bg-primary-500/10 dark:text-primary-400">
-                                <x-icon name="archive" class="size-5" />
-                            </span>
-                            <div class="min-w-0 flex-1">
-                                <p class="truncate text-sm font-medium text-slate-900 dark:text-white">{{ $bottle->name }} ({{ $bottle->size }})</p>
-                                @if($bottle->is_low_stock)
-                                    <x-badge color="warning">Low stock</x-badge>
-                                @endif
-                            </div>
-                            <p class="shrink-0 font-mono text-sm font-semibold text-slate-900 dark:text-white">{{ number_format($bottle->stock_quantity, 0) }} pcs</p>
-                        </div>
-                    @endforeach
-                </div>
-            @endif
-        </x-card>
-    </div>
-    </x-collapsible-section>
-
-    <x-collapsible-section title="Products & Customer Balances">
-    <div class="grid min-w-0 grid-cols-1 gap-3 md:grid-cols-2">
-        <x-card padding="p-0">
-            <div class="flex flex-wrap items-center justify-between gap-2 px-4 py-3">
-                <h2 class="font-heading text-sm font-bold text-slate-900 dark:text-white">Best-Selling Products</h2>
-            </div>
-
-            @if($bestSellers->isEmpty())
-                <div class="px-4 pb-4">
-                    <x-empty-state icon="tag" title="No sales yet" description="Best sellers will appear here once you record sales." />
-                </div>
-            @else
-                <div class="max-h-48 divide-y divide-slate-100 overflow-y-auto dark:divide-white/5">
-                    @foreach($bestSellers as $index => $product)
-                        <div class="flex items-center gap-3 px-4 py-2">
-                            <span class="flex size-9 shrink-0 items-center justify-center rounded-full bg-primary-50 text-sm font-bold text-primary-600 dark:bg-primary-500/10 dark:text-primary-400">
-                                #{{ $index + 1 }}
-                            </span>
-                            <div class="min-w-0 flex-1">
-                                <p class="truncate text-sm font-medium text-slate-900 dark:text-white">{{ $product->product_name }}</p>
-                                <p class="text-xs text-slate-400">{{ number_format($product->total_qty, 0) }} units sold</p>
-                            </div>
-                            <p class="shrink-0 font-mono text-sm font-semibold text-slate-900 dark:text-white">₱{{ number_format($product->total_revenue, 0) }}</p>
-                        </div>
-                    @endforeach
-                </div>
-            @endif
-        </x-card>
-
-        <x-card padding="p-0">
-            <div class="flex flex-wrap items-center justify-between gap-2 px-4 py-3">
-                <h2 class="font-heading text-sm font-bold text-slate-900 dark:text-white">Outstanding Customer Balances</h2>
-                <a href="{{ route('admin.customers.index') }}" class="text-sm font-medium text-primary-600 hover:text-primary-700">View all</a>
-            </div>
-
-            @if($topDebtors->isEmpty())
-                <div class="px-4 pb-4">
-                    <x-empty-state icon="credit-card" title="No outstanding balances" description="Customer credit balances will appear here." />
-                </div>
-            @else
-                <div class="max-h-48 divide-y divide-slate-100 overflow-y-auto dark:divide-white/5">
-                    @foreach($topDebtors as $customer)
-                        <a href="{{ route('admin.customers.show', $customer) }}" class="flex items-center gap-3 px-4 py-2 hover:bg-slate-50 dark:hover:bg-white/5">
-                            <span class="flex size-9 shrink-0 items-center justify-center rounded-full bg-danger-50 text-danger-600 dark:bg-danger-500/10 dark:text-danger-500">
-                                <x-icon name="user-circle" class="size-5" />
-                            </span>
-                            <div class="min-w-0 flex-1">
-                                <p class="truncate text-sm font-medium text-slate-900 dark:text-white">{{ $customer->name }}</p>
-                            </div>
-                            <p class="shrink-0 font-mono text-sm font-semibold text-danger-600 dark:text-danger-500">₱{{ number_format($customer->credit_balance, 0) }}</p>
-                        </a>
-                    @endforeach
-                </div>
-            @endif
-        </x-card>
-    </div>
-    </x-collapsible-section>
-
-    <x-collapsible-section title="Transactions & Deliveries">
-    <div class="grid min-w-0 grid-cols-1 gap-3 md:grid-cols-2">
-        <x-card padding="p-0">
-            <div class="flex flex-wrap items-center justify-between gap-2 px-4 py-3">
-                <h2 class="font-heading text-sm font-bold text-slate-900 dark:text-white">Recent Transactions</h2>
-                <x-badge>{{ $totalTransactions }} total</x-badge>
-            </div>
-
-            @if($recentTransactions->isEmpty())
-                <div class="px-4 pb-4">
-                    <x-empty-state icon="cart" title="No sales yet" description="New transactions will appear here." />
-                </div>
-            @else
-                <div class="max-h-48 divide-y divide-slate-100 overflow-y-auto dark:divide-white/5">
-                    @foreach($recentTransactions as $transaction)
-                        <a href="{{ route('pos.show', $transaction) }}" class="flex items-center gap-3 px-4 py-2 hover:bg-slate-50 dark:hover:bg-white/5">
-                            <span class="flex size-9 shrink-0 items-center justify-center rounded-full {{ $transaction->transaction_type === 'delivery' ? 'bg-delivery-100 text-delivery-600 dark:bg-delivery-500/10' : 'bg-primary-50 text-primary-600 dark:bg-primary-500/10' }}">
-                                <x-icon :name="$transaction->transaction_type === 'delivery' ? 'truck' : 'user-circle'" class="size-5" />
-                            </span>
-                            <div class="min-w-0 flex-1">
-                                <p class="truncate text-sm font-medium text-slate-900 dark:text-white">{{ $transaction->customer_name ?? $transaction->customer?->name ?? 'Guest' }}</p>
-                                <p class="text-xs text-slate-400">{{ $transaction->transaction_code }} · {{ $transaction->created_at->format('M d, Y') }}</p>
-                            </div>
-                            <div class="shrink-0 text-right">
-                                <p class="font-mono text-sm font-semibold text-slate-900 dark:text-white">₱{{ number_format($transaction->total_amount, 0) }}</p>
-                                <x-badge :color="$transaction->payment_method === 'loan' ? 'warning' : 'success'">{{ $transaction->payment_method === 'loan' ? 'loan' : 'cash' }}</x-badge>
-                            </div>
-                        </a>
-                    @endforeach
-                </div>
-            @endif
-        </x-card>
-
-        <x-card padding="p-0">
-            <div class="flex flex-wrap items-center justify-between gap-2 px-4 py-3">
-                <h2 class="font-heading text-sm font-bold text-slate-900 dark:text-white">Upcoming Deliveries</h2>
-                <a href="{{ route('deliveries.index') }}" class="text-sm font-medium text-primary-600 hover:text-primary-700">View all</a>
-            </div>
-
-            @if($pendingDeliveryOrders->isEmpty())
-                <div class="px-4 pb-4">
-                    <x-empty-state icon="truck" title="No upcoming deliveries" description="Advance orders will show up here." />
-                </div>
-            @else
-                <div class="max-h-48 divide-y divide-slate-100 overflow-y-auto dark:divide-white/5">
-                    @foreach($pendingDeliveryOrders as $order)
-                        <a href="{{ route('deliveries.show', $order) }}" class="flex items-center gap-3 px-4 py-2 hover:bg-slate-50 dark:hover:bg-white/5">
-                            <div class="min-w-0 flex-1">
-                                <div class="flex items-center gap-2">
-                                    <span class="font-mono text-xs font-semibold text-primary-600">{{ $order->order_code }}</span>
-                                    <x-delivery-status-badge :status="$order->status" />
-                                </div>
-                                <p class="mt-1 truncate text-sm font-semibold text-slate-900 dark:text-white">{{ $order->customer_name }}</p>
-                                <p class="truncate text-xs text-slate-400">{{ $order->product_name }} × {{ $order->quantity }} · {{ $order->preferred_delivery_date?->format('M d, Y') ?? 'No date set' }}</p>
-                            </div>
-                            <p class="shrink-0 font-mono text-sm font-semibold text-slate-900 dark:text-white">₱{{ number_format($order->total_amount, 0) }}</p>
-                        </a>
-                    @endforeach
-                </div>
-            @endif
-        </x-card>
-    </div>
-    </x-collapsible-section>
-
     <x-collapsible-section title="System Activity Log" :open="request()->hasAny(['activity_date_from', 'activity_date_to', 'activity_page'])">
     <div id="system-activity-log" data-activity-url="{{ route('admin.dashboard.activities') }}" class="min-w-0">
         <form method="GET" action="{{ route('admin.dashboard') }}" class="mb-3 grid grid-cols-2 items-end gap-2 sm:flex sm:flex-wrap sm:justify-end">
@@ -441,50 +127,18 @@
             },
         });
 
-        const revenueChart = new window.Chart(document.getElementById('revenueChart'), {
-            type: 'line',
-            data: {
-                labels: @json($revenueTrendLabels),
-                datasets: [
-                    {
-                        label: 'Revenue',
-                        data: @json($revenueTrendData),
-                        borderColor: '#0ea5e9',
-                        backgroundColor: 'rgba(14, 165, 233, 0.1)',
-                        borderWidth: 2,
-                        tension: 0.35,
-                        fill: true,
-                        pointRadius: 3,
-                        pointBackgroundColor: '#0ea5e9',
-                    },
-                ],
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: { display: false },
-                    tooltip: { backgroundColor: dashboardTooltipColors().background, titleColor: dashboardTooltipColors().title, bodyColor: dashboardTooltipColors().body, borderColor: dashboardTooltipColors().border, borderWidth: 1, padding: 10, displayColors: false },
-                },
-                scales: {
-                    x: { ticks: { color: dashboardTickColor() }, grid: { color: dashboardGridColor() } },
-                    y: { beginAtZero: true, ticks: { color: dashboardTickColor() }, grid: { color: dashboardGridColor() } },
-                },
-            },
-        });
-
         document.querySelectorAll('.overview-section').forEach((section) => {
             section.addEventListener('toggle', () => {
                 if (section.open) {
                     requestAnimationFrame(() => {
-                        [salesTrendChart, revenueChart].forEach((chart) => chart.resize());
+                        [salesTrendChart].forEach((chart) => chart.resize());
                     });
                 }
             });
         });
 
         new MutationObserver(() => {
-            [salesTrendChart, revenueChart].forEach((chart) => {
+            [salesTrendChart].forEach((chart) => {
                 chart.options.scales.x.ticks.color = dashboardTickColor();
                 chart.options.scales.y.ticks.color = dashboardTickColor();
                 chart.options.scales.x.grid.color = dashboardGridColor();
