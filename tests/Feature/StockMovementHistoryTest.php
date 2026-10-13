@@ -35,6 +35,31 @@ test('stock movements can be filtered by item type', function () {
     $response->assertOk();
 });
 
+test('admin reset clears both movement histories while preserving stock and a backup', function () {
+    \Illuminate\Support\Facades\Storage::fake('local');
+    $supply = Consumable::factory()->create(['quantity' => 15]);
+    StockMovement::record($supply, 'restock', 5, 10, 15, $this->admin->id);
+    $this->actingAs($this->admin)->post(route('admin.inventory.gallon-inventory.store'), [
+        'name' => 'Reset Test Gallon', 'size' => '5 gallons', 'quantity' => 10,
+    ])->assertSessionHasNoErrors();
+    $gallon = DB::table('station_gallons')->first();
+    $this->delete(route('admin.stock-movements.reset'), ['reset_confirmation' => 'RESET'])
+        ->assertRedirect(route('admin.stock-movements.index'));
+    $this->assertDatabaseCount('stock_movements', 0);
+    $this->assertDatabaseCount('station_gallon_movements', 0);
+    expect((float) $supply->fresh()->quantity)->toBe(15.0)
+        ->and((int) DB::table('station_gallons')->where('id', $gallon->id)->value('empty'))->toBe(10)
+        ->and(\Illuminate\Support\Facades\Storage::disk('local')->files('stock-history-backups'))->toHaveCount(1);
+});
+
+test('history reset requires confirmation and staff cannot use it', function () {
+    $supply = Consumable::factory()->create();
+    StockMovement::record($supply, 'restock', 5, 10, 15, $this->admin->id);
+    $this->actingAs($this->admin)->delete(route('admin.stock-movements.reset'), ['reset_confirmation' => 'wrong'])->assertSessionHasErrors('reset_confirmation');
+    $this->actingAs($this->staffUser)->delete(route('admin.stock-movements.reset'), ['reset_confirmation' => 'RESET'])->assertForbidden();
+    $this->assertDatabaseCount('stock_movements', 1);
+});
+
 test('gallon tracking joins the history without treating transfers as stock increases', function () {
     $this->actingAs($this->admin)->post(route('admin.inventory.gallon-inventory.store'), [
         'name' => 'Round Tracking', 'size' => '5 gallons', 'quantity' => 10,

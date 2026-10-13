@@ -8,12 +8,50 @@ use App\Models\GallonStock;
 use App\Models\Product;
 use App\Models\StockMovement;
 use Illuminate\Http\Request;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 class StockMovementController extends Controller
 {
+    public function reset(Request $request): RedirectResponse
+    {
+        abort_unless($request->user()->isAdmin(), 403);
+        $request->validate(['reset_confirmation' => ['required', 'in:RESET']]);
+
+        $count = DB::transaction(function () use ($request) {
+            $stock = DB::table('stock_movements')->orderBy('id')->lockForUpdate()->get();
+            $gallons = DB::table('station_gallon_movements')->orderBy('id')->lockForUpdate()->get();
+            $backup = 'stock-history-backups/stock-movements-'.now()->format('Ymd-His').'-'.Str::uuid().'.json';
+            if (! Storage::disk('local')->put($backup, json_encode([
+                'created_at' => now()->toIso8601String(), 'stock_movements' => $stock,
+                'station_gallon_movements' => $gallons,
+            ], JSON_PRETTY_PRINT | JSON_THROW_ON_ERROR))) {
+                throw \Illuminate\Validation\ValidationException::withMessages(['reset_confirmation' => 'Backup failed. No history records were deleted.']);
+            }
+            foreach ($stock as $movement) {
+                if ($movement->type === 'purchase_receive' && str_starts_with($movement->reference_code ?? '', 'PR-')) {
+                    DB::table('stock_receipt_references')->insertOrIgnore([
+                        'reference_code' => $movement->reference_code, 'created_at' => $movement->created_at,
+                    ]);
+                }
+            }
+            DB::table('stock_movements')->delete();
+            DB::table('station_gallon_movements')->delete();
+            activity('stock_movements')->causedBy($request->user())->event('reset')
+                ->withProperties(['stock_movements_deleted' => $stock->count(), 'gallon_movements_deleted' => $gallons->count(), 'backup' => $backup])
+                ->log('Reset all stock movement history');
+
+            return $stock->count() + $gallons->count();
+        });
+
+        return redirect()->route('admin.stock-movements.index')
+            ->with('success', "{$count} history records cleared. Stock quantities, customer loans, sales and payments preserved.");
+    }
+
     public function index(Request $request): View
     {
         $this->authorize('viewAny', StockMovement::class);

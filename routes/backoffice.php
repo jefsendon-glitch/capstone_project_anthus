@@ -47,6 +47,7 @@ Route::middleware(['auth', 'role:admin|staff'])->group(function () {
             ->middleware('role:admin')->name('water-production.reset');
 
         Route::get('stock-movements', [StockMovementController::class, 'index'])->name('stock-movements.index');
+        Route::delete('stock-movements/reset', [StockMovementController::class, 'reset'])->middleware('role:admin')->name('stock-movements.reset');
     });
 
     Route::delete('pos/reset', [POSController::class, 'reset'])->middleware('role:admin')->name('pos.reset');
