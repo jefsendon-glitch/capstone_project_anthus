@@ -18,13 +18,15 @@ class PurchaseOrderReceivingService
         DB::transaction(function () use ($purchaseOrder, $lines, $receivedBy, $receiptToken) {
             $purchaseOrder = PurchaseOrder::whereKey($purchaseOrder->id)->lockForUpdate()->firstOrFail();
             $reference = $receiptToken ? 'PR-'.substr(hash('sha256', $purchaseOrder->id.':'.$receiptToken), 0, 32) : null;
-            if ($reference && StockMovement::where('reference_code', $reference)->exists()) {
+            if ($reference && (DB::table('stock_receipt_references')->where('reference_code', $reference)->exists()
+                || StockMovement::where('reference_code', $reference)->exists())) {
                 throw ValidationException::withMessages(['items' => 'This delivery was already recorded. Refresh before recording another delivery.']);
             }
             if (! in_array($purchaseOrder->status, ['ordered', 'partially_received'], true)) {
                 throw ValidationException::withMessages(['items' => 'This order is no longer awaiting stock.']);
             }
 
+            $receivedStock = false;
             foreach ($lines as $line) {
                 $item = PurchaseOrderItem::where('purchase_order_id', $purchaseOrder->id)
                     ->lockForUpdate()->findOrFail($line['purchase_order_item_id']);
@@ -83,6 +85,11 @@ class PurchaseOrderReceivingService
                 }
 
                 $item->increment('quantity_received', $quantity);
+                $receivedStock = true;
+            }
+
+            if ($reference && $receivedStock) {
+                DB::table('stock_receipt_references')->insert(['reference_code' => $reference, 'created_at' => now()]);
             }
 
             $purchaseOrder->load('items');

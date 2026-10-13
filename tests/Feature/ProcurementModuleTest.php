@@ -110,6 +110,8 @@ test('partial orders cannot be cancelled and receipt tokens prevent duplicate pa
     $payload = ['receipt_token' => (string) Str::uuid(), 'items' => [['purchase_order_item_id' => $this->item->id, 'quantity_received' => 2]]];
     $this->actingAs($this->admin)->post(route('admin.purchase-orders.receive', $this->order), $payload)->assertSessionHasNoErrors();
     $this->post(route('admin.purchase-orders.receive', $this->order), $payload)->assertSessionHasErrors('items');
+    DB::table('stock_movements')->delete();
+    $this->post(route('admin.purchase-orders.receive', $this->order), $payload)->assertSessionHasErrors('items');
     expect((float) $this->supply->fresh()->quantity)->toBe(4.0);
     $this->post(route('admin.purchase-orders.cancel', $this->order))->assertSessionHasErrors('status');
     expect($this->order->fresh()->status)->toBe('partially_received');
