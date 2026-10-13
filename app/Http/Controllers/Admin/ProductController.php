@@ -114,32 +114,20 @@ class ProductController extends Controller
         return redirect()->route('admin.products.index')->with('success', 'Product restored successfully.');
     }
 
-    public function forceDelete(int $product): RedirectResponse
+    public function forceDelete(int $product, \App\Services\ProductPermanentDeletionService $deletion): RedirectResponse
     {
         $product = Product::onlyTrashed()->findOrFail($product);
 
         $this->authorize('forceDelete', $product);
 
-        $hasHistory = DB::table('sales_transactions')->where('product_id', $product->id)->exists()
-            || DB::table('delivery_orders')->where('product_id', $product->id)->exists()
-            || DB::table('delivery_order_items')->where('product_id', $product->id)->exists()
-            || DB::table('gallon_stocks')->where('product_id', $product->id)->exists()
-            || DB::table('water_production_logs')->where('product_id', $product->id)->exists();
-
-        if ($hasHistory) {
-            return redirect()->route('admin.products.index', ['archived' => 1])
-                ->with('error', 'This product has historical records and cannot be permanently deleted.');
-        }
-
-        $imagePath = $product->image_path;
-        $product->forceDelete();
+        $imagePath = $deletion->delete($product, request()->user());
 
         if ($imagePath) {
             Storage::disk(config('filesystems.product_image_disk'))->delete($imagePath);
         }
 
         return redirect()->route('admin.products.index', ['archived' => 1])
-            ->with('success', 'Product permanently deleted.');
+            ->with('success', 'Product and its linked historical records permanently deleted. Related unpaid customer balances adjusted. Other products and payment records preserved.');
     }
 
 }

@@ -11,6 +11,10 @@
         @endcan
     </div>
 
+    @if($archived)
+        <p class="mb-4 rounded-lg border border-red-200 bg-danger-50 p-3 text-xs leading-relaxed text-danger-700 dark:border-red-900 dark:bg-danger-500/10 dark:text-danger-400">Permanent deletion also removes this product’s sales, stock movements, production, gallon balances, and purchase/delivery items. Empty orders are deleted; other products in mixed orders are retained. Related unpaid customer balances are reduced. Live sales totals change; payments and saved financial reports remain. This cannot be undone.</p>
+    @endif
+
     <form method="GET" action="{{ route('admin.products.index') }}" class="mb-4 flex flex-wrap items-center gap-2">
         @if($archived)<input type="hidden" name="archived" value="1">@endif
         <div class="relative min-w-0 flex-1 sm:max-w-sm">
@@ -93,7 +97,7 @@
                                                 </form>
                                             @endcan
                                             @can('forceDelete', $product)
-                                                <form method="POST" action="{{ route('admin.products.force-delete', $product) }}" onsubmit="return confirm('Permanently delete this product? This cannot be undone.')">
+                                                <form method="POST" action="{{ route('admin.products.force-delete', $product) }}" onsubmit="return confirm('Permanently delete this product AND all its linked sales, inventory, production, purchase and delivery records? Related unpaid customer balances will be reduced. This cannot be undone.')">
                                                     @csrf
                                                     @method('delete')
                                                     <button type="submit" class="text-slate-500 hover:text-danger-600" title="Permanently delete product">

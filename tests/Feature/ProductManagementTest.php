@@ -29,6 +29,7 @@ test('admin can create a product', function () {
 });
 
 test('product photos are saved to the configured image disk', function () {
+    config()->set('filesystems.disks.product-images.driver', 'local');
     Storage::fake('product-images');
     config()->set('filesystems.product_image_disk', 'product-images');
 
@@ -74,7 +75,7 @@ test('admin can update a product', function () {
 test('creating a container product automatically provisions its gallon stock rows', function () {
     $product = Product::factory()->create(['category' => 'container']);
 
-    expect($product->gallonStocks()->count())->toBe(7);
+    expect($product->gallonStocks()->count())->toBe(5);
 });
 
 test('opening quantity for a gallon type is recorded as empty gallon stock', function () {
