@@ -10,8 +10,10 @@ use App\Models\Product;
 use App\Models\PurchaseOrder;
 use App\Models\Supplier;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Redirect;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
@@ -166,6 +168,37 @@ class PurchaseOrderController extends Controller
         });
 
         return redirect()->route('admin.purchase-orders.index')->with('success', 'Purchase order deleted successfully.');
+    }
+
+    public function reset(Request $request): RedirectResponse
+    {
+        abort_unless($request->user()->isAdmin(), 403);
+        $request->validate(['reset_confirmation' => ['required', 'in:RESET']]);
+
+        $count = DB::transaction(function () use ($request) {
+            $orders = PurchaseOrder::orderBy('id')->lockForUpdate()->get();
+            $items = DB::table('purchase_order_items')->whereIn('purchase_order_id', $orders->pluck('id'))
+                ->orderBy('id')->lockForUpdate()->get();
+            $backup = 'purchase-order-backups/purchase-orders-'.now()->format('Ymd-His').'-'.Str::uuid().'.json';
+            if (! Storage::disk('local')->put($backup, json_encode([
+                'created_at' => now()->toIso8601String(), 'purchase_orders' => $orders,
+                'purchase_order_items' => $items,
+            ], JSON_PRETTY_PRINT | JSON_THROW_ON_ERROR))) {
+                throw ValidationException::withMessages(['reset_confirmation' => 'Backup failed. No purchase orders were deleted.']);
+            }
+            foreach ($orders->pluck('id')->chunk(500) as $ids) {
+                DB::table('purchase_order_items')->whereIn('purchase_order_id', $ids)->delete();
+                PurchaseOrder::whereIn('id', $ids)->delete();
+            }
+            activity('purchase_orders')->causedBy($request->user())->event('reset')
+                ->withProperties(['orders_deleted' => $orders->count(), 'items_deleted' => $items->count(), 'backup' => $backup])
+                ->log('Reset all purchase order records');
+
+            return $orders->count();
+        });
+
+        return redirect()->route('admin.purchase-orders.index')
+            ->with('success', "{$count} purchase orders and their items deleted. Stock quantities, suppliers, stock movements and expenses preserved.");
     }
 
     private function syncItems(PurchaseOrder $purchaseOrder, array $items): void

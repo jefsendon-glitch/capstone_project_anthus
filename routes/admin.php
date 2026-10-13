@@ -19,6 +19,7 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::resource('staff', StaffController::class)->except('show');
     Route::resource('customers', CustomerController::class)->only(['index', 'show', 'edit', 'update']);
     Route::resource('suppliers', SupplierController::class)->except('show');
+    Route::delete('purchase-orders/reset', [PurchaseOrderController::class, 'reset'])->name('purchase-orders.reset');
     Route::resource('purchase-orders', PurchaseOrderController::class);
     Route::get('procurement/receiving', [ProcurementController::class, 'receiving'])->name('procurement.receiving');
     Route::get('procurement/reorders', [ProcurementController::class, 'reorders'])->name('procurement.reorders');
