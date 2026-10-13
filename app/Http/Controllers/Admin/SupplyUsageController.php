@@ -15,9 +15,16 @@ use Illuminate\View\View;
 
 class SupplyUsageController extends Controller
 {
+    private const ACTIVITIES = [
+        'Water Production', 'Packaging & Sealing', 'Cleaning & Sanitation',
+        'Equipment Maintenance', 'Sales Operations', 'Delivery Operations',
+        'Administrative Operations', 'Other',
+    ];
+
     public function index(): View
     {
         return view('admin.supply-usages.index', [
+            'activities' => self::ACTIVITIES,
             'supplies' => Consumable::orderBy('name')->get(),
             'usages' => SupplyUsage::with('recordedBy')->orderByDesc('operation_date')->orderByDesc('id')->paginate(15),
         ]);
@@ -26,13 +33,15 @@ class SupplyUsageController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $data = $request->validate([
-            'operation' => ['required', 'string', 'max:255'],
+            'activity' => ['required', Rule::in(self::ACTIVITIES)],
+            'other_operation' => ['exclude_unless:activity,Other', 'required', 'string', 'max:255'],
             'operation_date' => ['required', 'date_format:Y-m-d', 'before_or_equal:today'],
             'notes' => ['nullable', 'string', 'max:1000'],
             'items' => ['required', 'array', 'min:1', 'max:100'],
             'items.*.consumable_id' => ['required', 'integer', 'distinct', Rule::exists('consumables', 'id')->whereNull('deleted_at')],
             'items.*.quantity' => ['required', 'numeric', 'decimal:0,2', 'min:0.01', 'max:99999999.99'],
         ]);
+        $data['operation'] = $data['activity'] === 'Other' ? $data['other_operation'] : $data['activity'];
 
         DB::transaction(function () use ($data, $request) {
             $supplies = Consumable::whereIn('id', array_column($data['items'], 'consumable_id'))
