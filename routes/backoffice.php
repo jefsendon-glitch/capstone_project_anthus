@@ -49,6 +49,7 @@ Route::middleware(['auth', 'role:admin|staff'])->group(function () {
         Route::get('stock-movements', [StockMovementController::class, 'index'])->name('stock-movements.index');
     });
 
+    Route::delete('pos/reset', [POSController::class, 'reset'])->middleware('role:admin')->name('pos.reset');
     Route::resource('pos', POSController::class, ['parameters' => ['pos' => 'transaction']])->only(['index', 'create', 'store', 'show']);
     Route::get('pos-receipt', [POSController::class, 'receipt'])->name('pos.receipt');
 

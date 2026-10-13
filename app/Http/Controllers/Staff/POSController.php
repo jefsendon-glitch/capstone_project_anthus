@@ -11,6 +11,7 @@ use App\Models\User;
 use App\Services\SalesService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 class POSController extends Controller
@@ -61,6 +62,31 @@ class POSController extends Controller
         ])->values();
 
         return view('staff.pos.create', compact('products', 'customers', 'productsForCart'));
+    }
+
+    public function reset(Request $request): RedirectResponse
+    {
+        abort_unless($request->user()->isAdmin(), 403);
+        $request->validate(['reset_confirmation' => ['required', 'in:RESET']]);
+
+        [$deleted, $retained] = DB::transaction(function () use ($request) {
+            $transactions = SalesTransaction::orderBy('id')->lockForUpdate()->get(['id', 'payment_method', 'total_amount', 'credit_paid_amount']);
+            $eligible = $transactions->filter(fn ($sale) => $sale->payment_method === 'cash'
+                || (float) $sale->credit_paid_amount >= (float) $sale->total_amount);
+            $deleted = 0;
+            foreach ($eligible->pluck('id')->chunk(500) as $ids) {
+                $deleted += SalesTransaction::whereIn('id', $ids)->delete();
+            }
+            $retained = $transactions->count() - $eligible->count();
+            activity('sales_transactions')->causedBy($request->user())->event('reset')
+                ->withProperties(['transactions_deleted' => $deleted, 'unpaid_credit_retained' => $retained])
+                ->log('Reset settled POS transactions');
+
+            return [$deleted, $retained];
+        });
+
+        return redirect()->route('pos.index')->with('success',
+            "{$deleted} settled transactions deleted. {$retained} unpaid credit transactions retained. Stock, customer balances, payments, and delivery orders preserved.");
     }
 
     public function store(StoreSaleRequest $request): RedirectResponse

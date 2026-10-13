@@ -118,7 +118,11 @@ class SalesService
         $column = $prefix === 'TXN' ? 'transaction_code' : 'order_code';
         $today = now()->format('Ymd');
 
-        $sequence = DB::table($table)->where($column, 'like', "{$prefix}-{$today}-%")->count() + 1;
+        $codes = DB::table($table)->where($column, 'like', "{$prefix}-{$today}-%")->pluck($column);
+        if ($prefix === 'TXN') {
+            $codes = $codes->merge(StockMovement::where('reference_code', 'like', "{$prefix}-{$today}-%")->pluck('reference_code'));
+        }
+        $sequence = (int) $codes->map(fn ($code) => (int) substr($code, strrpos($code, '-') + 1))->max() + 1;
 
         return sprintf('%s-%s-%03d', $prefix, $today, $sequence);
     }
