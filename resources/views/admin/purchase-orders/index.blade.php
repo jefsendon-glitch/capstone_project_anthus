@@ -3,7 +3,8 @@ $statusColors = ['draft' => 'slate', 'ordered' => 'primary', 'partially_received
 @endphp
 
 <x-layouts.app title="Purchase Orders" :heading="'Purchase Orders'">
-    <div class="mb-6 flex justify-end">
+    <div class="mb-6 flex flex-wrap items-center justify-between gap-3">
+        <p class="text-sm text-slate-500 dark:text-slate-400">Manage supplier orders, delivery schedules, and receiving status.</p>
         @can('create', \App\Models\PurchaseOrder::class)
             <x-button as="a" href="{{ route('admin.purchase-orders.create') }}">
                 <x-icon name="plus" class="size-4" /> New Purchase Order
@@ -12,7 +13,7 @@ $statusColors = ['draft' => 'slate', 'ordered' => 'primary', 'partially_received
     </div>
 
     <x-card class="mb-6">
-        <form method="GET" class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <form method="GET" class="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
 <div><x-input-label for="supplier_id" value="Supplier" /><x-select id="supplier_id" name="supplier_id"><option value="">All suppliers</option>@foreach($suppliers as $supplier)<option value="{{ $supplier->id }}" @selected(request('supplier_id') == $supplier->id)>{{ $supplier->name }}</option>@endforeach</x-select></div>
 <div><x-input-label for="status" value="Status" /><x-select id="status" name="status"><option value="">All statuses</option>@foreach(['draft', 'ordered', 'partially_received', 'received', 'cancelled'] as $status)<option value="{{ $status }}" @selected(request('status') === $status)>{{ ucfirst(str_replace('_', ' ', $status)) }}</option>@endforeach</x-select></div>
             <div>
@@ -43,13 +44,14 @@ $statusColors = ['draft' => 'slate', 'ordered' => 'primary', 'partially_received
                             <th class="px-6 py-3">PO Number</th>
                             <th class="px-6 py-3">Supplier</th>
                             <th class="px-6 py-3">Status</th>
-                            <th class="px-6 py-3">Date</th>
+                            <th class="px-6 py-3">Order Date</th>
+                            <th class="px-6 py-3">Expected Delivery</th>
                             <th class="px-6 py-3 text-right">Items</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100 dark:divide-white/5">
                         @foreach($purchaseOrders as $purchaseOrder)
-                            <tr>
+                            <tr class="transition hover:bg-slate-50 dark:hover:bg-white/5">
                                 <td class="px-6 py-3">
                                     <a href="{{ route('admin.purchase-orders.show', $purchaseOrder) }}" class="font-mono text-sm font-semibold text-primary-600 hover:text-primary-700">{{ $purchaseOrder->po_number }}</a>
                                 </td>
@@ -57,7 +59,8 @@ $statusColors = ['draft' => 'slate', 'ordered' => 'primary', 'partially_received
                                 <td class="px-6 py-3">
                                     <x-badge :color="$statusColors[$purchaseOrder->status] ?? 'slate'">{{ ucfirst(str_replace('_', ' ', $purchaseOrder->status)) }}</x-badge>
                                 </td>
-                                <td class="px-6 py-3 text-sm text-slate-500 dark:text-slate-400">{{ $purchaseOrder->expected_date?->format('M d, Y') ?? '—' }}</td>
+                                <td class="px-6 py-3 whitespace-nowrap text-sm text-slate-500 dark:text-slate-400">{{ $purchaseOrder->ordered_at?->format('M d, Y') ?? '—' }}</td>
+                                <td class="px-6 py-3 whitespace-nowrap text-sm text-slate-500 dark:text-slate-400">{{ $purchaseOrder->expected_date?->format('M d, Y') ?? '—' }}</td>
                                 <td class="px-6 py-3 text-right text-sm text-slate-500 dark:text-slate-400">{{ $purchaseOrder->items_count }}</td>
                             </tr>
                         @endforeach

@@ -4,9 +4,10 @@ $canReceive = in_array($purchaseOrder->status, ['ordered', 'partially_received']
 @endphp
 
 <x-layouts.app title="Purchase Order" :heading="$purchaseOrder->po_number">
-    <div class="mb-6 flex items-center justify-between">
+    <div class="mb-6 flex flex-wrap items-center justify-between gap-3">
         <x-badge :color="$statusColors[$purchaseOrder->status] ?? 'slate'">{{ ucfirst(str_replace('_', ' ', $purchaseOrder->status)) }}</x-badge>
-        <div class="flex gap-3">
+        <div class="flex flex-wrap gap-3">
+            <x-button as="a" :href="route('admin.purchase-orders.index')" variant="secondary">Purchase Orders</x-button>
             @if(in_array($purchaseOrder->status, ['draft', 'ordered']))
                 @can('update', $purchaseOrder)
                     <form method="POST" action="{{ route('admin.purchase-orders.cancel', $purchaseOrder) }}" onsubmit="return confirm('Cancel this unreceived order?')">@csrf<x-button type="submit" variant="danger">Cancel Order</x-button></form>
@@ -43,6 +44,7 @@ $canReceive = in_array($purchaseOrder->status, ['ordered', 'partially_received']
                             <th class="py-2 text-right">Ordered</th>
                             <th class="py-2 text-right">Received</th>
                             <th class="py-2 text-right">Unit Cost</th>
+                            <th class="py-2 text-right">Amount</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100 dark:divide-white/5">
@@ -52,6 +54,7 @@ $canReceive = in_array($purchaseOrder->status, ['ordered', 'partially_received']
                                 <td class="py-2 text-right font-mono text-sm text-slate-600 dark:text-slate-300">{{ rtrim(rtrim($item->quantity_ordered, '0'), '.') }}</td>
                                 <td class="py-2 text-right font-mono text-sm text-slate-600 dark:text-slate-300">{{ rtrim(rtrim($item->quantity_received, '0'), '.') }}</td>
                                 <td class="py-2 text-right font-mono text-sm text-slate-900 dark:text-white">₱{{ number_format($item->unit_cost, 2) }}</td>
+                                <td class="py-2 text-right font-mono text-sm text-slate-900 dark:text-white">₱{{ number_format((float) $item->unit_cost * (float) $item->quantity_ordered, 2) }}</td>
                             </tr>
                         @endforeach
                     </tbody>
@@ -68,7 +71,7 @@ $canReceive = in_array($purchaseOrder->status, ['ordered', 'partially_received']
                             @foreach($errors->all() as $error)<p class="text-sm text-red-600">{{ $error }}</p>@endforeach
                             @foreach($purchaseOrder->items as $item)
                                 @if($item->remaining_quantity > 0)
-                                    <div class="flex items-center gap-3">
+                                    <div class="grid items-center gap-3 sm:grid-cols-[minmax(0,1fr)_140px_auto]">
                                         <input type="hidden" name="items[{{ $loop->index }}][purchase_order_item_id]" value="{{ $item->id }}">
                                         <span class="w-40 shrink-0 truncate text-sm text-slate-700 dark:text-slate-300">{{ $item->itemable?->name }}</span>
                                         <x-text-input
@@ -90,6 +93,7 @@ $canReceive = in_array($purchaseOrder->status, ['ordered', 'partially_received']
 
         <x-card>
             <h2 class="font-heading text-base font-bold text-slate-900 dark:text-white">Details</h2>
+            <div class="mt-4 rounded-2xl bg-primary-50 p-4 dark:bg-primary-500/10"><p class="text-xs font-semibold uppercase tracking-wide text-primary-600 dark:text-primary-300">Total Order Cost</p><p class="mt-2 text-2xl font-extrabold text-primary-700 dark:text-primary-300">₱{{ number_format($purchaseOrder->items->sum(fn ($item) => (float) $item->quantity_ordered * (float) $item->unit_cost), 2) }}</p></div>
             <div class="mt-4 space-y-3 text-sm">
                 <div class="flex justify-between"><span class="text-slate-400">Supplier</span><span class="text-slate-900 dark:text-white">{{ $purchaseOrder->supplier->name }}</span></div>
                 <div class="flex justify-between"><span class="text-slate-400">Ordered</span><span class="text-slate-900 dark:text-white">{{ $purchaseOrder->ordered_at?->format('M d, Y') ?? '—' }}</span></div>

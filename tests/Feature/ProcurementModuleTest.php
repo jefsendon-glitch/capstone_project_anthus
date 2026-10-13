@@ -157,9 +157,9 @@ test('ambiguous station container matches roll back the entire receipt', functio
 });
 
 test('archived supplies and their suppliers are protected from permanent deletion', function () {
+    $this->actingAs($this->admin)->delete(route('admin.consumables.destroy', $this->supply))->assertSessionHas('error');
     $this->supply->delete();
     $this->actingAs($this->admin)->delete(route('admin.suppliers.destroy', $this->supplier))->assertSessionHas('error');
-    $this->delete(route('admin.consumables.force-delete', $this->supply->id))->assertSessionHas('error');
     $this->assertDatabaseHas('suppliers', ['id' => $this->supplier->id]);
     $this->assertSoftDeleted('consumables', ['id' => $this->supply->id]);
     $this->get(route('admin.purchase-orders.show', $this->order))->assertOk()->assertSee($this->supply->name);
@@ -172,7 +172,7 @@ test('inactive supplier selection remains visible when editing its existing supp
     $this->supplier->update(['is_active' => false]);
     $this->actingAs($this->admin)->get(route('admin.consumables.edit', $this->supply))->assertOk()->assertSee($this->supplier->name);
     $this->put(route('admin.consumables.update', $this->supply), [
-        'name' => $this->supply->name, 'category' => $this->supply->category, 'unit' => $this->supply->unit,
+        'name' => $this->supply->name, 'category' => 'filter_treatment_materials', 'unit' => $this->supply->unit,
         'quantity' => 2.5, 'low_stock_threshold' => 5, 'unit_cost' => 12.50, 'supplier_id' => $this->supplier->id,
     ])->assertSessionHasNoErrors();
     expect($this->supply->fresh()->supplier_id)->toBe($this->supplier->id);
