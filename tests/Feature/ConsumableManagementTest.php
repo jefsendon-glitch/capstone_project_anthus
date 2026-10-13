@@ -65,16 +65,40 @@ test('staff cannot adjust consumable stock but admin can', function () {
     expect((float) $consumable->fresh()->quantity)->toBe(15.0);
 });
 
-test('admin can archive and restore a consumable', function () {
+test('admin can permanently delete a consumable', function () {
     $consumable = Consumable::factory()->create();
 
     $this->actingAs($this->admin)->delete(route('admin.consumables.destroy', $consumable))
         ->assertRedirect(route('admin.consumables.index'));
 
-    $this->assertSoftDeleted('consumables', ['id' => $consumable->id]);
+    $this->assertDatabaseMissing('consumables', ['id' => $consumable->id]);
+    $this->actingAs($this->admin)->get(route('admin.consumables.index'))
+        ->assertOk()->assertDontSee('Archived')->assertDontSee('Restore supply');
+});
 
-    $this->actingAs($this->admin)->post(route('admin.consumables.restore', $consumable->id))
-        ->assertRedirect(route('admin.consumables.index'));
+test('staff cannot permanently delete supplies', function () {
+    $consumable = Consumable::factory()->create();
+
+    $this->actingAs($this->staffUser)->delete(route('admin.consumables.destroy', $consumable))
+        ->assertForbidden();
+
+    $this->assertDatabaseHas('consumables', ['id' => $consumable->id, 'deleted_at' => null]);
+});
+
+test('purchase order references protect supplies from permanent deletion', function () {
+    $consumable = Consumable::factory()->create();
+    $supplier = \App\Models\Supplier::create(['name' => 'Supply Deletion Test Supplier']);
+    $order = \App\Models\PurchaseOrder::create([
+        'po_number' => 'PO-DELETE-TEST', 'supplier_id' => $supplier->id,
+        'status' => 'ordered', 'ordered_at' => now()->toDateString(), 'created_by' => $this->admin->id,
+    ]);
+    $order->items()->create([
+        'itemable_type' => $consumable->getMorphClass(), 'itemable_id' => $consumable->id,
+        'quantity_ordered' => 5, 'quantity_received' => 0, 'unit_cost' => 10,
+    ]);
+
+    $this->actingAs($this->admin)->from(route('admin.consumables.index'))
+        ->delete(route('admin.consumables.destroy', $consumable))->assertSessionHas('error');
 
     $this->assertDatabaseHas('consumables', ['id' => $consumable->id, 'deleted_at' => null]);
 });

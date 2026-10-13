@@ -24,23 +24,17 @@
     </div>
 
     <div class="mb-6 flex flex-wrap items-center justify-between gap-3">
-        <div class="inline-flex rounded-xl bg-slate-100 p-1 dark:bg-white/5">
-            <a href="{{ route('admin.consumables.index') }}" class="rounded-lg px-3 py-1.5 text-sm font-medium {{ ! $archived ? 'bg-white text-slate-900 shadow-sm dark:bg-slate-800 dark:text-white' : 'text-slate-500 dark:text-slate-400' }}">Active</a>
-            <a href="{{ route('admin.consumables.index', ['archived' => 1]) }}" class="rounded-lg px-3 py-1.5 text-sm font-medium {{ $archived ? 'bg-white text-slate-900 shadow-sm dark:bg-slate-800 dark:text-white' : 'text-slate-500 dark:text-slate-400' }}">Archived</a>
-        </div>
         <div class="flex items-center gap-3">
             <x-button as="a" href="{{ route('admin.consumables.report') }}" variant="secondary"><x-icon name="clipboard" class="size-4" /> Stock Report</x-button>
-            @if(! $archived)
-                @can('create', \App\Models\Consumable::class)
+            @can('create', \App\Models\Consumable::class)
                     <x-button as="a" href="{{ route('admin.consumables.create') }}"><x-icon name="plus" class="size-4" /> Add Supply</x-button>
                 @endcan
-            @endif
         </div>
     </div>
 
     <x-card padding="p-0">
         @if($consumables->isEmpty())
-            <div class="p-6"><x-empty-state icon="archive" :title="$archived ? 'No archived supplies' : 'No supplies yet'" description="Add materials used in water production and daily operations." /></div>
+            <div class="p-6"><x-empty-state icon="archive" title="No supplies yet" description="Add materials used in water production and daily operations." /></div>
         @else
             <div class="overflow-x-auto">
                 <table class="min-w-full divide-y divide-slate-200 dark:divide-white/10">
@@ -55,7 +49,7 @@
                                 <td class="px-6 py-3 font-mono text-xs text-slate-500 dark:text-slate-400">SUP-{{ str_pad((string) $consumable->id, 4, '0', STR_PAD_LEFT) }}</td>
                                 <td class="px-6 py-3 text-sm font-medium text-slate-900 dark:text-white">{{ $consumable->name }}</td><td class="px-6 py-3 text-sm">
  {{ $consumable->supplier?->name ?? 'Unassigned' }}
- @if(! $archived && $consumable->supplier?->is_active)
+ @if($consumable->supplier?->is_active)
  @can('create', \App\Models\PurchaseOrder::class)
  <a class="block text-primary-600" href="{{ route('admin.purchase-orders.create', ['consumable_id' => $consumable->id]) }}">Restock via PO</a>
  @endcan
@@ -64,37 +58,25 @@
                                 <td class="px-6 py-3 text-sm text-slate-500 dark:text-slate-400">{{ $categoryLabels[$consumable->category] ?? ucfirst(str_replace('_', ' ', $consumable->category)) }}</td>
                                 <td class="px-6 py-3 text-sm text-slate-600 dark:text-slate-300">{{ $consumable->unit }}</td>
                                 <td class="px-6 py-3">
-                                    @if(! $archived)
-                                        @can('update', $consumable)
+                                    @can('update', $consumable)
                                             <x-consumable-value-modal :action-url="route('admin.consumables.quick-update', $consumable)" title="Adjust Stock Quantity" field="quantity" label="Quantity" :current-value="$consumable->quantity" :trigger-text="rtrim(rtrim($consumable->quantity, '0'), '.')" requires-reason adjustment-mode />
                                         @else
                                             <span class="font-mono text-sm text-slate-600 dark:text-slate-300">{{ rtrim(rtrim($consumable->quantity, '0'), '.') }}</span>
                                         @endcan
-                                    @else
-                                        <span class="font-mono text-sm text-slate-600 dark:text-slate-300">{{ rtrim(rtrim($consumable->quantity, '0'), '.') }}</span>
-                                    @endif
                                 </td>
                                 <td class="px-6 py-3">
-                                    @if(! $archived)
-                                        @can('update', $consumable)
+                                    @can('update', $consumable)
                                             <x-consumable-value-modal :action-url="route('admin.consumables.quick-update', $consumable)" title="Adjust Reorder Level" field="low_stock_threshold" label="Reorder level" :current-value="$consumable->low_stock_threshold" :trigger-text="rtrim(rtrim($consumable->low_stock_threshold, '0'), '.')" />
                                         @else
                                             <span class="font-mono text-sm text-slate-600 dark:text-slate-300">{{ rtrim(rtrim($consumable->low_stock_threshold, '0'), '.') }}</span>
                                         @endcan
-                                    @else
-                                        <span class="font-mono text-sm text-slate-600 dark:text-slate-300">{{ rtrim(rtrim($consumable->low_stock_threshold, '0'), '.') }}</span>
-                                    @endif
                                 </td>
                                 <td class="px-6 py-3">
-                                    @if(! $archived)
-                                        @can('update', $consumable)
+                                    @can('update', $consumable)
                                             <x-consumable-value-modal :action-url="route('admin.consumables.quick-update', $consumable)" title="Adjust Unit Cost" field="unit_cost" label="Unit cost (₱)" :current-value="$consumable->unit_cost" :trigger-text="'₱'.number_format((float) $consumable->unit_cost, 2)" />
                                         @else
                                             <span class="font-mono text-sm text-slate-600 dark:text-slate-300">₱{{ number_format((float) $consumable->unit_cost, 2) }}</span>
                                         @endcan
-                                    @else
-                                        <span class="font-mono text-sm text-slate-600 dark:text-slate-300">₱{{ number_format((float) $consumable->unit_cost, 2) }}</span>
-                                    @endif
                                 </td>
                                 <td class="px-6 py-3">
                                     @if($consumable->is_out_of_stock)<x-badge color="danger">Out of Stock</x-badge>
@@ -103,18 +85,12 @@
                                 </td>
                                 <td class="px-6 py-3 text-right">
                                     <div class="flex items-center justify-end gap-3">
-                                        @if($archived)
-                                            @can('restore', $consumable)
-                                                <form method="POST" action="{{ route('admin.consumables.restore', $consumable) }}">@csrf<button type="submit" class="text-slate-500 hover:text-success-600" title="Restore supply"><x-icon name="check-circle" class="size-4" /></button></form>
-                                            @endcan
-                                        @else
-                                            @can('update', $consumable)
+                                        @can('update', $consumable)
                                                 <a href="{{ route('admin.consumables.edit', $consumable) }}" class="text-slate-500 hover:text-primary-600" title="Edit supply"><x-icon name="pencil" class="size-4" /></a>
                                             @endcan
                                             @can('delete', $consumable)
-                                                <form method="POST" action="{{ route('admin.consumables.destroy', $consumable) }}" onsubmit="return confirm('Archive this supply?')">@csrf @method('delete')<button type="submit" class="text-slate-500 hover:text-danger-600" title="Archive supply"><x-icon name="archive" class="size-4" /></button></form>
+                                                <form method="POST" action="{{ route('admin.consumables.destroy', $consumable) }}" onsubmit="return confirm('Permanently delete this supply? This cannot be undone.')">@csrf @method('delete')<button type="submit" class="text-slate-500 hover:text-danger-600" title="Permanently delete supply"><x-icon name="trash" class="size-4" /></button></form>
                                             @endcan
-                                        @endif
                                     </div>
                                 </td>
                             </tr>

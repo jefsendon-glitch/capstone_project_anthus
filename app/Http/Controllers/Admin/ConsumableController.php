@@ -21,9 +21,7 @@ class ConsumableController extends Controller
         $this->authorize('viewAny', Consumable::class);
         request()->validate(['supplier_id' => ['nullable', 'integer', 'exists:suppliers,id']]);
 
-        $archived = request()->boolean('archived');
-        $query = $archived ? Consumable::onlyTrashed() : Consumable::query();
-        $consumables = $query->with('supplier')
+        $consumables = Consumable::with('supplier')
             ->when(request('supplier_id'), fn ($query) => $query->where('supplier_id', request('supplier_id')))
             ->orderBy('category')->orderBy('name')->paginate(15)->withQueryString();
 
@@ -35,7 +33,7 @@ class ConsumableController extends Controller
             'outOfStock' => (clone $activeConsumables)->where('quantity', '<=', 0)->count(),
         ];
 
-        return view('admin.consumables.index', compact('consumables', 'archived', 'summary'));
+        return view('admin.consumables.index', compact('consumables', 'summary'));
     }
 
     public function create(): View
@@ -148,30 +146,12 @@ class ConsumableController extends Controller
     {
         $this->authorize('delete', $consumable);
 
-        $consumable->delete();
-
-        return redirect()->route('admin.consumables.index')->with('success', 'Supplies archived successfully.');
-    }
-
-    public function restore(int $consumable): RedirectResponse
-    {
-        $consumable = Consumable::onlyTrashed()->findOrFail($consumable);
-        $this->authorize('restore', $consumable);
-        $consumable->restore();
-
-        return redirect()->route('admin.consumables.index')->with('success', 'Supplies restored successfully.');
-    }
-
-    public function forceDelete(int $consumable): RedirectResponse
-    {
-        $consumable = Consumable::onlyTrashed()->findOrFail($consumable);
-        $this->authorize('forceDelete', $consumable);
         if (PurchaseOrderItem::where('itemable_type', $consumable->getMorphClass())->where('itemable_id', $consumable->id)->exists()) {
-            return back()->with('error', 'This supply is referenced by purchase orders. Keep it archived to preserve purchase history.');
+            return back()->with('error', 'This supply cannot be permanently deleted because it is referenced by purchase orders.');
         }
         $consumable->forceDelete();
 
-        return redirect()->route('admin.consumables.index', ['archived' => 1])
+        return redirect()->route('admin.consumables.index')
             ->with('success', 'Supplies permanently deleted.');
     }
 }

@@ -26,8 +26,6 @@ Route::middleware(['auth', 'role:admin|staff'])->group(function () {
 
         Route::get('consumables/report', [ConsumableController::class, 'report'])->name('consumables.report');
         Route::resource('consumables', ConsumableController::class)->except('show');
-        Route::post('consumables/{consumable}/restore', [ConsumableController::class, 'restore'])->name('consumables.restore');
-        Route::delete('consumables/{consumable}/permanent', [ConsumableController::class, 'forceDelete'])->name('consumables.force-delete');
         Route::post('consumables/{consumable}/quick-update', [ConsumableController::class, 'quickUpdate'])->name('consumables.quick-update');
         Route::resource('maintenance', MaintenanceController::class)->except('show');
 

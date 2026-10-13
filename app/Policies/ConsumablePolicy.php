@@ -32,18 +32,9 @@ class ConsumablePolicy
         return $user->isAdmin();
     }
 
-    public function restore(User $user, Consumable $consumable): bool
-    {
-        return $user->isAdmin();
-    }
-
     public function restock(User $user): bool
     {
         return $user->isAdmin();
     }
 
-    public function forceDelete(User $user, Consumable $consumable): bool
-    {
-        return $user->isAdmin() && $consumable->trashed();
-    }
 }
