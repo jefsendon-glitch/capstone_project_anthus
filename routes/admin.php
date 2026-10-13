@@ -31,5 +31,6 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::get('financial/reports/{report}', [\App\Http\Controllers\Admin\FinancialController::class, 'show'])->name('financial.reports.show');
     Route::post('financial/reports', [\App\Http\Controllers\Admin\FinancialController::class, 'generate'])->name('financial.reports.generate');
     Route::post('financial/expenses', [\App\Http\Controllers\Admin\FinancialController::class, 'storeExpense'])->name('financial.expenses.store');
+    Route::delete('financial/collections/reset', [\App\Http\Controllers\Admin\FinancialController::class, 'resetCollections'])->name('financial.collections.reset');
     Route::get('financial/{section}', [\App\Http\Controllers\Admin\FinancialController::class, 'index'])->whereIn('section', ['sales', 'expenses', 'collections', 'exports'])->name('financial.section');
 });

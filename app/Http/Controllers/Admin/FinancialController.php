@@ -12,6 +12,7 @@ use App\Services\FinancialSummaryService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 use Symfony\Component\HttpFoundation\StreamedResponse;
@@ -68,6 +69,34 @@ class FinancialController extends Controller
         Expense::create($data + ['recorded_by' => $request->user()->id]);
 
         return redirect()->route('admin.financial.section', ['section' => 'expenses', 'date_from' => $data['expense_date'], 'date_to' => $data['expense_date']])->with('success', 'Expense recorded successfully.');
+    }
+
+    public function resetCollections(Request $request): RedirectResponse
+    {
+        abort_unless($request->user()->isAdmin(), 403);
+        $data = $request->validate([
+            'date_from' => ['required', 'date_format:Y-m-d'],
+            'date_to' => ['required', 'date_format:Y-m-d', 'after_or_equal:date_from'],
+            'reset_confirmation' => ['required', 'in:RESET'],
+        ]);
+        $count = DB::transaction(function () use ($request, $data) {
+            $payments = CustomerPayment::whereDate('payment_date', '>=', $data['date_from'])
+                ->whereDate('payment_date', '<=', $data['date_to'])->orderBy('id')->lockForUpdate()->get(['id', 'amount']);
+            foreach ($payments->pluck('id')->chunk(500) as $ids) {
+                CustomerPayment::whereIn('id', $ids)->delete();
+            }
+            activity('customer_payments')->causedBy($request->user())->event('reset')
+                ->withProperties([
+                    'date_from' => $data['date_from'], 'date_to' => $data['date_to'],
+                    'payments_deleted' => $payments->count(), 'amount_removed' => $payments->sum('amount'),
+                ])->log('Reset collection payment history for selected period');
+
+            return $payments->count();
+        });
+
+        return redirect()->route('admin.financial.section', [
+            'section' => 'collections', 'date_from' => $data['date_from'], 'date_to' => $data['date_to'],
+        ])->with('success', "{$count} payment records deleted for the selected period. Collection totals and history updated. Customer balances, paid credit amounts, and saved reports preserved.");
     }
 
     public function generate(Request $request, FinancialSummaryService $summary): RedirectResponse
