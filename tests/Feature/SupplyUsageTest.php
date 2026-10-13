@@ -1,0 +1,54 @@
+<?php
+
+use App\Models\Consumable;
+use App\Models\User;
+use Database\Seeders\RoleSeeder;
+
+beforeEach(function () {
+    $this->seed(RoleSeeder::class);
+    $this->admin = User::factory()->create();
+    $this->admin->assignRole('admin');
+});
+
+test('admin records multiple supplies and procurement quantities decrease', function () {
+    $supplies = Consumable::factory()->count(2)->create(['quantity' => 10]);
+    $this->actingAs($this->admin)->get(route('admin.inventory.supply-usages.index'))->assertOk()->assertSee('Supplies Usage');
+    $this->post(route('admin.inventory.supply-usages.store'), [
+        'operation' => 'Bottling', 'operation_date' => now()->toDateString(),
+        'items' => $supplies->map(fn ($supply) => ['consumable_id' => $supply->id, 'quantity' => 2.25])->all(),
+    ])->assertSessionHasNoErrors()->assertRedirect(route('admin.inventory.supply-usages.index'));
+    foreach ($supplies as $supply) {
+        expect((float) $supply->fresh()->quantity)->toBe(7.75);
+        $this->assertDatabaseHas('stock_movements', ['movable_id' => $supply->id, 'type' => 'operation_usage', 'quantity_delta' => -2.25]);
+    }
+    $this->assertDatabaseHas('supply_usages', ['operation' => 'Bottling', 'recorded_by' => $this->admin->id]);
+    $this->get(route('admin.inventory.supply-usages.index'))->assertOk()->assertSee('Bottling');
+});
+
+test('insufficient stock rejects the entire operation without any deductions', function () {
+    $first = Consumable::factory()->create(['quantity' => 10]);
+    $second = Consumable::factory()->create(['quantity' => 1]);
+    $this->actingAs($this->admin)->post(route('admin.inventory.supply-usages.store'), [
+        'operation' => 'Cleaning', 'operation_date' => now()->toDateString(),
+        'items' => [['consumable_id' => $first->id, 'quantity' => 2], ['consumable_id' => $second->id, 'quantity' => 2]],
+    ])->assertSessionHasErrors('items.1.quantity');
+    expect((float) $first->fresh()->quantity)->toBe(10.0);
+    $this->assertDatabaseCount('supply_usages', 0);
+    $this->assertDatabaseCount('stock_movements', 0);
+});
+
+test('duplicate supplies and invalid quantities cannot deduct stock', function () {
+    $supply = Consumable::factory()->create(['quantity' => 10]);
+    $this->actingAs($this->admin)->post(route('admin.inventory.supply-usages.store'), [
+        'operation' => 'Production', 'operation_date' => now()->toDateString(),
+        'items' => [['consumable_id' => $supply->id, 'quantity' => -1], ['consumable_id' => $supply->id, 'quantity' => 1.001]],
+    ])->assertSessionHasErrors();
+    expect((float) $supply->fresh()->quantity)->toBe(10.0);
+});
+
+test('staff cannot access or record operation usage', function () {
+    $user = User::factory()->create();
+    $user->assignRole('staff');
+    $this->actingAs($user)->get(route('admin.inventory.supply-usages.index'))->assertForbidden();
+    $this->post(route('admin.inventory.supply-usages.store'), [])->assertForbidden();
+});

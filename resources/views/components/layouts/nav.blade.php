@@ -8,7 +8,7 @@ $navLink = function (string $route) {
 };
 
 $inventoryActive = request()->routeIs('admin.products*') || (auth()->user()->isStaff() && request()->routeIs('admin.maintenance*'))
-    || request()->routeIs('admin.inventory.gallon-inventory*') || request()->routeIs('admin.water-production*') || request()->routeIs('admin.stock-movements*');
+    || request()->routeIs('admin.inventory.*') || request()->routeIs('admin.water-production*') || request()->routeIs('admin.stock-movements*');
 $procurementActive = request()->routeIs('admin.suppliers*') || request()->routeIs('admin.purchase-orders*') || request()->routeIs('admin.consumables*') || request()->routeIs('admin.procurement.*');
 @endphp
 
@@ -41,6 +41,9 @@ $procurementActive = request()->routeIs('admin.suppliers*') || request()->routeI
             </a>
             <a href="{{ route('admin.water-production.index') }}" class="flex items-center gap-3 rounded-xl py-2 pl-11 pr-3 text-sm font-medium {{ $navLink('admin.water-production') }}">
                 <span>Water Production</span>
+            </a>
+            <a href="{{ route('admin.inventory.supply-usages.index') }}" class="flex items-center gap-3 rounded-xl py-2 pl-11 pr-3 text-sm font-medium {{ $navLink('admin.inventory.supply-usages') }}">
+                <span>Supplies Usage</span>
             </a>
             <a href="{{ route('admin.stock-movements.index') }}" class="flex items-center gap-3 rounded-xl py-2 pl-11 pr-3 text-sm font-medium {{ $navLink('admin.stock-movements') }}">
                 <span>Stock Movements</span>

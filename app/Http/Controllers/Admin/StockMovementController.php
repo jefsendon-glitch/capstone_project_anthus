@@ -19,7 +19,7 @@ class StockMovementController extends Controller
         $this->authorize('viewAny', StockMovement::class);
         $itemTypes = ['product' => 'Products', 'consumable' => 'Supplies', 'station_gallon' => 'Gallon Tracking', 'gallon_stock' => 'Legacy Gallons'];
         $movementTypes = ['initial' => 'Opening Stock', 'restock' => 'Restock', 'production' => 'Water Production',
-            'purchase_receive' => 'Purchase Received', 'adjustment_increase' => 'Quantity Increase',
+            'purchase_receive' => 'Purchase Received', 'operation_usage' => 'Operation Supplies Usage', 'adjustment_increase' => 'Quantity Increase',
             'adjustment_decrease' => 'Quantity Decrease', 'sale_deduction' => 'Sale / Delivery',
             'add' => 'Add Gallons', 'decrease' => 'Remove Gallons', 'fill' => 'Fill Gallons',
             'release' => 'Release to Customer', 'return' => 'Customer Return', 'returned' => 'Legacy Return',
