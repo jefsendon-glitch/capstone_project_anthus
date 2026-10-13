@@ -1,7 +1,7 @@
 <x-layouts.app title="Overview" :heading="'Overview'" :subheading="now()->format('l, F j, Y')">
     <div class="grid grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-5">
         <x-stat-card
-            variant="solid" compact
+            variant="plain" compact
             label="Today's Sales"
             value="₱{{ number_format($revenueToday, 0) }}"
             :hint="$transactionsToday.' transactions'"
@@ -9,7 +9,7 @@
             color="primary"
         />
         <x-stat-card
-            variant="solid" compact
+            variant="plain" compact
             label="Weekly Sales"
             value="₱{{ number_format($revenueThisWeek, 0) }}"
             hint="This week"
@@ -17,7 +17,7 @@
             color="secondary"
         />
         <x-stat-card
-            variant="solid" compact
+            variant="plain" compact
             label="Monthly Revenue"
             value="₱{{ number_format($revenueThisMonth, 0) }}"
             hint="This month"
@@ -25,7 +25,7 @@
             color="secondary"
         />
         <x-stat-card
-            variant="solid" compact
+            variant="plain" compact
             label="Total Transactions"
             :value="$totalTransactions"
             hint="All-time"
@@ -33,7 +33,7 @@
             color="primary"
         />
         <x-stat-card
-            variant="solid" compact
+            variant="plain" compact
             label="Total Customers"
             :value="$totalCustomers"
             hint="Registered accounts"
@@ -41,7 +41,7 @@
             color="primary"
         />
         <x-stat-card
-            variant="solid" compact
+            variant="plain" compact
             label="Gallons Sold Today"
             :value="number_format($gallonsSoldToday, 0)"
             hint="Excludes containers"
@@ -49,7 +49,7 @@
             color="secondary"
         />
         <x-stat-card
-            variant="solid" compact
+            variant="plain" compact
             label="Active Deliveries"
             :value="$activeDeliveriesCount"
             hint="Out for delivery"
@@ -57,7 +57,7 @@
             color="delivery"
         />
         <x-stat-card
-            variant="solid" compact
+            variant="plain" compact
             label="Pending Deliveries"
             :value="$pendingDeliveriesCount"
             hint="Awaiting dispatch"
@@ -65,7 +65,7 @@
             color="warning"
         />
         <x-stat-card
-            variant="solid" compact
+            variant="plain" compact
             label="Low Stock Items"
             :value="$lowStockProducts->count() + $lowStockConsumables->count()"
             hint="Restock needed"
@@ -73,7 +73,7 @@
             color="warning"
         />
         <x-stat-card
-            variant="solid" compact
+            variant="plain" compact
             label="Outstanding Balances"
             value="₱{{ number_format($totalOutstandingCredit, 0) }}"
             hint="Owed by customers"

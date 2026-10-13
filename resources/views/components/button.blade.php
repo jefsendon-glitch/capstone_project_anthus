@@ -10,7 +10,7 @@ $variants = [
     'ghost' => 'text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-white/5',
 ];
 
-$classes = $base . ' ' . ($variants[$variant] ?? $variants['primary']);
+$classes = 'ui-button ui-button-'.$variant.' '.$base.' '.($variants[$variant] ?? $variants['primary']);
 @endphp
 
 @if($as === 'a')

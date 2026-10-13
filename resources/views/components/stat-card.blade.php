@@ -68,16 +68,16 @@ $cardPadding = $compact ? 'p-4' : 'p-6';
         </div>
     </x-card>
 @else
-    <x-card :padding="$cardPadding" class="flex {{ $cardHeight }} items-start justify-between">
-        <div>
-            <p class="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">{{ $label }}</p>
-            <p class="mt-2 text-2xl font-bold text-slate-900 dark:text-white">{{ $value }}</p>
+    <x-card :padding="$compact ? 'p-3 sm:p-4' : $cardPadding" class="flex {{ $cardHeight }} items-start justify-between gap-2">
+        <div class="min-w-0 flex-1">
+            <p class="{{ $compact ? 'text-[11px] leading-4' : 'text-xs' }} font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">{{ $label }}</p>
+            <p class="{{ $compact ? 'mt-1 break-words text-xl sm:text-2xl' : 'mt-2 text-2xl' }} font-bold text-slate-900 dark:text-white">{{ $value }}</p>
             @if($hint)
                 <p class="mt-1 text-xs text-slate-400">{{ $hint }}</p>
             @endif
         </div>
-        <div class="rounded-2xl p-3 {{ $iconColors[$color] ?? $iconColors['primary'] }}">
-            <x-icon :name="$icon" class="size-6" />
+        <div class="{{ $compact ? 'hidden shrink-0 rounded-lg p-2 sm:block' : 'rounded-2xl p-3' }} {{ $iconColors[$color] ?? $iconColors['primary'] }}">
+            <x-icon :name="$icon" :class="$compact ? 'size-4' : 'size-6'" />
         </div>
     </x-card>
 @endif
