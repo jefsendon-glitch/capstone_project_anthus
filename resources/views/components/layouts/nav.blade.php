@@ -26,26 +26,26 @@ $procurementActive = request()->routeIs('admin.suppliers*') || request()->routeI
         <button
             type="button"
             x-on:click="open = !open; $nextTick(() => $dispatch('sidebar-navigation-resize'))"
-            class="sidebar-nav-link flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-medium {{ $inventoryActive ? 'bg-white/10 text-white' : 'text-secondary-100/80 hover:bg-white/10 hover:text-white' }}"
+            class="sidebar-nav-link flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-sm font-medium {{ $inventoryActive ? 'bg-white/10 text-white' : 'text-secondary-100/80 hover:bg-white/10 hover:text-white' }}"
         >
             <x-icon name="archive" class="size-5 shrink-0" />
-            <span class="flex-1" x-bind:class="$store.sidebar.collapsed && 'lg:hidden'">Inventory Management</span>
+            <span class="flex-1 whitespace-nowrap text-[13px]" x-bind:class="$store.sidebar.collapsed && 'lg:hidden'">Inventory Management</span>
             <x-icon name="chevron-down" class="size-4 shrink-0 transition-transform" x-bind:class="[open && 'rotate-180', $store.sidebar.collapsed && 'lg:hidden']" />
         </button>
-        <div x-show="open" x-transition x-bind:class="$store.sidebar.collapsed && 'lg:hidden'" class="space-y-1 py-1">
-            <a href="{{ route('admin.products.index') }}" class="flex items-center gap-3 rounded-xl py-2 pl-11 pr-3 text-sm font-medium {{ $navLink('admin.products') }}">
-                <span>Product Management</span>
+        <div x-show="open" x-transition x-bind:class="$store.sidebar.collapsed && 'lg:hidden'" class="space-y-0 py-0">
+            <a href="{{ route('admin.products.index') }}" class="flex items-center gap-3 rounded-lg py-1 pl-10 pr-3 text-sm font-medium {{ $navLink('admin.products') }}">
+                <span>Product</span>
             </a>
-            <a href="{{ route('admin.inventory.gallon-inventory') }}" class="flex items-center gap-3 rounded-xl py-2 pl-11 pr-3 text-sm font-medium {{ request()->routeIs('admin.inventory.gallon-inventory*') ? 'sidebar-nav-link is-active bg-gradient-to-r from-primary-500 to-primary-700 text-white' : 'sidebar-nav-link text-secondary-100/80 hover:bg-white/10 hover:text-white' }}">
+            <a href="{{ route('admin.inventory.gallon-inventory') }}" class="flex items-center gap-3 rounded-lg py-1 pl-10 pr-3 text-sm font-medium {{ request()->routeIs('admin.inventory.gallon-inventory*') ? 'sidebar-nav-link is-active bg-gradient-to-r from-primary-500 to-primary-700 text-white' : 'sidebar-nav-link text-secondary-100/80 hover:bg-white/10 hover:text-white' }}">
                 <span>Gallon Tracking</span>
             </a>
-            <a href="{{ route('admin.water-production.index') }}" class="flex items-center gap-3 rounded-xl py-2 pl-11 pr-3 text-sm font-medium {{ $navLink('admin.water-production') }}">
+            <a href="{{ route('admin.water-production.index') }}" class="flex items-center gap-3 rounded-lg py-1 pl-10 pr-3 text-sm font-medium {{ $navLink('admin.water-production') }}">
                 <span>Water Production</span>
             </a>
-            <a href="{{ route('admin.inventory.supply-usages.index') }}" class="flex items-center gap-3 rounded-xl py-2 pl-11 pr-3 text-sm font-medium {{ $navLink('admin.inventory.supply-usages') }}">
+            <a href="{{ route('admin.inventory.supply-usages.index') }}" class="flex items-center gap-3 rounded-lg py-1 pl-10 pr-3 text-sm font-medium {{ $navLink('admin.inventory.supply-usages') }}">
                 <span>Supplies Usage</span>
             </a>
-            <a href="{{ route('admin.stock-movements.index') }}" class="flex items-center gap-3 rounded-xl py-2 pl-11 pr-3 text-sm font-medium {{ $navLink('admin.stock-movements') }}">
+            <a href="{{ route('admin.stock-movements.index') }}" class="flex items-center gap-3 rounded-lg py-1 pl-10 pr-3 text-sm font-medium {{ $navLink('admin.stock-movements') }}">
                 <span>Stock Movements</span>
             </a>
         </div>
@@ -116,16 +116,16 @@ $procurementActive = request()->routeIs('admin.suppliers*') || request()->routeI
         <span x-bind:class="$store.sidebar.collapsed && 'lg:hidden'">Payments</span>
     </a>
     <div x-data="{ open: {{ $inventoryActive ? 'true' : 'false' }} }">
-        <button type="button" x-on:click="open = !open; $nextTick(() => $dispatch('sidebar-navigation-resize'))" class="sidebar-nav-link flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-medium {{ $inventoryActive ? 'bg-white/10 text-white' : 'text-secondary-100/80 hover:bg-white/10 hover:text-white' }}">
+        <button type="button" x-on:click="open = !open; $nextTick(() => $dispatch('sidebar-navigation-resize'))" class="sidebar-nav-link flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-sm font-medium {{ $inventoryActive ? 'bg-white/10 text-white' : 'text-secondary-100/80 hover:bg-white/10 hover:text-white' }}">
             <x-icon name="archive" class="size-5 shrink-0" />
-            <span class="flex-1" x-bind:class="$store.sidebar.collapsed && 'lg:hidden'">Inventory Management</span>
+            <span class="flex-1 whitespace-nowrap text-[13px]" x-bind:class="$store.sidebar.collapsed && 'lg:hidden'">Inventory Management</span>
             <x-icon name="chevron-down" class="size-4 shrink-0 transition-transform" x-bind:class="[open && 'rotate-180', $store.sidebar.collapsed && 'lg:hidden']" />
         </button>
-        <div x-show="open" x-transition x-bind:class="$store.sidebar.collapsed && 'lg:hidden'" class="space-y-1 py-1">
-            <a href="{{ route('admin.products.index') }}" class="flex items-center gap-3 rounded-xl py-2 pl-11 pr-3 text-sm font-medium {{ $navLink('admin.products') }}">Product Management</a>
-            <a href="{{ route('admin.water-production.index') }}" class="flex items-center gap-3 rounded-xl py-2 pl-11 pr-3 text-sm font-medium {{ $navLink('admin.water-production') }}">Water Production</a>
-            <a href="{{ route('admin.maintenance.index') }}" class="flex items-center gap-3 rounded-xl py-2 pl-11 pr-3 text-sm font-medium {{ $navLink('admin.maintenance') }}">Maintenance</a>
-            <a href="{{ route('admin.stock-movements.index') }}" class="flex items-center gap-3 rounded-xl py-2 pl-11 pr-3 text-sm font-medium {{ $navLink('admin.stock-movements') }}">Stock Movements</a>
+        <div x-show="open" x-transition x-bind:class="$store.sidebar.collapsed && 'lg:hidden'" class="space-y-0 py-0">
+            <a href="{{ route('admin.products.index') }}" class="flex items-center gap-3 rounded-lg py-1 pl-10 pr-3 text-sm font-medium {{ $navLink('admin.products') }}">Product</a>
+            <a href="{{ route('admin.water-production.index') }}" class="flex items-center gap-3 rounded-lg py-1 pl-10 pr-3 text-sm font-medium {{ $navLink('admin.water-production') }}">Water Production</a>
+            <a href="{{ route('admin.maintenance.index') }}" class="flex items-center gap-3 rounded-lg py-1 pl-10 pr-3 text-sm font-medium {{ $navLink('admin.maintenance') }}">Maintenance</a>
+            <a href="{{ route('admin.stock-movements.index') }}" class="flex items-center gap-3 rounded-lg py-1 pl-10 pr-3 text-sm font-medium {{ $navLink('admin.stock-movements') }}">Stock Movements</a>
         </div>
     </div>
 @else

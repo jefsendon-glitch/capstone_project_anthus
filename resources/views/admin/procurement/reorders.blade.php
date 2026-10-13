@@ -11,7 +11,9 @@
                         <td><x-badge :color="$supply->is_out_of_stock ? 'danger' : 'warning'">{{ $supply->is_out_of_stock ? 'Out of stock' : 'Low stock' }}</x-badge></td>
                         <td>
                             @if($supply->supplier?->is_active)
-                                <a class="text-primary-600" href="{{ route('admin.purchase-orders.create', ['consumable_id' => $supply->id]) }}">Create PO</a>
+                                <x-button as="a" href="{{ route('admin.purchase-orders.create', ['consumable_id' => $supply->id]) }}" class="whitespace-nowrap !px-3 !py-1.5 !text-xs">
+                                    <x-icon name="plus" class="size-4" /> New Purchase Order
+                                </x-button>
                             @else
                                 <a class="text-primary-600" href="{{ route('admin.consumables.edit', $supply) }}">Assign active supplier</a>
                             @endif
