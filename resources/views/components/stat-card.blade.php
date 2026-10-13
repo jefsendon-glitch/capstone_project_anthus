@@ -42,16 +42,16 @@ $cardPadding = $compact ? 'p-4' : 'p-6';
 @endphp
 
 @if($variant === 'solid')
-    <x-card :padding="$cardPadding" class="flex {{ $cardHeight }} items-start justify-between overflow-hidden bg-gradient-to-br {{ $solidColors[$color] ?? $solidColors['primary'] }} text-white">
-        <div>
-            <p class="text-xs font-semibold uppercase tracking-wide text-white/80">{{ $label }}</p>
-            <p class="mt-2 text-2xl font-bold">{{ $value }}</p>
+    <x-card :padding="$compact ? 'p-3 sm:p-4' : $cardPadding" class="flex {{ $cardHeight }} items-start justify-between gap-2 overflow-hidden bg-gradient-to-br {{ $solidColors[$color] ?? $solidColors['primary'] }} text-white">
+        <div class="min-w-0 flex-1">
+            <p class="{{ $compact ? 'text-[11px] leading-4' : 'text-xs' }} font-semibold uppercase tracking-wide text-white/80">{{ $label }}</p>
+            <p class="{{ $compact ? 'mt-1 break-words text-xl sm:text-2xl' : 'mt-2 text-2xl' }} font-bold">{{ $value }}</p>
             @if($hint)
                 <p class="mt-1 text-xs text-white/70">{{ $hint }}</p>
             @endif
         </div>
-        <div class="rounded-2xl bg-white/20 p-3 text-white">
-            <x-icon :name="$icon" class="size-6" />
+        <div class="{{ $compact ? 'hidden shrink-0 rounded-xl p-2 sm:block' : 'rounded-2xl p-3' }} bg-white/20 text-white">
+            <x-icon :name="$icon" :class="$compact ? 'size-4' : 'size-6'" />
         </div>
     </x-card>
 @elseif($variant === 'tinted')
