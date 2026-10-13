@@ -27,4 +27,9 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::post('purchase-orders/{purchase_order}/cancel', [PurchaseOrderController::class, 'cancel'])->name('purchase-orders.cancel');
 
     Route::get('/reports', [ReportsController::class, 'index'])->name('reports.index');
+    Route::get('financial/reports/{report}/export', [\App\Http\Controllers\Admin\FinancialController::class, 'export'])->name('financial.reports.export');
+    Route::get('financial/reports/{report}', [\App\Http\Controllers\Admin\FinancialController::class, 'show'])->name('financial.reports.show');
+    Route::post('financial/reports', [\App\Http\Controllers\Admin\FinancialController::class, 'generate'])->name('financial.reports.generate');
+    Route::post('financial/expenses', [\App\Http\Controllers\Admin\FinancialController::class, 'storeExpense'])->name('financial.expenses.store');
+    Route::get('financial/{section}', [\App\Http\Controllers\Admin\FinancialController::class, 'index'])->whereIn('section', ['sales', 'expenses', 'collections', 'exports'])->name('financial.section');
 });

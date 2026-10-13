@@ -1,0 +1,17 @@
+<div class="mb-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
+    <x-stat-card compact label="Recorded Expenses" :value="'₱'.number_format($summary['Recorded Expenses'], 2)" icon="clipboard" color="danger" />
+    <x-stat-card compact label="Sales Less Recorded Expenses" :value="'₱'.number_format($summary['Sales Less Recorded Expenses'], 2)" icon="chart" color="primary" />
+</div>
+<x-collapsible-section title="Record Expense" :open="$errors->any()">
+    <x-card><form method="POST" action="{{ route('admin.financial.expenses.store') }}" class="grid gap-3 sm:grid-cols-2">@csrf
+        <div><x-input-label for="expense_date" value="Expense Date" /><x-text-input id="expense_date" type="date" name="expense_date" :value="old('expense_date', now()->toDateString())" :max="now()->toDateString()" required /></div>
+        <div><x-input-label for="expense_category" value="Category" /><x-select id="expense_category" name="category" required><option value="">Select category</option>@foreach($categories as $category)<option @selected(old('category') === $category)>{{ $category }}</option>@endforeach</x-select></div>
+        <div><x-input-label for="description" value="Description" /><x-text-input id="description" name="description" :value="old('description')" maxlength="255" required /></div>
+        <div><x-input-label for="amount" value="Amount (PHP)" /><x-text-input id="amount" name="amount" type="number" step="0.01" min="0.01" max="9999999999.99" :value="old('amount')" required /></div>
+        <div><x-input-label for="reference" value="Receipt / Reference (optional)" /><x-text-input id="reference" name="reference" :value="old('reference')" maxlength="100" /></div>
+        <div><x-input-label for="notes" value="Notes (optional)" /><x-textarea id="notes" name="notes" maxlength="1000">{{ old('notes') }}</x-textarea></div>
+        <div class="sm:col-span-2"><x-button type="submit">Save Expense</x-button></div>
+    </form></x-card>
+</x-collapsible-section>
+<p class="my-3 text-xs text-slate-500">Expenses are recorded here manually. Procurement orders are not automatically counted as expenses.</p>
+<x-card padding="p-0"><div class="overflow-x-auto"><table class="min-w-full text-left text-sm"><thead class="bg-slate-50 text-xs uppercase text-slate-500 dark:bg-white/5"><tr><th class="p-3">Date</th><th class="p-3">Category</th><th class="p-3">Description / Reference</th><th class="p-3">Recorded By</th><th class="p-3 text-right">Amount</th></tr></thead><tbody class="divide-y divide-slate-100 dark:divide-white/5">@forelse($expenses as $expense)<tr><td class="p-3 whitespace-nowrap">{{ $expense->expense_date->format('M d, Y') }}</td><td class="p-3">{{ $expense->category }}</td><td class="p-3">{{ $expense->description }}<p class="text-xs text-slate-500">{{ $expense->reference }} {{ $expense->notes }}</p></td><td class="p-3">{{ $expense->recordedBy?->name ?? 'Deleted user' }}</td><td class="p-3 text-right whitespace-nowrap">₱{{ number_format($expense->amount, 2) }}</td></tr>@empty<tr><td colspan="5" class="p-6 text-center text-slate-500">No expenses for these filters.</td></tr>@endforelse</tbody></table></div><div class="p-3">{{ $expenses->links() }}</div></x-card>

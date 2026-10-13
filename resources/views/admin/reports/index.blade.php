@@ -1,4 +1,5 @@
 <x-layouts.app title="Financial Reports" :heading="'Financial Reports'">
+    @include('admin.financial.nav', ['section' => 'overview'])
     <div id="printable-report" class="space-y-6">
         <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div class="flex items-start gap-3">
@@ -8,7 +9,7 @@
                     class="hidden size-12 shrink-0 rounded-2xl bg-white object-contain p-1.5 shadow-sm ring-1 ring-slate-900/5 sm:block dark:bg-white/90"
                 >
                 <div>
-                    <p class="text-sm font-medium text-primary-600 dark:text-primary-400">Financial overview</p>
+                    <p class="text-sm font-medium text-primary-600 dark:text-primary-400">Overview · Financial summaries, trends and performance</p>
                     <h2 class="mt-1 text-2xl font-bold text-slate-950 dark:text-white">Revenue at a glance</h2>
                     <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">Live figures from completed sales records for {{ $reportStart->format('M d, Y') }} to {{ $reportEnd->format('M d, Y') }}.</p>
                 </div>
@@ -47,12 +48,19 @@
             </div>
         </div>
 
-        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-5">
-            <x-stat-card label="Today's Revenue" value="₱{{ number_format($revenueToday, 2) }}" hint="{{ now()->format('M d, Y') }}" icon="dollar" color="delivery" variant="solid" />
-            <x-stat-card label="Period Revenue" value="₱{{ number_format($reportRevenue, 2) }}" hint="Selected date range" icon="dollar" color="primary" variant="solid" />
-            <x-stat-card label="Transactions" value="{{ number_format($reportTransactions) }}" hint="Sales transactions" icon="clipboard" color="secondary" variant="solid" />
-            <x-stat-card label="Average Sale" value="₱{{ number_format($averageTransaction, 2) }}" hint="Per transaction" icon="chart" color="success" variant="solid" />
-            <x-stat-card label="Top Product" value="{{ $bestSellers->first()?->product_name ?? '—' }}" hint="{{ $bestSellers->first() ? number_format($bestSellers->first()->total_quantity).' units sold' : 'No sales in this period' }}" icon="cube" color="delivery" variant="solid" />
+        <div class="grid grid-cols-2 gap-3 xl:grid-cols-5">
+            <x-stat-card compact label="Today's Revenue" value="₱{{ number_format($revenueToday, 2) }}" hint="{{ now()->format('M d, Y') }}" icon="dollar" color="delivery" variant="solid" />
+            <x-stat-card compact label="Period Revenue" value="₱{{ number_format($reportRevenue, 2) }}" hint="Selected date range" icon="dollar" color="primary" variant="solid" />
+            <x-stat-card compact label="Transactions" value="{{ number_format($reportTransactions) }}" hint="Sales transactions" icon="clipboard" color="secondary" variant="solid" />
+            <x-stat-card compact label="Average Sale" value="₱{{ number_format($averageTransaction, 2) }}" hint="Per transaction" icon="chart" color="success" variant="solid" />
+            <x-stat-card compact label="Top Product" value="{{ $bestSellers->first()?->product_name ?? '—' }}" hint="{{ $bestSellers->first() ? number_format($bestSellers->first()->total_quantity).' units sold' : 'No sales in this period' }}" icon="cube" color="delivery" variant="solid" />
+        </div>
+
+        <div class="grid grid-cols-2 gap-3 xl:grid-cols-4">
+            <x-stat-card compact label="Recorded Expenses" :value="'₱'.number_format($financialSummary['Recorded Expenses'], 2)" icon="clipboard" color="danger" />
+            <x-stat-card compact label="Sales Less Recorded Expenses" :value="'₱'.number_format($financialSummary['Sales Less Recorded Expenses'], 2)" icon="chart" color="primary" />
+            <x-stat-card compact label="Period Collections" :value="'₱'.number_format($financialSummary['Customer Collections'], 2)" icon="dollar" color="success" />
+            <x-stat-card compact label="Current Receivables" :value="'₱'.number_format($financialSummary['Current Receivables'], 2)" icon="credit-card" color="warning" />
         </div>
 
         <x-card>

@@ -1,6 +1,6 @@
 @php
 $navLink = function (string $route) {
-    $active = request()->routeIs($route.'*');
+    $active = request()->routeIs($route.'*') || ($route === 'admin.reports' && request()->routeIs('admin.financial.*'));
 
     return $active
         ? 'sidebar-nav-link is-active bg-gradient-to-r from-primary-500 to-primary-700 text-white'

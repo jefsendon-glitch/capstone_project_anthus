@@ -11,11 +11,11 @@ use Illuminate\View\View;
 
 class ReportsController extends Controller
 {
-    public function index(Request $request): View
+    public function index(Request $request, \App\Services\FinancialSummaryService $financialSummary): View
     {
         $validated = $request->validate([
             'date_from' => ['nullable', 'date'],
-            'date_to' => ['nullable', 'date', 'after_or_equal:date_from'],
+            'date_to' => array_filter(['nullable', 'date', $request->filled('date_from') ? 'after_or_equal:date_from' : null]),
         ]);
 
         $reportStart = isset($validated['date_from'])
@@ -68,6 +68,7 @@ class ReportsController extends Controller
         }
 
         return view('admin.reports.index', [
+            'financialSummary' => $financialSummary->summarize($reportStart->toDateString(), $reportEnd->toDateString()),
             'business' => Setting::current(),
             'reportStart' => $reportStart,
             'reportEnd' => $reportEnd,
