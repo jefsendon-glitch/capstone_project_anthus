@@ -21,7 +21,20 @@ class POSController extends Controller
 
     public function index(Request $request): View
     {
+        $request->validate([
+            'search' => ['nullable', 'string', 'max:100'],
+            'type' => ['nullable', 'in:walk-in,delivery'],
+        ]);
+        $search = trim((string) $request->input('search', ''));
         $transactions = SalesTransaction::with(['processedBy', 'customer'])
+            ->when($search !== '', function ($query) use ($search) {
+                $query->where(function ($query) use ($search) {
+                    $query->where('transaction_code', 'like', '%'.$search.'%')
+                        ->orWhere('customer_name', 'like', '%'.$search.'%')
+                        ->orWhere('product_name', 'like', '%'.$search.'%')
+                        ->orWhereHas('customer', fn ($customer) => $customer->where('name', 'like', '%'.$search.'%'));
+                });
+            })
             ->when($request->filled('type'), fn ($query) => $query->where('transaction_type', $request->string('type')))
             ->latest()
             ->paginate(15)

@@ -1,11 +1,17 @@
 <x-layouts.app title="Point of Sale" :heading="'Point of Sale'">
-    <div class="mb-6 flex items-center justify-between gap-4">
-        <form method="GET">
-            <x-select name="type" onchange="this.form.submit()" class="w-auto">
-                <option value="">All Types</option>
+    <div class="mb-4 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+        <form method="GET" action="{{ route('pos.index') }}" class="grid min-w-0 flex-1 grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:items-center">
+            <div class="relative col-span-2 min-w-0 sm:w-72">
+                <x-icon name="search" class="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
+                <x-text-input type="search" name="search" :value="request('search')" maxlength="100" placeholder="Transaction no., customer or product..." aria-label="Search POS transactions" class="!py-2 !pl-9" />
+            </div>
+            <x-select name="type" aria-label="Transaction type" class="!py-2 sm:!w-auto">
+                <option value="">All Transactions</option>
                 <option value="walk-in" @selected(request('type') === 'walk-in')>Walk-in</option>
                 <option value="delivery" @selected(request('type') === 'delivery')>Delivery</option>
             </x-select>
+            <x-button type="submit" variant="secondary" class="!py-2">Search</x-button>
+            @if(request()->filled('search') || request()->filled('type'))<a href="{{ route('pos.index') }}" class="px-2 text-xs font-medium text-slate-500 hover:text-primary-600">Clear</a>@endif
         </form>
 
         <x-button as="a" href="{{ route('pos.create') }}">
@@ -16,7 +22,7 @@
     <x-card padding="p-0">
         @if($transactions->isEmpty())
             <div class="p-6">
-                <x-empty-state icon="cart" title="No sales recorded yet" description="Walk-in and delivery sales you record will appear here." />
+                <x-empty-state icon="cart" :title="request()->filled('search') || request()->filled('type') ? 'No matching transactions' : 'No sales recorded yet'" :description="request()->filled('search') || request()->filled('type') ? 'Try a different search or transaction type.' : 'Walk-in and delivery sales you record will appear here.'" />
             </div>
         @else
             <div class="overflow-x-auto">
