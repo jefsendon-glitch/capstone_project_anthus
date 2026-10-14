@@ -65,6 +65,34 @@ test('admin creates a purchase order awaiting stock receiving', function () {
     expect($purchaseOrder->fresh()->status)->toBe('ordered');
     expect($purchaseOrder->items)->toHaveCount(1);
     expect($this->product->fresh()->stock_quantity)->toBe(10);
+    $this->assertDatabaseHas('expenses', [
+        'purchase_order_id' => $purchaseOrder->id, 'reference' => $purchaseOrder->po_number,
+        'amount' => 300, 'category' => 'Supplies & Materials',
+    ]);
+});
+
+test('purchase order expenses follow draft publication and cancellation without duplicates', function () {
+    $payload = [
+        'supplier_id' => $this->supplier->id, 'status' => 'draft',
+        'ordered_at' => today()->toDateString(),
+        'items' => [['itemable_type' => 'product', 'itemable_id' => $this->product->id, 'quantity_ordered' => 2, 'unit_cost' => 12.50]],
+    ];
+    $this->actingAs($this->admin)->post(route('admin.purchase-orders.store'), $payload)->assertSessionHasNoErrors();
+    $order = PurchaseOrder::latest('id')->firstOrFail();
+    $this->assertDatabaseCount('expenses', 0);
+
+    $payload['status'] = 'ordered';
+    $payload['items'][0]['quantity_ordered'] = 3;
+    $this->put(route('admin.purchase-orders.update', $order), $payload)->assertSessionHasNoErrors();
+    app(\App\Services\PurchaseOrderExpenseService::class)->sync($order->fresh());
+    $this->assertDatabaseCount('expenses', 1);
+    $this->assertDatabaseHas('expenses', ['purchase_order_id' => $order->id, 'amount' => 37.50]);
+    $summary = app(\App\Services\FinancialSummaryService::class)->summarize(today()->toDateString(), today()->toDateString());
+    expect($summary['Recorded Expenses'])->toBe(37.50);
+    $this->get(route('admin.financial.section', ['section' => 'expenses']))->assertOk()->assertSee($order->po_number);
+
+    $this->post(route('admin.purchase-orders.cancel', $order))->assertSessionHasNoErrors();
+    $this->assertDatabaseCount('expenses', 0);
 });
 
 test('old immediate receiving flags do not bypass stock receiving', function () {

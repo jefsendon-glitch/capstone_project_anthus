@@ -9,7 +9,7 @@ class Expense extends Model
 {
     public const CATEGORIES = ['Supplies & Materials', 'Utilities', 'Rent', 'Payroll', 'Cleaning & Sanitation', 'Equipment Maintenance', 'Delivery & Fuel', 'Administrative', 'Other'];
 
-    protected $fillable = ['expense_date', 'category', 'description', 'amount', 'reference', 'notes', 'recorded_by'];
+    protected $fillable = ['expense_date', 'category', 'description', 'amount', 'reference', 'notes', 'recorded_by', 'purchase_order_id'];
 
     protected function casts(): array
     {

@@ -89,6 +89,7 @@ class PurchaseOrderController extends Controller
             ]);
 
             $this->syncItems($purchaseOrder, $validated['items']);
+            app(\App\Services\PurchaseOrderExpenseService::class)->sync($purchaseOrder);
 
             return $purchaseOrder;
         });
@@ -146,6 +147,7 @@ class PurchaseOrderController extends Controller
 
             $purchase_order->items()->delete();
             $this->syncItems($purchase_order, $validated['items']);
+            app(\App\Services\PurchaseOrderExpenseService::class)->sync($purchase_order);
         });
 
         return redirect()->route('admin.purchase-orders.show', $purchase_order)->with('success', 'Purchase order updated successfully.');
@@ -227,6 +229,7 @@ class PurchaseOrderController extends Controller
                 throw ValidationException::withMessages(['status' => 'Only unreceived orders can be cancelled.']);
             }
             $order->update(['status' => 'cancelled']);
+            app(\App\Services\PurchaseOrderExpenseService::class)->sync($order);
         });
 
         return redirect()->route('admin.purchase-orders.show', $purchase_order)->with('success', 'Purchase order cancelled.');
