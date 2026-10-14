@@ -1,7 +1,7 @@
 @props(['actionUrl', 'title', 'field', 'label', 'currentValue', 'triggerText', 'requiresReason' => false, 'adjustmentMode' => false])
 
 <div x-data="{ open: false }" class="inline-flex">
-    <button type="button" x-on:click="open = true" class="rounded-lg bg-amber-100 px-2 py-1 font-mono text-sm text-amber-800 underline decoration-dotted underline-offset-4 hover:bg-amber-200 dark:bg-amber-950 dark:text-amber-300 dark:hover:bg-amber-900" title="{{ $title }}">
+    <button type="button" x-on:click="open = true" class="rounded-lg bg-blue-100 px-2 py-1 font-mono text-sm text-blue-800 underline decoration-dotted underline-offset-4 hover:bg-blue-200 dark:bg-blue-950 dark:text-blue-300 dark:hover:bg-blue-900" title="{{ $title }}">
         {{ $triggerText }}
     </button>
 
@@ -32,7 +32,7 @@
                             <x-textarea name="notes" required></x-textarea>
                         </div>
                     @endif
-                    <x-button type="submit" variant="warning" class="w-full">Save</x-button>
+                    <x-button type="submit" variant="info" class="w-full">Save</x-button>
                 </form>
             </div>
         </div>

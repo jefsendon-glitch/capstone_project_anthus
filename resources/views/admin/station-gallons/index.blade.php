@@ -78,7 +78,7 @@
                         <td class="px-2 py-2"><span class="block font-medium">{{ $gallon->name }}</span><span class="text-xs text-slate-500">{{ $gallon->size }}</span></td>
                         @foreach(['empty', 'filled', 'borrowed', 'damaged', 'missing', 'returned'] as $status)<td class="px-2 py-2 text-right tabular-nums">{{ number_format($gallon->$status) }}</td>@endforeach
                         <td class="px-2 py-2 text-right">
-                            <button type="button" class="rounded-lg bg-amber-100 px-2 py-1 text-xs font-semibold text-amber-800 hover:bg-amber-200 dark:bg-amber-950 dark:text-amber-300 dark:hover:bg-amber-900" x-on:click="editing = editing === '{{ $gallon->id }}' ? '' : '{{ $gallon->id }}'" x-bind:aria-expanded="editing === '{{ $gallon->id }}'" aria-controls="gallon-editor-{{ $gallon->id }}">Edit</button>
+                            <button type="button" class="rounded-lg bg-blue-100 px-2 py-1 text-xs font-semibold text-blue-800 hover:bg-blue-200 dark:bg-blue-950 dark:text-blue-300 dark:hover:bg-blue-900" x-on:click="editing = editing === '{{ $gallon->id }}' ? '' : '{{ $gallon->id }}'" x-bind:aria-expanded="editing === '{{ $gallon->id }}'" aria-controls="gallon-editor-{{ $gallon->id }}">Edit</button>
                         </td>
                     </tr>
                     <tr id="gallon-editor-{{ $gallon->id }}" x-show="editing === '{{ $gallon->id }}'" x-cloak class="border-b border-slate-100 bg-slate-50/70 dark:bg-white/5">

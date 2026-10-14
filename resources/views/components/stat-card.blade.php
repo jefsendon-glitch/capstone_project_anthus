@@ -3,6 +3,7 @@
 @php
 if (auth()->user()?->isAdmin()) {
     $variant = 'solid';
+    $color = $color === 'delivery' ? 'secondary' : $color;
 }
 
 $iconColors = [

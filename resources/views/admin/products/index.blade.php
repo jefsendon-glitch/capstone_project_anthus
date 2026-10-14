@@ -107,7 +107,7 @@
                                             @endcan
                                         @else
                                             @can('update', $product)
-                                                <a href="{{ route('admin.products.edit', $product) }}" class="inline-flex items-center justify-center rounded-lg bg-amber-100 p-2 text-amber-700 transition hover:bg-amber-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-amber-500 dark:bg-amber-950 dark:text-amber-300 dark:hover:bg-amber-900" title="Edit">
+                                                <a href="{{ route('admin.products.edit', $product) }}" class="inline-flex items-center justify-center rounded-lg bg-blue-100 p-2 text-blue-700 transition hover:bg-blue-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-500 dark:bg-blue-950 dark:text-blue-300 dark:hover:bg-blue-900" title="Edit">
                                                     <x-icon name="pencil" class="size-4" />
                                                 </a>
                                             @endcan

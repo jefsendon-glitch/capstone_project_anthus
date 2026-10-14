@@ -1,7 +1,7 @@
 <x-layouts.app :title="$customer->name" :heading="$customer->name" :subheading="'Customer account, credit, and transaction history'">
     <div class="mb-6 flex flex-wrap items-center justify-between gap-3">
         <a href="{{ route('admin.customers.index') }}" class="inline-flex items-center gap-1.5 text-sm font-semibold text-slate-500 transition hover:text-primary-600 dark:text-slate-400"><x-icon name="chevron-left" class="size-4" /> All customers</a>
-        <x-button as="a" href="{{ route('admin.customers.edit', $customer) }}" variant="warning"><x-icon name="pencil" class="size-4" /> Edit customer</x-button>
+        <x-button as="a" href="{{ route('admin.customers.edit', $customer) }}" variant="info"><x-icon name="pencil" class="size-4" /> Edit customer</x-button>
     </div>
 
     <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">

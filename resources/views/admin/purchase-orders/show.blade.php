@@ -15,7 +15,7 @@ $canReceive = in_array($purchaseOrder->status, ['ordered', 'partially_received']
             @endif
             @if($purchaseOrder->status === 'draft')
                 @can('update', $purchaseOrder)
-                    <x-button as="a" href="{{ route('admin.purchase-orders.edit', $purchaseOrder) }}" variant="warning">
+                    <x-button as="a" href="{{ route('admin.purchase-orders.edit', $purchaseOrder) }}" variant="info">
                         <x-icon name="pencil" class="size-4" /> Edit
                     </x-button>
                 @endcan
