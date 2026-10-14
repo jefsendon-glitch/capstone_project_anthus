@@ -243,6 +243,10 @@
                     @include('admin.inventory.nav')
                 @endif
 
+                @if(auth()->user()->isAdmin() && request()->routeIs('admin.suppliers*', 'admin.consumables*', 'admin.purchase-orders*', 'admin.procurement.*'))
+                    @include('admin.procurement.nav')
+                @endif
+
                 {{ $slot }}
             </main>
         </div>

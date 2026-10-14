@@ -31,32 +31,10 @@ $procurementActive = request()->routeIs('admin.suppliers*') || request()->routeI
         <span x-bind:class="$store.sidebar.collapsed && 'lg:hidden'">Maintenance</span>
     </a>
 
-    <div x-data="{ open: {{ $procurementActive ? 'true' : 'false' }} }">
-        <button
-            type="button"
-            x-on:click="open = !open; $nextTick(() => $dispatch('sidebar-navigation-resize'))"
-            class="sidebar-nav-link flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-medium {{ $procurementActive ? 'bg-white/10 text-white' : 'text-secondary-100/80 hover:bg-white/10 hover:text-white' }}"
-        >
-            <x-icon name="building" class="size-5 shrink-0" />
-            <span class="flex-1" x-bind:class="$store.sidebar.collapsed && 'lg:hidden'">Procurement</span>
-            <x-icon name="chevron-down" class="size-4 shrink-0 transition-transform" x-bind:class="[open && 'rotate-180', $store.sidebar.collapsed && 'lg:hidden']" />
-        </button>
-        <div x-show="open" x-transition x-bind:class="$store.sidebar.collapsed && 'lg:hidden'" class="space-y-1 py-1">
-            <a href="{{ route('admin.suppliers.index') }}" class="flex items-center gap-3 rounded-xl py-2 pl-11 pr-3 text-sm font-medium {{ $navLink('admin.suppliers') }}">
-                <span>Supplier Management</span>
-            </a>
-            <a href="{{ route('admin.consumables.index') }}" class="flex items-center gap-3 rounded-xl py-2 pl-11 pr-3 text-sm font-medium {{ $navLink('admin.consumables') }}">
-                <span>Supplies</span>
-            </a>
-            <a href="{{ route('admin.purchase-orders.index') }}" class="flex items-center gap-3 rounded-xl py-2 pl-11 pr-3 text-sm font-medium {{ $navLink('admin.purchase-orders') }}">
-                <span>Purchase Orders</span>
-            </a>
-            <a href="{{ route('admin.procurement.receiving') }}" class="flex items-center gap-3 rounded-xl py-2 pl-11 pr-3 text-sm font-medium {{ $navLink('admin.procurement.receiving') }}"><span>Stock Receiving</span></a>
-            <a href="{{ route('admin.procurement.reorders') }}" class="flex items-center gap-3 rounded-xl py-2 pl-11 pr-3 text-sm font-medium {{ $navLink('admin.procurement.reorders') }}"><span>Reorder Monitoring</span></a>
-            <a href="{{ route('admin.procurement.history') }}" class="flex items-center gap-3 rounded-xl py-2 pl-11 pr-3 text-sm font-medium {{ $navLink('admin.procurement.history') }}"><span>Purchase History</span></a>
-        </div>
-    </div>
-
+    <a href="{{ route('admin.suppliers.index') }}" class="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium {{ $procurementActive ? 'sidebar-nav-link is-active bg-gradient-to-r from-primary-500 to-primary-700 text-white' : 'sidebar-nav-link text-secondary-100/80 hover:bg-white/10 hover:text-white' }}">
+        <x-icon name="building" class="size-5 shrink-0" />
+        <span x-bind:class="$store.sidebar.collapsed && 'lg:hidden'">Procurement</span>
+    </a>
     <a href="{{ route('admin.customers.index') }}" class="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium {{ $navLink('admin.customers') }}">
         <x-icon name="users" class="size-5 shrink-0" />
         <span x-bind:class="$store.sidebar.collapsed && 'lg:hidden'">Customers</span>
