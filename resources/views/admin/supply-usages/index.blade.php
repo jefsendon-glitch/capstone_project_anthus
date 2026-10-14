@@ -41,7 +41,7 @@
                 </template>
                 <x-button type="button" variant="secondary" x-on:click="items.push({ consumable_id: '', quantity: '' })" x-bind:disabled="items.length >= 100">Add Supply</x-button>
                 <div><x-input-label for="notes" value="Notes (optional)" /><x-textarea id="notes" name="notes" maxlength="1000">{{ old('notes') }}</x-textarea></div>
-                <x-button type="submit">Save Usage &amp; Deduct Stock</x-button>
+                <x-button variant="success" type="submit">Save Usage &amp; Deduct Stock</x-button>
             </form>
         @endif
     </x-card>

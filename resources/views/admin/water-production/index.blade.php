@@ -17,7 +17,7 @@
     <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
         <p class="text-xs text-slate-500">Totals follow the selected filters. Quantities count filled containers, not liters or current stock.</p>
         @if(auth()->user()->isAdmin())
-            <div class="flex flex-wrap gap-2"><x-button as="a" href="{{ route('admin.inventory.gallon-inventory') }}" variant="secondary" class="!py-1.5 !text-xs">Fill Gallons</x-button></div>
+            <div class="flex flex-wrap gap-2"><x-button as="a" href="{{ route('admin.inventory.gallon-inventory') }}" variant="info" class="!py-1.5 !text-xs">Fill Gallons</x-button></div>
         @endif
     </div>
     <p class="mb-3 text-xs text-slate-500">Fill movements from Gallon Tracking are automatically recorded as water production.</p>

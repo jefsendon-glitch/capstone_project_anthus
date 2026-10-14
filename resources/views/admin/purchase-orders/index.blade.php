@@ -13,7 +13,7 @@ $statusColors = ['draft' => 'slate', 'ordered' => 'primary', 'partially_received
         <p class="text-sm text-slate-500 dark:text-slate-400">Manage supplier orders, delivery schedules, and receiving status.</p>
         <div class="flex items-center gap-2">
         @can('create', \App\Models\PurchaseOrder::class)
-            <x-button as="a" href="{{ route('admin.purchase-orders.create') }}">
+            <x-button variant="success" as="a" href="{{ route('admin.purchase-orders.create') }}">
                 <x-icon name="plus" class="size-4" /> New Purchase Order
             </x-button>
         @endcan

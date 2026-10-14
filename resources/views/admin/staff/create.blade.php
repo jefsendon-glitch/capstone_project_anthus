@@ -67,7 +67,7 @@
 
             <div class="flex justify-end gap-3">
                 <x-button as="a" href="{{ route('admin.staff.index') }}" variant="secondary">Cancel</x-button>
-                <x-button type="submit">Save Account</x-button>
+                <x-button variant="success" type="submit">Save Account</x-button>
             </div>
         </form>
     </x-card>

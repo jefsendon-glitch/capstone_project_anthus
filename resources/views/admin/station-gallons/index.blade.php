@@ -41,7 +41,7 @@
                 <div><x-input-label for="gallon-name" value="Gallon name / type" /><x-text-input id="gallon-name" name="name" placeholder="Round gallon" maxlength="255" required /></div>
                 <div><x-input-label for="gallon-size" value="Size" /><x-text-input id="gallon-size" name="size" placeholder="5 gallons" maxlength="100" required /></div>
                 <div><x-input-label for="opening-quantity" value="Opening empty gallons" /><x-text-input id="opening-quantity" name="quantity" type="number" step="1" min="1" max="1000000" required /></div>
-                <x-button type="submit">Register Gallons</x-button>
+                <x-button variant="success" type="submit">Register Gallons</x-button>
             </form>
             </details>
         </x-card>
@@ -61,7 +61,7 @@
                     <div x-show="action === 'return'" x-cloak><x-input-label value="Returned condition" /><x-select name="return_status"><option value="empty">Usable / Empty</option><option value="damaged">Damaged</option></x-select></div>
                     <div><x-input-label value="Quantity" /><x-text-input name="quantity" type="number" step="1" min="1" max="1000000" required /></div>
                     <div><x-input-label value="Notes / reason" /><x-textarea name="notes" rows="2" maxlength="1000" x-bind:required="action === 'damage' || action === 'missing'"></x-textarea></div>
-                    <x-button type="submit">Save Movement</x-button>
+                    <x-button variant="success" type="submit">Save Movement</x-button>
                 </form>
             @endif
             </details>
@@ -78,7 +78,7 @@
                         <td class="px-2 py-2"><span class="block font-medium">{{ $gallon->name }}</span><span class="text-xs text-slate-500">{{ $gallon->size }}</span></td>
                         @foreach(['empty', 'filled', 'borrowed', 'damaged', 'missing', 'returned'] as $status)<td class="px-2 py-2 text-right tabular-nums">{{ number_format($gallon->$status) }}</td>@endforeach
                         <td class="px-2 py-2 text-right">
-                            <button type="button" class="rounded-lg px-2 py-1 text-xs font-semibold text-primary-600 hover:bg-primary-50 dark:hover:bg-white/5" x-on:click="editing = editing === '{{ $gallon->id }}' ? '' : '{{ $gallon->id }}'" x-bind:aria-expanded="editing === '{{ $gallon->id }}'" aria-controls="gallon-editor-{{ $gallon->id }}">Edit</button>
+                            <button type="button" class="rounded-lg bg-amber-100 px-2 py-1 text-xs font-semibold text-amber-800 hover:bg-amber-200 dark:bg-amber-950 dark:text-amber-300 dark:hover:bg-amber-900" x-on:click="editing = editing === '{{ $gallon->id }}' ? '' : '{{ $gallon->id }}'" x-bind:aria-expanded="editing === '{{ $gallon->id }}'" aria-controls="gallon-editor-{{ $gallon->id }}">Edit</button>
                         </td>
                     </tr>
                     <tr id="gallon-editor-{{ $gallon->id }}" x-show="editing === '{{ $gallon->id }}'" x-cloak class="border-b border-slate-100 bg-slate-50/70 dark:bg-white/5">
@@ -115,7 +115,7 @@
                                         <p class="text-xs text-slate-500">{{ number_format($gallon->empty) }} empty available<br>Adjustments update Total Gallons.</p>
                                         <div class="flex items-center gap-1">
                                             <x-button type="button" variant="ghost" class="!px-3 !py-1.5 !text-xs" x-on:click="editing = ''">Cancel</x-button>
-                                            <x-button type="submit" class="!px-3 !py-1.5 !text-xs">Save Changes</x-button>
+                                            <x-button variant="success" type="submit" class="!px-3 !py-1.5 !text-xs">Save Changes</x-button>
                                         </div>
                                     </div>
                                 </form>
@@ -141,7 +141,7 @@
             <div><x-input-label for="movement-month" value="Movement month" /><x-text-input id="movement-month" name="month" type="month" :value="$month" class="!py-1.5" /></div>
             <x-button type="submit" class="!px-3 !py-1.5 !text-xs">Filter</x-button>
             <x-button as="a" href="{{ route('admin.inventory.gallon-inventory', ['month' => '']) }}" variant="secondary" class="!px-3 !py-1.5 !text-xs">All Months</x-button>
-            <x-button type="submit" formaction="{{ route('admin.inventory.gallon-inventory.report') }}" variant="secondary" class="!px-3 !py-1.5 !text-xs">Generate Monthly Report</x-button>
+            <x-button type="submit" formaction="{{ route('admin.inventory.gallon-inventory.report') }}" variant="success" class="!px-3 !py-1.5 !text-xs">Generate Monthly Report</x-button>
         </form>
         <p class="mb-2 text-xs text-slate-500">{{ $month ? 'Showing movements for '.$month.'.' : 'Showing movements for all months.' }} Select a month to generate a printable report.</p>
         <div class="overflow-x-auto"><table class="min-w-full text-left text-sm"><thead><tr>@foreach(['Date', 'Gallon', 'Action', 'Movement', 'Quantity', 'Customer', 'Recorded By', 'Notes'] as $label)<th class="px-3 py-2">{{ $label }}</th>@endforeach</tr></thead><tbody>

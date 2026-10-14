@@ -3,10 +3,16 @@
     'title',
     'mode' => 'add',
     'triggerIcon' => 'plus',
-    'triggerColor' => 'text-slate-500 hover:text-primary-600',
+    'triggerColor' => null,
     'triggerText' => null,
     'adjustmentUsesDirection' => false,
 ])
+
+@php
+    $triggerColor ??= $mode === 'add'
+        ? 'rounded-lg bg-emerald-100 p-2 text-emerald-700 hover:bg-emerald-200 dark:bg-emerald-950 dark:text-emerald-300'
+        : 'rounded-lg bg-amber-100 p-2 text-amber-800 hover:bg-amber-200 dark:bg-amber-950 dark:text-amber-300';
+@endphp
 
 <div x-data="{ open: false }" class="inline-flex">
     <button type="button" x-on:click="open = true" class="{{ $triggerColor }}" title="{{ $title }}">
@@ -68,7 +74,7 @@
                         </div>
                     @endif
 
-                    <x-button type="submit" class="w-full">{{ $title }}</x-button>
+                    <x-button type="submit" :variant="$mode === 'add' ? 'success' : 'warning'" class="w-full">{{ $title }}</x-button>
                 </form>
             </div>
         </div>

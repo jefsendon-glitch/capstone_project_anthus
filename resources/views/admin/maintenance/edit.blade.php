@@ -47,7 +47,7 @@
 
             <div class="flex justify-end gap-3">
                 <x-button as="a" href="{{ route('admin.maintenance.index') }}" variant="secondary">Cancel</x-button>
-                <x-button type="submit">Update Log</x-button>
+                <x-button variant="warning" type="submit">Update Log</x-button>
             </div>
         </form>
     </x-card>

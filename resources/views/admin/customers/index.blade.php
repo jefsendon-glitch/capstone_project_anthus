@@ -69,8 +69,8 @@
                                 <td class="px-6 py-4"><x-badge :color="$customer->status === 'active' ? 'success' : 'danger'">{{ ucfirst($customer->status) }}</x-badge></td>
                                 <td class="px-6 py-4 text-right">
                                     <div class="flex items-center justify-end gap-1">
-                                        <a href="{{ route('admin.customers.show', $customer) }}" class="rounded-lg p-2 text-slate-500 transition hover:bg-primary-50 hover:text-primary-600 dark:hover:bg-primary-500/10" title="View customer"><x-icon name="chevron-right" class="size-5" /></a>
-                                        <a href="{{ route('admin.customers.edit', $customer) }}" class="rounded-lg p-2 text-slate-500 transition hover:bg-slate-100 hover:text-primary-600 dark:hover:bg-white/5" title="Edit customer"><x-icon name="pencil" class="size-4" /></a>
+                                        <a href="{{ route('admin.customers.show', $customer) }}" class="inline-flex items-center justify-center rounded-lg bg-sky-100 p-2 text-sky-700 transition hover:bg-sky-200 dark:bg-sky-950 dark:text-sky-300 dark:hover:bg-sky-900" title="View customer"><x-icon name="chevron-right" class="size-5" /></a>
+                                        <a href="{{ route('admin.customers.edit', $customer) }}" class="inline-flex items-center justify-center rounded-lg bg-amber-100 p-2 text-amber-700 transition hover:bg-amber-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-amber-500 dark:bg-amber-950 dark:text-amber-300 dark:hover:bg-amber-900" title="Edit customer"><x-icon name="pencil" class="size-4" /></a>
                                     </div>
                                 </td>
                             </tr>

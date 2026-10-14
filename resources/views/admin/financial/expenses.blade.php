@@ -10,7 +10,7 @@
         <div><x-input-label for="amount" value="Amount (PHP)" /><x-text-input id="amount" name="amount" type="number" step="0.01" min="0.01" max="9999999999.99" :value="old('amount')" required /></div>
         <div><x-input-label for="reference" value="Receipt / Reference (optional)" /><x-text-input id="reference" name="reference" :value="old('reference')" maxlength="100" /></div>
         <div><x-input-label for="notes" value="Notes (optional)" /><x-textarea id="notes" name="notes" maxlength="1000">{{ old('notes') }}</x-textarea></div>
-        <div class="sm:col-span-2"><x-button type="submit">Save Expense</x-button></div>
+        <div class="sm:col-span-2"><x-button variant="success" type="submit">Save Expense</x-button></div>
     </form></x-card>
 </x-collapsible-section>
 <p class="my-3 text-xs text-slate-500">Expenses are recorded here manually. Procurement orders are not automatically counted as expenses.</p>

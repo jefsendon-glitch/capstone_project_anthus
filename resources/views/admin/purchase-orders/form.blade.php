@@ -3,7 +3,7 @@
     <x-button as="a" :href="route('admin.purchase-orders.index')" variant="secondary"><x-icon name="chevron-left" class="size-4" /> Purchase Orders</x-button>
 </div>
 @if($suppliers->isEmpty())
-    <x-card class="mb-5"><p class="mb-3 text-sm">Add an active supplier before creating a purchase order.</p><x-button as="a" :href="route('admin.suppliers.create')">Add Supplier</x-button></x-card>
+    <x-card class="mb-5"><p class="mb-3 text-sm">Add an active supplier before creating a purchase order.</p><x-button variant="success" as="a" :href="route('admin.suppliers.create')">Add Supplier</x-button></x-card>
 @endif
 <form method="POST" action="{{ $editing ? route('admin.purchase-orders.update', $purchaseOrder) : route('admin.purchase-orders.store') }}">
     @csrf
@@ -23,7 +23,7 @@
                 </div>
             </x-card>
             <x-card>
-                <div class="mb-4 flex flex-wrap items-center justify-between gap-3"><div><h2 class="font-heading font-bold text-slate-900 dark:text-white">Items to Purchase</h2><p class="mt-1 text-xs text-slate-500">Add supplies or containers, then enter quantity and unit cost.</p></div><x-button type="button" variant="secondary" x-on:click="addItem(); items[items.length - 1].itemable_type = 'consumable'"><x-icon name="plus" class="size-4" /> Add Item</x-button></div>
+                <div class="mb-4 flex flex-wrap items-center justify-between gap-3"><div><h2 class="font-heading font-bold text-slate-900 dark:text-white">Items to Purchase</h2><p class="mt-1 text-xs text-slate-500">Add supplies or containers, then enter quantity and unit cost.</p></div><x-button type="button" variant="success" x-on:click="addItem(); items[items.length - 1].itemable_type = 'consumable'"><x-icon name="plus" class="size-4" /> Add Item</x-button></div>
                 <div class="space-y-3">
                     <template x-for="(item, index) in items" :key="item._key">
                         <div class="rounded-2xl border border-slate-200 bg-slate-50/70 p-4 dark:border-white/10 dark:bg-white/5">

@@ -5,7 +5,7 @@
             <a href="{{ route('admin.products.index', ['archived' => 1]) }}" class="rounded-lg px-3 py-1.5 text-sm font-medium {{ $archived ? 'bg-white text-slate-900 shadow-sm dark:bg-slate-800 dark:text-white' : 'text-slate-500 dark:text-slate-400' }}">Archived</a>
         </div>
         @can('create', \App\Models\Product::class)
-            <x-button as="a" href="{{ route('admin.products.create') }}">
+            <x-button variant="success" as="a" href="{{ route('admin.products.create') }}">
                 <x-icon name="plus" class="size-4" /> Add Product
             </x-button>
         @endcan
@@ -91,7 +91,7 @@
                                             @can('restore', $product)
                                                 <form method="POST" action="{{ route('admin.products.restore', $product) }}">
                                                     @csrf
-                                                    <button type="submit" class="text-slate-500 hover:text-success-600" title="Restore product">
+                                                    <button type="submit" class="inline-flex items-center justify-center rounded-lg bg-emerald-100 p-2 text-emerald-700 transition hover:bg-emerald-200 dark:bg-emerald-950 dark:text-emerald-300 dark:hover:bg-emerald-900" title="Restore product">
                                                         <x-icon name="check-circle" class="size-4" />
                                                     </button>
                                                 </form>
@@ -100,14 +100,14 @@
                                                 <form method="POST" action="{{ route('admin.products.force-delete', $product) }}" onsubmit="return confirm('Permanently delete this product AND all its linked sales, inventory, production, purchase and delivery records? Related unpaid customer balances will be reduced. This cannot be undone.')">
                                                     @csrf
                                                     @method('delete')
-                                                    <button type="submit" class="text-slate-500 hover:text-danger-600" title="Permanently delete product">
+                                                    <button type="submit" class="inline-flex items-center justify-center rounded-lg bg-red-100 p-2 text-red-700 transition hover:bg-red-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-red-500 dark:bg-red-950 dark:text-red-300 dark:hover:bg-red-900" title="Permanently delete product">
                                                         <x-icon name="trash" class="size-4" />
                                                     </button>
                                                 </form>
                                             @endcan
                                         @else
                                             @can('update', $product)
-                                                <a href="{{ route('admin.products.edit', $product) }}" class="text-slate-500 hover:text-primary-600" title="Edit">
+                                                <a href="{{ route('admin.products.edit', $product) }}" class="inline-flex items-center justify-center rounded-lg bg-amber-100 p-2 text-amber-700 transition hover:bg-amber-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-amber-500 dark:bg-amber-950 dark:text-amber-300 dark:hover:bg-amber-900" title="Edit">
                                                     <x-icon name="pencil" class="size-4" />
                                                 </a>
                                             @endcan
@@ -115,7 +115,7 @@
                                                 <form method="POST" action="{{ route('admin.products.destroy', $product) }}" onsubmit="return confirm('Archive this product?')">
                                                     @csrf
                                                     @method('delete')
-                                                    <button type="submit" class="text-slate-500 hover:text-danger-600" title="Archive">
+                                                    <button type="submit" class="inline-flex items-center justify-center rounded-lg bg-red-100 p-2 text-red-700 transition hover:bg-red-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-red-500 dark:bg-red-950 dark:text-red-300 dark:hover:bg-red-900" title="Archive">
                                                         <x-icon name="archive" class="size-4" />
                                                     </button>
                                                 </form>

@@ -26,7 +26,7 @@
                             @endforeach
                         </tbody>
                     </table></div>
-                    <x-button type="submit">Record Delivery</x-button>
+                    <x-button variant="success" type="submit">Record Delivery</x-button>
                 </form>
             </x-card>
         @empty
