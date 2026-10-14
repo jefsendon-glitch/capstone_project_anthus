@@ -239,6 +239,10 @@
                     </div>
                 @endif
 
+                @if(auth()->user()->isAdmin() && request()->routeIs('admin.products*', 'admin.inventory.*', 'admin.water-production*', 'admin.stock-movements*'))
+                    @include('admin.inventory.nav')
+                @endif
+
                 {{ $slot }}
             </main>
         </div>
