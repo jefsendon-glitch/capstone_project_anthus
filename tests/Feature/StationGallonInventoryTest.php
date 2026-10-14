@@ -42,7 +42,15 @@ test('new inventory independently tracks stock, customer loans and returns', fun
     $this->assertDatabaseCount('water_production_logs', 1);
     $this->get(route('admin.water-production.index'))->assertOk()->assertSee('Gallon Tracking');
     $this->assertDatabaseCount('gallon_stocks', 0);
-    $this->get(route('admin.inventory.gallon-inventory'))->assertOk()->assertSee('Station-Owned Gallon Containers');
+    $this->get(route('admin.inventory.gallon-inventory'))->assertOk()
+        ->assertSee('Station-Owned Gallon Containers')
+        ->assertSee('Register Gallon Type')->assertSee('Record Gallon Movement')
+        ->assertSee('Container Inventory')->assertSee('Outstanding Customer Gallons')
+        ->assertSee('Gallon Movement History')->assertSee('Generate Monthly Report')
+        ->assertSee(route('admin.inventory.gallon-inventory.store'), false)
+        ->assertSee(route('admin.inventory.gallon-inventory.move'), false)
+        ->assertSee(route('admin.inventory.gallon-inventory.update', $id), false)
+        ->assertSee($this->customer->name)->assertSee('Lost by customer');
     $this->post(route('admin.inventory.gallon-inventory.move'), [
         'gallon_id' => $id, 'customer_id' => $this->customer->id,
         'action' => 'return', 'quantity' => 2,
