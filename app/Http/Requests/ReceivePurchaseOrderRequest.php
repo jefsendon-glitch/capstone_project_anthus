@@ -21,7 +21,7 @@ class ReceivePurchaseOrderRequest extends FormRequest
             'receipt_token' => ['nullable', 'uuid'],
             'items.*' => ['required', 'array'],
             'items.*.purchase_order_item_id' => ['required', 'integer', 'distinct', Rule::exists('purchase_order_items', 'id')->where('purchase_order_id', $this->route('purchase_order')->id)],
-            'items.*.quantity_received' => ['required', 'numeric', 'decimal:0,2', 'min:0', 'max:9999999999.99'],
+            'items.*.quantity_received' => ['required', 'integer', 'min:0', 'max:9999999999'],
         ];
     }
 

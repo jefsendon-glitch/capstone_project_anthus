@@ -15,7 +15,7 @@ class StoreConsumableRestockRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'quantity_added' => ['required', 'numeric', 'min:0.01'],
+            'quantity_added' => ['required', 'integer', 'min:1'],
             'cost' => ['nullable', 'numeric', 'min:0'],
             'notes' => ['nullable', 'string', 'max:1000'],
         ];

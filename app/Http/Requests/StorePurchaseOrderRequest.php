@@ -28,7 +28,7 @@ class StorePurchaseOrderRequest extends FormRequest
             'items.*' => ['required', 'array'],
             'items.*.itemable_type' => ['required', Rule::in(['product', 'consumable'])],
             'items.*.itemable_id' => ['required', 'integer'],
-            'items.*.quantity_ordered' => ['required', 'numeric', 'decimal:0,2', 'min:0.01', 'max:9999999999.99'],
+            'items.*.quantity_ordered' => ['required', 'integer', 'min:1', 'max:9999999999'],
             'items.*.unit_cost' => ['required', 'numeric', 'decimal:0,2', 'min:0', 'max:99999999.99'],
         ];
     }

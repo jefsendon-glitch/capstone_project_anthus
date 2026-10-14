@@ -14,7 +14,7 @@ class AddProductStockRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'quantity' => ['required', 'numeric', 'min:0.01'],
+            'quantity' => ['required', 'integer', 'min:1'],
         ];
     }
 }

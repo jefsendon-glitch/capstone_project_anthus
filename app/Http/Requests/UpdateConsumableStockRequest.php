@@ -14,7 +14,7 @@ class UpdateConsumableStockRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'quantity' => ['required', 'numeric', 'min:0'],
+            'quantity' => ['required', 'integer', 'min:0'],
         ];
     }
 }

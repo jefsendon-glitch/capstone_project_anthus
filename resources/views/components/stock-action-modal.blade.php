@@ -30,12 +30,12 @@
                     @if($mode === 'add')
                         <div>
                             <x-input-label value="Quantity to add" />
-                            <x-text-input type="number" step="0.01" min="0.01" name="quantity" required />
+                            <x-text-input type="number" step="1" min="1" name="quantity" required />
                         </div>
                     @elseif($mode === 'update')
                         <div>
                             <x-input-label value="New quantity (absolute)" />
-                            <x-text-input type="number" step="0.01" min="0" name="quantity" required />
+                            <x-text-input type="number" step="1" min="0" name="quantity" required />
                         </div>
                     @elseif($mode === 'adjust')
                         @if($adjustmentUsesDirection)
@@ -59,7 +59,7 @@
                         @else
                             <div>
                                 <x-input-label value="Adjustment (use - to subtract)" />
-                                <x-text-input type="number" step="0.01" name="delta" required />
+                                <x-text-input type="number" step="1" name="delta" required />
                             </div>
                         @endif
                         <div>

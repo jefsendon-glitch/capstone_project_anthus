@@ -75,7 +75,7 @@ $canReceive = in_array($purchaseOrder->status, ['ordered', 'partially_received']
                                         <input type="hidden" name="items[{{ $loop->index }}][purchase_order_item_id]" value="{{ $item->id }}">
                                         <span class="w-40 shrink-0 truncate text-sm text-slate-700 dark:text-slate-300">{{ $item->itemable?->name }}</span>
                                         <x-text-input
-                                            type="number" :step="$item->itemable_type === \App\Models\Product::class ? 1 : 0.01" min="0" :max="$item->remaining_quantity"
+                                            type="number" step="1" min="0" :max="$item->remaining_quantity"
                                             name="items[{{ $loop->index }}][quantity_received]"
                                             placeholder="Qty received"
                                             :value="old('items.'.$loop->index.'.quantity_received', 0)"

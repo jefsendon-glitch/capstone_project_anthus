@@ -24,7 +24,7 @@
                     @endif
                     <div>
                         <x-input-label :value="$label" />
-                        <x-text-input type="number" step="0.01" :min="$adjustmentMode ? 0.01 : 0" name="value" :value="$adjustmentMode ? null : $currentValue" required autofocus />
+                        <x-text-input type="number" :step="$field === 'unit_cost' ? 0.01 : 1" :min="$adjustmentMode ? 1 : 0" name="value" :value="$adjustmentMode ? null : $currentValue" required autofocus />
                     </div>
                     @if($requiresReason)
                         <div>

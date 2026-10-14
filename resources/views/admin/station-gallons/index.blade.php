@@ -40,7 +40,7 @@
                 @csrf
                 <div><x-input-label for="gallon-name" value="Gallon name / type" /><x-text-input id="gallon-name" name="name" placeholder="Round gallon" maxlength="255" required /></div>
                 <div><x-input-label for="gallon-size" value="Size" /><x-text-input id="gallon-size" name="size" placeholder="5 gallons" maxlength="100" required /></div>
-                <div><x-input-label for="opening-quantity" value="Opening empty gallons" /><x-text-input id="opening-quantity" name="quantity" type="number" min="1" max="1000000" required /></div>
+                <div><x-input-label for="opening-quantity" value="Opening empty gallons" /><x-text-input id="opening-quantity" name="quantity" type="number" step="1" min="1" max="1000000" required /></div>
                 <x-button type="submit">Register Gallons</x-button>
             </form>
             </details>
@@ -59,7 +59,7 @@
                         <x-input-label value="Customer" /><x-select name="customer_id" x-bind:required="action === 'release' || action === 'return' || ((action === 'damage' || action === 'missing') && source === 'borrowed')"><option value="">Select customer</option>@foreach($customers as $customer)<option value="{{ $customer->id }}">{{ $customer->name }}</option>@endforeach</x-select>
                     </div>
                     <div x-show="action === 'return'" x-cloak><x-input-label value="Returned condition" /><x-select name="return_status"><option value="empty">Usable / Empty</option><option value="damaged">Damaged</option></x-select></div>
-                    <div><x-input-label value="Quantity" /><x-text-input name="quantity" type="number" min="1" max="1000000" required /></div>
+                    <div><x-input-label value="Quantity" /><x-text-input name="quantity" type="number" step="1" min="1" max="1000000" required /></div>
                     <div><x-input-label value="Notes / reason" /><x-textarea name="notes" rows="2" maxlength="1000" x-bind:required="action === 'damage' || action === 'missing'"></x-textarea></div>
                     <x-button type="submit">Save Movement</x-button>
                 </form>
@@ -105,7 +105,7 @@
                                     </div>
                                     <div>
                                         <x-input-label for="adjustment-quantity-{{ $gallon->id }}" value="Quantity" />
-                                        <x-text-input id="adjustment-quantity-{{ $gallon->id }}" name="adjustment_quantity" type="number" min="1" max="1000000" :value="(string) old('edit_gallon_id') === (string) $gallon->id ? old('adjustment_quantity') : ''" />
+                                        <x-text-input id="adjustment-quantity-{{ $gallon->id }}" name="adjustment_quantity" type="number" step="1" min="1" max="1000000" :value="(string) old('edit_gallon_id') === (string) $gallon->id ? old('adjustment_quantity') : ''" />
                                     </div>
                                     <div class="sm:col-span-2">
                                         <x-input-label for="adjustment-notes-{{ $gallon->id }}" value="Adjustment notes / reason" />

@@ -39,7 +39,7 @@ class SupplyUsageController extends Controller
             'notes' => ['nullable', 'string', 'max:1000'],
             'items' => ['required', 'array', 'min:1', 'max:100'],
             'items.*.consumable_id' => ['required', 'integer', 'distinct', Rule::exists('consumables', 'id')->whereNull('deleted_at')],
-            'items.*.quantity' => ['required', 'numeric', 'decimal:0,2', 'min:0.01', 'max:99999999.99'],
+            'items.*.quantity' => ['required', 'integer', 'min:1', 'max:99999999'],
         ]);
         $data['operation'] = $data['activity'] === 'Other' ? $data['other_operation'] : $data['activity'];
 

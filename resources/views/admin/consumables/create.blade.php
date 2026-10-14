@@ -30,14 +30,14 @@
             <div class="grid grid-cols-3 gap-5">
                 <div>
                     <x-input-label for="quantity" value="Quantity" />
-                    <x-text-input id="quantity" type="number" step="0.01" min="0" name="quantity" :value="old('quantity', 0)" required />
+                    <x-text-input id="quantity" type="number" step="1" min="0" name="quantity" :value="old('quantity', 0)" required />
                     <p class="mt-1 text-xs text-slate-500">Opening balance. It is recorded in the stock movement history when saved.</p>
                     <x-input-error :messages="$errors->get('quantity')" />
                 </div>
 
                 <div>
                     <x-input-label for="low_stock_threshold" value="Low stock threshold" />
-                    <x-text-input id="low_stock_threshold" type="number" step="0.01" min="0" name="low_stock_threshold" :value="old('low_stock_threshold', 5)" required />
+                    <x-text-input id="low_stock_threshold" type="number" step="1" min="0" name="low_stock_threshold" :value="old('low_stock_threshold', 5)" required />
                     <x-input-error :messages="$errors->get('low_stock_threshold')" />
                 </div>
 

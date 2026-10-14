@@ -16,7 +16,7 @@ class AdjustConsumableStockRequest extends FormRequest
     {
         return [
             'adjustment_type' => ['required', Rule::in(['increase', 'decrease'])],
-            'quantity' => ['required', 'numeric', 'gt:0'],
+            'quantity' => ['required', 'integer', 'min:1'],
             'notes' => ['required', 'string', 'max:1000'],
         ];
     }

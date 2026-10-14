@@ -46,14 +46,14 @@
             <div class="grid grid-cols-3 gap-5">
                 <div>
                     <x-input-label for="quantity" value="Quantity" />
-                    <x-text-input id="quantity" type="number" step="0.01" min="0" name="quantity" :value="old('quantity', $consumable->quantity)" required />
+                    <x-text-input id="quantity" type="number" step="1" min="0" name="quantity" :value="old('quantity', $consumable->quantity)" required />
                     <p class="mt-1 text-xs text-slate-500">Any quantity change is recorded as an adjustment in the stock movement history.</p>
                     <x-input-error :messages="$errors->get('quantity')" />
                 </div>
 
                 <div>
                     <x-input-label for="low_stock_threshold" value="Low stock threshold" />
-                    <x-text-input id="low_stock_threshold" type="number" step="0.01" min="0" name="low_stock_threshold" :value="old('low_stock_threshold', $consumable->low_stock_threshold)" required />
+                    <x-text-input id="low_stock_threshold" type="number" step="1" min="0" name="low_stock_threshold" :value="old('low_stock_threshold', $consumable->low_stock_threshold)" required />
                     <x-input-error :messages="$errors->get('low_stock_threshold')" />
                 </div>
 

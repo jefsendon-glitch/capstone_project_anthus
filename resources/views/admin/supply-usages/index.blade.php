@@ -35,7 +35,7 @@
                                 @foreach($supplies as $supply)<option value="{{ $supply->id }}">{{ $supply->name }} — {{ $supply->quantity }} {{ $supply->unit }} available</option>@endforeach
                             </x-select>
                         </div>
-                        <div><label class="text-sm font-medium">Quantity Used</label><x-text-input type="number" x-bind:name="'items[' + index + '][quantity]'" x-model="item.quantity" min="0.01" max="99999999.99" step="0.01" required /></div>
+                        <div><label class="text-sm font-medium">Quantity Used</label><x-text-input type="number" x-bind:name="'items[' + index + '][quantity]'" x-model="item.quantity" min="1" max="99999999" step="1" required /></div>
                         <x-button type="button" variant="secondary" x-on:click="items.splice(index, 1)" x-bind:disabled="items.length === 1">Remove</x-button>
                     </div>
                 </template>

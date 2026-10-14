@@ -63,6 +63,16 @@ test('staff cannot adjust consumable stock but admin can', function () {
     ]);
 
     expect((float) $consumable->fresh()->quantity)->toBe(15.0);
+    foreach (['increase', 'decrease'] as $direction) {
+        $this->post(route('admin.consumables.quick-update', $consumable), [
+            'field' => 'quantity', 'adjustment_type' => $direction,
+            'value' => 1.5, 'notes' => 'Fractional count',
+        ])->assertSessionHasErrors('value');
+        $this->post(route('admin.consumables.stock.adjust', $consumable), [
+            'adjustment_type' => $direction, 'quantity' => 1.5, 'notes' => 'Fractional count',
+        ])->assertSessionHasErrors('quantity');
+    }
+    expect((float) $consumable->fresh()->quantity)->toBe(15.0);
 });
 
 test('admin can permanently delete a consumable', function () {
