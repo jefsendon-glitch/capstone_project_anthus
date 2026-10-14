@@ -14,41 +14,41 @@ $procurementActive = request()->routeIs('admin.suppliers*') || request()->routeI
 
 @if(auth()->user()->isAdmin())
     <a href="{{ route('admin.dashboard') }}" class="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium {{ $navLink('admin.dashboard') }}">
-        <x-icon name="home" class="size-5 shrink-0" />
+        <x-admin-nav-icon name="home" sidebar />
         <span x-bind:class="$store.sidebar.collapsed && 'lg:hidden'">Dashboard</span>
     </a>
     <a href="{{ route('pos.index') }}" class="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium {{ $navLink('pos') }}">
-        <x-icon name="cart" class="size-5 shrink-0" />
+        <x-admin-nav-icon name="cart" sidebar />
         <span x-bind:class="$store.sidebar.collapsed && 'lg:hidden'">Point of Sale</span>
     </a>
 
     <a href="{{ route('admin.products.index') }}" class="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium {{ $inventoryActive ? 'sidebar-nav-link is-active bg-gradient-to-r from-primary-500 to-primary-700 text-white' : 'sidebar-nav-link text-secondary-100/80 hover:bg-white/10 hover:text-white' }}">
-        <x-icon name="archive" class="size-5 shrink-0" />
+        <x-admin-nav-icon name="archive" sidebar />
         <span x-bind:class="$store.sidebar.collapsed && 'lg:hidden'">Inventory Management</span>
     </a>
     <a href="{{ route('admin.maintenance.index') }}" class="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium {{ $navLink('admin.maintenance') }}">
-        <x-icon name="cog" class="size-5 shrink-0" />
+        <x-admin-nav-icon name="cog" sidebar />
         <span x-bind:class="$store.sidebar.collapsed && 'lg:hidden'">Maintenance</span>
     </a>
 
     <a href="{{ route('admin.suppliers.index') }}" class="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium {{ $procurementActive ? 'sidebar-nav-link is-active bg-gradient-to-r from-primary-500 to-primary-700 text-white' : 'sidebar-nav-link text-secondary-100/80 hover:bg-white/10 hover:text-white' }}">
-        <x-icon name="building" class="size-5 shrink-0" />
+        <x-admin-nav-icon name="building" sidebar />
         <span x-bind:class="$store.sidebar.collapsed && 'lg:hidden'">Procurement</span>
     </a>
     <a href="{{ route('admin.customers.index') }}" class="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium {{ $navLink('admin.customers') }}">
-        <x-icon name="users" class="size-5 shrink-0" />
+        <x-admin-nav-icon name="users" sidebar />
         <span x-bind:class="$store.sidebar.collapsed && 'lg:hidden'">Customers</span>
     </a>
     <a href="{{ route('deliveries.index') }}" class="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium {{ $navLink('deliveries') }}">
-        <x-icon name="truck" class="size-5 shrink-0" />
+        <x-admin-nav-icon name="truck" sidebar />
         <span x-bind:class="$store.sidebar.collapsed && 'lg:hidden'">Deliveries</span>
     </a>
     <a href="{{ route('admin.staff.index') }}" class="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium {{ $navLink('admin.staff') }}">
-        <x-icon name="user-circle" class="size-5 shrink-0" />
+        <x-admin-nav-icon name="user-circle" sidebar />
         <span x-bind:class="$store.sidebar.collapsed && 'lg:hidden'">Staff</span>
     </a>
     <a href="{{ route('admin.reports.index') }}" class="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium {{ $navLink('admin.reports') }}">
-        <x-icon name="chart" class="size-5 shrink-0" />
+        <x-admin-nav-icon name="chart" sidebar />
         <span x-bind:class="$store.sidebar.collapsed && 'lg:hidden'">Financial Reports</span>
     </a>
 @elseif(auth()->user()->isStaff())
