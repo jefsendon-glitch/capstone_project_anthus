@@ -25,9 +25,15 @@ class POSController extends Controller
         $request->validate([
             'search' => ['nullable', 'string', 'max:100'],
             'type' => ['nullable', 'in:walk-in,delivery'],
+            'scope' => ['nullable', 'in:mine,all'],
+            'from' => ['nullable', 'date_format:Y-m-d'],
+            'to' => ['nullable', 'date_format:Y-m-d', ...($request->filled('from') ? ['after_or_equal:from'] : [])],
         ]);
         $search = trim((string) $request->input('search', ''));
         $transactions = SalesTransaction::with(['processedBy', 'customer'])
+            ->when($request->input('scope') === 'mine', fn ($query) => $query->where('processed_by', $request->user()->id))
+            ->when($request->filled('from'), fn ($query) => $query->whereDate('created_at', '>=', $request->input('from')))
+            ->when($request->filled('to'), fn ($query) => $query->whereDate('created_at', '<=', $request->input('to')))
             ->when($search !== '', function ($query) use ($search) {
                 $query->where(function ($query) use ($search) {
                     $query->where('transaction_code', 'like', '%'.$search.'%')

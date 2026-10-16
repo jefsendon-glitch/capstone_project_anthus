@@ -1,4 +1,6 @@
 <x-layouts.app title="Point of Sale" :heading="'Point of Sale'">
+    <x-portal-nav />
+    @if($errors->any())<div role="alert" class="mb-3 rounded-lg bg-red-50 p-3 text-sm text-red-700 dark:bg-red-500/10 dark:text-red-300">@foreach($errors->all() as $error)<p>{{ $error }}</p>@endforeach</div>@endif
     @push('admin-reset-actions')
     @if(auth()->user()->isAdmin())
         <x-reset-dot :action="route('pos.reset')" title="Reset Transactions" description="Deletes cash and fully paid credit sales across all dates and filters. Unpaid credit records, balances, payments, stock, delivery orders and saved reports remain. Deleted sales disappear from live sales totals. This cannot be undone." />
@@ -15,6 +17,9 @@
                 <option value="walk-in" @selected(request('type') === 'walk-in')>Walk-in</option>
                 <option value="delivery" @selected(request('type') === 'delivery')>Delivery</option>
             </x-select>
+            <x-select name="scope" aria-label="Recorded by" class="!py-2 sm:!w-auto"><option value="all">All Sales</option><option value="mine" @selected(request('scope') === 'mine')>My Sales</option></x-select>
+            <label class="text-xs text-slate-500">From<x-text-input type="date" name="from" :value="request('from')" class="!py-2" /></label>
+            <label class="text-xs text-slate-500">To<x-text-input type="date" name="to" :value="request('to')" class="!py-2" /></label>
             <x-button type="submit" variant="secondary" class="!py-2">Search</x-button>
             <x-button as="a" href="{{ route('pos.index') }}" variant="secondary" class="!py-2">Reset</x-button>
         </form>
@@ -39,7 +44,7 @@
                             <th class="px-6 py-3">Customer</th>
                             <th class="px-6 py-3">Product</th>
                             <th class="px-6 py-3">Amount</th>
-                            <th class="px-6 py-3">Payment</th>
+                            <th class="px-6 py-3">Payment</th><th class="px-6 py-3">Recorded By</th>
                             <th class="px-6 py-3"></th>
                         </tr>
                     </thead>
@@ -62,6 +67,7 @@
                                         {{ $transaction->payment_method === 'loan' ? 'Credit' : 'Cash' }}
                                     </x-badge>
                                 </td>
+                                <td class="px-6 py-3 text-sm">{{ $transaction->processedBy?->name ?? 'Unavailable' }}</td>
                                 <td class="px-6 py-3 text-right">
                                     <a href="{{ route('pos.receipt', ['codes' => $transaction->transaction_code]) }}" class="inline-flex items-center gap-1 text-sm font-medium text-primary-600 hover:text-primary-700">
                                         <x-icon name="tag" class="size-4" /> Receipt

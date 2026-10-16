@@ -1,4 +1,5 @@
 <x-layouts.app title="Delivery Orders" :heading="'Delivery Orders'" :subheading="'Manage customer orders from confirmation through fulfillment'">
+    <x-portal-nav />
     @if($errors->any())
         <div role="alert" class="mb-3 rounded-xl bg-red-50 p-3 text-sm text-red-700">
             @foreach($errors->all() as $error)<p>{{ $error }}</p>@endforeach
@@ -23,7 +24,7 @@
     </div>
 
     <x-card class="mt-6" padding="p-4">
-        <form method="GET" class="grid gap-3 md:grid-cols-[minmax(0,1fr)_12rem_auto]">
+        <form method="GET" class="grid gap-3 md:grid-cols-2 xl:grid-cols-[minmax(0,1fr)_11rem_11rem_auto]">
             <div>
                 <x-input-label for="delivery-search" value="Search Delivery Orders" />
                 <div class="relative"><x-icon name="search" class="pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-slate-400" /><x-text-input id="delivery-search" type="search" name="search" value="{{ request('search') }}" placeholder="Search order ID, customer, or product..." class="pl-10" /></div>
@@ -32,7 +33,8 @@
                 <x-input-label for="delivery-status" value="Status" />
                 <x-select id="delivery-status" name="status"><option value="">All Statuses</option>@foreach(['pending' => 'Pending', 'confirmed' => 'Confirmed', 'out_for_delivery' => 'Out for Delivery', 'delivered' => 'Delivered', 'cancelled' => 'Cancelled'] as $status => $label)<option value="{{ $status }}" @selected(request('status') === $status)>{{ $label }}</option>@endforeach</x-select>
             </div>
-            <div class="flex items-end gap-2"><x-button type="submit"><x-icon name="search" class="size-4" /> Filter</x-button></div>
+            <div><x-input-label for="delivery-schedule" value="Schedule" /><x-select id="delivery-schedule" name="schedule"><option value="">All Dates</option>@foreach(['overdue' => 'Overdue', 'today' => 'Today', 'upcoming' => 'Upcoming'] as $value => $label)<option value="{{ $value }}" @selected(request('schedule') === $value)>{{ $label }}</option>@endforeach</x-select></div>
+            <div class="flex items-end gap-2"><x-button as="a" :href="route('deliveries.index')" variant="secondary">Clear</x-button><x-button type="submit"><x-icon name="search" class="size-4" /> Filter</x-button></div>
         </form>
     </x-card>
 
@@ -50,7 +52,7 @@
                                 <td class="whitespace-nowrap px-6 py-4 text-right font-mono text-sm tabular-nums text-slate-700 dark:text-slate-300">₱{{ number_format($order->total_amount, 2) }}</td>
                                 <td class="px-6 py-4"><p class="text-sm font-semibold text-slate-900 dark:text-white">{{ $order->customer_name }}</p><p class="max-w-56 truncate text-xs text-slate-500 dark:text-slate-400">{{ $order->customer_address }}</p></td>
                                 <td class="px-6 py-4 text-sm text-slate-700 dark:text-slate-300">{{ $order->items_summary }}</td>
-                                <td class="px-6 py-4 text-sm text-slate-600 dark:text-slate-300">{{ $order->preferred_delivery_date?->format('M d, Y') ?? 'Not scheduled' }}</td>
+                                <td class="px-6 py-4 text-sm text-slate-600 dark:text-slate-300">{{ $order->preferred_delivery_date?->format('M d, Y') ?? 'Not scheduled' }}@if(in_array($order->status, ['pending', 'confirmed', 'out_for_delivery']) && $order->preferred_delivery_date?->lt(today()))<div class="mt-1"><x-badge color="danger">Overdue</x-badge></div>@endif</td>
                                 <td class="px-6 py-4"><x-delivery-status-badge :status="$order->status" /></td>
                                 <td class="px-6 py-4 text-right"><a href="{{ route('deliveries.show', $order) }}" class="inline-flex rounded-lg p-2 text-slate-500 transition hover:bg-primary-50 hover:text-primary-600 dark:hover:bg-primary-500/10" aria-label="Open delivery order"><x-icon name="chevron-right" class="size-5" /></a></td>
                             </tr>

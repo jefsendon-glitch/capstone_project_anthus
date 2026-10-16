@@ -64,9 +64,12 @@ $procurementActive = request()->routeIs('admin.suppliers*') || request()->routeI
         <x-icon name="truck" class="size-5 shrink-0" />
         <span x-bind:class="$store.sidebar.collapsed && 'lg:hidden'">Deliveries</span>
     </a>
+    <a href="{{ route('staff.gallons.index') }}" class="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium {{ $navLink('staff.gallons') }}">
+        <x-icon name="archive" class="size-5 shrink-0" /><span x-bind:class="$store.sidebar.collapsed && 'lg:hidden'">Gallon Tracking</span>
+    </a>
     <a href="{{ route('payments.index') }}" class="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium {{ $navLink('payments') }}">
         <x-icon name="credit-card" class="size-5 shrink-0" />
-        <span x-bind:class="$store.sidebar.collapsed && 'lg:hidden'">Payments</span>
+        <span x-bind:class="$store.sidebar.collapsed && 'lg:hidden'">Collections</span>
     </a>
     <div x-data="{ open: {{ $inventoryActive ? 'true' : 'false' }} }">
         <button type="button" x-on:click="open = !open; $nextTick(() => $dispatch('sidebar-navigation-resize'))" class="sidebar-nav-link flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-sm font-medium {{ $inventoryActive ? 'bg-white/10 text-white' : 'text-secondary-100/80 hover:bg-white/10 hover:text-white' }}">

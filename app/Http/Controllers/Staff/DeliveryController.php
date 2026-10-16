@@ -23,6 +23,12 @@ class DeliveryController extends Controller
     {
         $this->authorize('manage', DeliveryOrder::class);
 
+        $request->validate([
+            'search' => ['nullable', 'string', 'max:100'],
+            'status' => ['nullable', 'in:pending,confirmed,out_for_delivery,delivered,cancelled'],
+            'schedule' => ['nullable', 'in:overdue,today,upcoming'],
+        ]);
+
         $ordersQuery = DeliveryOrder::with(['customer', 'items']);
 
         $deliveryStats = [
@@ -33,6 +39,11 @@ class DeliveryController extends Controller
         ];
 
         $orders = $ordersQuery
+            ->when($request->filled('schedule'), function ($query) use ($request) {
+                $operator = match ($request->input('schedule')) { 'overdue' => '<', 'today' => '=', default => '>' };
+                $query->whereIn('status', ['pending', 'confirmed', 'out_for_delivery'])
+                    ->whereDate('preferred_delivery_date', $operator, today());
+            })
             ->when($request->filled('status'), fn ($query) => $query->where('status', $request->string('status')))
             ->when($request->filled('search'), function ($query) use ($request) {
                 $search = $request->string('search')->toString();

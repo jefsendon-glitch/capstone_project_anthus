@@ -6,4 +6,6 @@ use Illuminate\Support\Facades\Route;
 Route::middleware(['auth', 'role:staff'])->prefix('staff')->name('staff.')->group(function () {
     Route::get('/dashboard', DashboardController::class)->name('dashboard');
     Route::get('/inventory', \App\Http\Controllers\Staff\InventoryController::class)->name('inventory');
+    Route::get('/gallons', [\App\Http\Controllers\Admin\StationGallonController::class, 'index'])->name('gallons.index');
+    Route::post('/gallons/movements', [\App\Http\Controllers\Admin\StationGallonController::class, 'move'])->name('gallons.move');
 });

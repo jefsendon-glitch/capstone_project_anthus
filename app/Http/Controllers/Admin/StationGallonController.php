@@ -177,6 +177,10 @@ class StationGallonController extends Controller
 
     public function move(Request $request)
     {
+        // Staff may process customer handovers only; inventory controls remain with Admin.
+        abort_unless($request->user()->isAdmin()
+            || ($request->user()->isStaff() && in_array($request->input('action'), ['release', 'return'], true)), 403);
+
         $data = $request->validate([
             'gallon_id' => ['required', 'integer', 'exists:station_gallons,id'],
             'action' => ['required', Rule::in(['add', 'fill', 'release', 'return', 'damage', 'missing'])],
