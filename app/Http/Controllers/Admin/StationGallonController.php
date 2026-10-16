@@ -16,17 +16,32 @@ class StationGallonController extends Controller
 {
     public function index(Request $request)
     {
-        $request->validate(['month' => ['nullable', 'date_format:Y-m']]);
+        $request->validate([
+            'month' => ['nullable', 'date_format:Y-m'],
+            'loan_search' => ['nullable', 'string', 'max:100'],
+            'issue_search' => ['nullable', 'string', 'max:100'],
+            'movement_search' => ['nullable', 'string', 'max:100'],
+        ]);
         $month = $request->input('month') ?: '';
         $gallons = DB::table('station_gallons')->orderBy('name')->get();
         $customers = User::role('customer')->orderBy('name')->get(['id', 'name']);
-        $movements = $this->movementQuery($month)->orderByDesc('m.created_at')->orderByDesc('m.id')
-            ->paginate(20)->withQueryString();
+        $movements = $this->searchRecords($this->movementQuery($month), $request->input('movement_search'),
+            ['c.name', 'g.name', 'g.type', 'g.size', 'm.action', 'm.from_status', 'm.to_status', 'm.notes', 'u.name'])
+            ->orderByDesc('m.created_at')->orderByDesc('m.id')
+            ->paginate(5)->withQueryString()->fragment('movement-history');
         $loans = DB::table('station_gallon_loans as l')
             ->join('station_gallons as g', 'g.id', '=', 'l.station_gallon_id')
             ->join('users as u', 'u.id', '=', 'l.customer_id')
             ->where('l.quantity', '>', 0)
             ->select('l.station_gallon_id', 'l.customer_id', 'g.name', 'g.type', 'g.size', 'u.name as customer_name', 'l.quantity')->get();
+        // Keep the complete balances available to the return form, regardless of table filters.
+        $loanRecords = $this->searchRecords(DB::table('station_gallon_loans as l')
+            ->join('station_gallons as g', 'g.id', '=', 'l.station_gallon_id')
+            ->join('users as u', 'u.id', '=', 'l.customer_id')->where('l.quantity', '>', 0),
+            $request->input('loan_search'), ['u.name', 'g.name', 'g.type', 'g.size'])
+            ->select('g.name', 'g.type', 'g.size', 'u.name as customer_name', 'l.quantity')
+            ->orderBy('u.name')->orderBy('l.id')->paginate(5, ['*'], 'loans_page')
+            ->withQueryString()->fragment('customer-loans');
 
         $customerIssues = $this->movementQuery('')
             ->whereNotNull('m.customer_id')
@@ -34,9 +49,27 @@ class StationGallonController extends Controller
                 $query->where('m.action', 'missing')->orWhere(function (Builder $query) {
                     $query->where('m.action', 'return')->where('m.to_status', 'damaged');
                 });
-            })->orderByDesc('m.id')->get();
+            });
+        $customerIssues = $this->searchRecords($customerIssues, $request->input('issue_search'),
+            ['c.name', 'g.name', 'g.type', 'g.size', 'm.action', 'm.to_status', 'm.notes'])
+            ->orderByDesc('m.id')->paginate(5, ['*'], 'issues_page')
+            ->withQueryString()->fragment('customer-issues');
 
-        return view('admin.station-gallons.index', compact('gallons', 'customers', 'movements', 'loans', 'month', 'customerIssues'));
+        return view('admin.station-gallons.index', compact('gallons', 'customers', 'movements', 'loans', 'loanRecords', 'month', 'customerIssues'));
+    }
+
+    private function searchRecords(Builder $query, ?string $search, array $columns): Builder
+    {
+        $search = trim($search ?? '');
+        if ($search !== '') {
+            $query->where(function (Builder $query) use ($search, $columns) {
+                foreach ($columns as $column) {
+                    $query->orWhere($column, 'like', '%'.$search.'%');
+                }
+            });
+        }
+
+        return $query;
     }
 
     public function report(Request $request)

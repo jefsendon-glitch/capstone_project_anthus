@@ -317,3 +317,43 @@ test('zero returned gallons closes only the selected customer loan as missing', 
     $this->assertDatabaseHas('station_gallon_movements', ['station_gallon_id' => $id,
         'customer_id' => $this->customer->id, 'action' => 'missing', 'quantity' => 5]);
 });
+
+
+test('record sections paginate independently and search beyond the first five records', function () {
+    $this->actingAs($this->admin)->post(route('admin.inventory.gallon-inventory.store'), [
+        'name' => 'Station containers', 'type' => 'Round Gallon', 'size' => '5 gallons', 'quantity' => 30,
+    ])->assertSessionHasNoErrors();
+    $id = DB::table('station_gallons')->value('id');
+    for ($i = 1; $i <= 7; $i++) {
+        $customer = User::factory()->create(['name' => 'Borrower '.$i]);
+        $customer->assignRole('customer');
+        DB::table('station_gallon_loans')->insert(['station_gallon_id' => $id, 'customer_id' => $customer->id, 'quantity' => 1]);
+        foreach (['missing', 'damaged'] as $status) {
+            DB::table('station_gallon_movements')->insert([
+                'station_gallon_id' => $id, 'customer_id' => $customer->id,
+                'action' => $status === 'missing' ? 'missing' : 'return', 'from_status' => 'borrowed',
+                'to_status' => $status, 'quantity' => 1, 'recorded_by' => $this->admin->id,
+                'notes' => 'Customer record '.$i, 'created_at' => now(), 'updated_at' => now(),
+            ]);
+        }
+    }
+    $url = route('admin.inventory.gallon-inventory');
+    $this->get($url)->assertOk()
+        ->assertViewHas('loanRecords', fn ($rows) => $rows->count() === 5 && $rows->total() === 7)
+        ->assertViewHas('customerIssues', fn ($rows) => $rows->count() === 5 && $rows->total() === 14)
+        ->assertViewHas('movements', fn ($rows) => $rows->count() === 5 && $rows->total() === 15)
+        ->assertViewHas('loans', fn ($rows) => $rows->count() === 7);
+    $this->get($url.'?loan_search=Borrower+7&issue_search=Borrower+7&movement_search=Borrower+7')->assertOk()
+        ->assertViewHas('loanRecords', fn ($rows) => $rows->total() === 1)
+        ->assertViewHas('customerIssues', fn ($rows) => $rows->total() === 2)
+        ->assertViewHas('movements', fn ($rows) => $rows->total() === 2)
+        ->assertViewHas('loans', fn ($rows) => $rows->count() === 7);
+    $this->get($url.'?loans_page=2&issues_page=2&page=3')->assertOk()
+        ->assertViewHas('loanRecords', fn ($rows) => $rows->currentPage() === 2 && $rows->count() === 2)
+        ->assertViewHas('customerIssues', fn ($rows) => $rows->currentPage() === 2 && $rows->count() === 5)
+        ->assertViewHas('movements', fn ($rows) => $rows->currentPage() === 3 && $rows->count() === 5);
+    $this->get($url.'?loan_search=NoMatch&issue_search=NoMatch&movement_search=NoMatch')->assertOk()
+        ->assertSee('No borrowed gallons match your search.')
+        ->assertSee('No customer records match your search.')
+        ->assertSee('No movements match your search.');
+});

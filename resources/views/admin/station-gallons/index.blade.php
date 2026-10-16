@@ -199,25 +199,25 @@
     </x-card>
 
     <x-card padding="p-3" class="mb-3">
-        <details><summary class="mb-2 cursor-pointer text-sm font-semibold">Outstanding Customer Gallons <span class="ml-1 text-xs font-normal text-slate-500">({{ $loans->count() }})</span></summary>
+        <details id="customer-loans" @if(request()->hasAny(['loan_search', 'loans_page'])) open @endif><summary class="mb-2 cursor-pointer text-sm font-semibold">Outstanding Customer Gallons <span class="ml-1 text-xs font-normal text-slate-500">({{ $loanRecords->total() }})</span></summary>
+        <x-gallon-record-search name="loan_search" page="loans_page" anchor="customer-loans" />
         <div class="overflow-x-auto"><table class="min-w-full text-left text-sm"><thead><tr><th class="px-3 py-2">Customer</th><th class="px-3 py-2">Gallon Type</th><th class="px-3 py-2">Borrowed</th></tr></thead><tbody>
-            @forelse($loans as $loan)<tr class="border-t border-slate-100"><td class="px-3 py-2">{{ $loan->customer_name }}</td><td class="px-3 py-2">{{ $loan->name }} / {{ $loan->type ?? 'Unspecified type' }} / {{ $loan->size }}</td><td class="px-3 py-2">{{ $loan->quantity }}</td></tr>@empty<tr><td colspan="3" class="p-3 text-slate-500">No outstanding borrowed gallons.</td></tr>@endforelse
-        </tbody></table></div></details>
+            @forelse($loanRecords as $loan)<tr class="border-t border-slate-100"><td class="px-3 py-2">{{ $loan->customer_name }}</td><td class="px-3 py-2">{{ $loan->name }} / {{ $loan->type ?? 'Unspecified type' }} / {{ $loan->size }}</td><td class="px-3 py-2">{{ $loan->quantity }}</td></tr>@empty<tr><td colspan="3" class="p-3 text-slate-500">{{ request()->filled('loan_search') ? 'No borrowed gallons match your search.' : 'No outstanding borrowed gallons.' }}</td></tr>@endforelse
+        </tbody></table></div><div class="mt-3">{{ $loanRecords->links() }}</div></details>
     </x-card>
 
     <x-card padding="p-3" class="mb-3">
-        <details>
-        <summary class="cursor-pointer text-sm font-semibold">Customer Missing &amp; Damaged Return Records <span class="ml-1 text-xs font-normal text-slate-500">({{ $customerIssues->count() }})</span></summary>
+        <details id="customer-issues" @if(request()->hasAny(['issue_search', 'issues_page'])) open @endif>
+        <summary class="cursor-pointer text-sm font-semibold">Customer Missing &amp; Damaged Return Records <span class="ml-1 text-xs font-normal text-slate-500">({{ $customerIssues->total() }})</span></summary>
         <div class="mt-3">
         <p class="mb-2 text-xs text-slate-500">Shows missing gallons and damaged returns by customer across all months. Missing gallons are not counted as returned. These records are cleared when movement history is reset.</p>
-        <div x-data="{ search: '' }">
-            <x-input-label for="issue-customer-search" value="Search Customer" />
-            <x-text-input id="issue-customer-search" type="search" x-model="search" placeholder="Enter customer name..." class="mb-3" />
+        <div>
+            <x-gallon-record-search name="issue_search" page="issues_page" anchor="customer-issues" placeholder="Search customer, gallon, missing or damaged..." />
             <div class="overflow-x-auto"><table class="min-w-full text-left text-sm">
                 <thead><tr>@foreach(['Date', 'Customer', 'Gallon', 'Record', 'Quantity', 'Notes'] as $label)<th class="px-3 py-2">{{ $label }}</th>@endforeach</tr></thead>
                 <tbody>
                     @forelse($customerIssues as $issue)
-                        <tr class="border-t border-slate-100" data-customer="{{ $issue->customer_name }}" x-show="$el.dataset.customer.toLowerCase().includes(search.toLowerCase())">
+                        <tr class="border-t border-slate-100">
                             <td class="whitespace-nowrap px-3 py-2">{{ $issue->created_at }}</td>
                             <td class="px-3 py-2">{{ $issue->customer_name }}</td>
                             <td class="px-3 py-2">{{ $issue->gallon_name }} / {{ $issue->gallon_type ?? 'Unspecified' }} / {{ $issue->gallon_size }}</td>
@@ -226,26 +226,31 @@
                             <td class="px-3 py-2">{{ $issue->notes }}</td>
                         </tr>
                     @empty
-                        <tr><td colspan="6" class="p-3 text-slate-500">No missing gallons or damaged returns recorded for customers.</td></tr>
+                        <tr><td colspan="6" class="p-3 text-slate-500">{{ request()->filled('issue_search') ? 'No customer records match your search.' : 'No missing gallons or damaged returns recorded for customers.' }}</td></tr>
                     @endforelse
                 </tbody>
             </table></div>
+            <div class="mt-3">{{ $customerIssues->links() }}</div>
         </div>
         </div>
         </details>
     </x-card>
 
     <x-card padding="p-3">
-        <details @if(request()->has('page') || request()->has('month')) open @endif><summary class="mb-2 cursor-pointer text-sm font-semibold">Gallon Movement History <span class="ml-1 text-xs font-normal text-slate-500">({{ $movements->total() }})</span></summary>
+        <details id="movement-history" @if(request()->hasAny(['page', 'month', 'movement_search'])) open @endif><summary class="mb-2 cursor-pointer text-sm font-semibold">Gallon Movement History <span class="ml-1 text-xs font-normal text-slate-500">({{ $movements->total() }})</span></summary>
+        <x-gallon-record-search name="movement_search" page="page" anchor="movement-history" placeholder="Search customer, gallon, action or notes..." />
         <form method="GET" action="{{ route('admin.inventory.gallon-inventory') }}" class="mb-3 flex flex-wrap items-end gap-2">
+            @foreach(request()->only(['loan_search', 'issue_search', 'movement_search', 'loans_page', 'issues_page']) as $key => $value)
+                @if(is_scalar($value))<input type="hidden" name="{{ $key }}" value="{{ $value }}">@endif
+            @endforeach
             <div><x-input-label for="movement-month" value="Month" /><x-text-input id="movement-month" name="month" type="month" :value="$month" class="!py-1.5" /></div>
             <x-button type="submit" class="!px-3 !py-1.5 !text-xs">Filter</x-button>
-            <x-button as="a" href="{{ route('admin.inventory.gallon-inventory', ['month' => '']) }}" variant="secondary" class="!px-3 !py-1.5 !text-xs">All Months</x-button>
+            <x-button as="a" href="{{ route('admin.inventory.gallon-inventory', request()->except(['month', 'page'])) }}" variant="secondary" class="!px-3 !py-1.5 !text-xs">All Months</x-button>
             <x-button type="submit" formaction="{{ route('admin.inventory.gallon-inventory.report') }}" variant="success" class="!px-3 !py-1.5 !text-xs">Generate Monthly Report</x-button>
         </form>
         <p class="mb-2 text-xs text-slate-500">{{ $month ? 'Showing movements for '.$month.'.' : 'Showing movements for all months.' }} Select a month to generate a printable report.</p>
         <div class="overflow-x-auto"><table class="min-w-full text-left text-sm"><thead><tr>@foreach(['Date', 'Gallon', 'Action', 'Movement', 'Quantity', 'Customer', 'Recorded By', 'Notes'] as $label)<th class="px-3 py-2">{{ $label }}</th>@endforeach</tr></thead><tbody>
-            @forelse($movements as $movement)<tr class="border-t border-slate-100"><td class="whitespace-nowrap px-3 py-2">{{ $movement->created_at }}</td><td class="px-3 py-2">{{ $movement->gallon_name }} / {{ $movement->gallon_type ?? 'Unspecified type' }}</td><td class="px-3 py-2">{{ ucfirst($movement->action) }}</td><td class="px-3 py-2">{{ $movement->from_status ?? 'New' }} → {{ $movement->to_status }}</td><td class="px-3 py-2">{{ $movement->quantity }}</td><td class="px-3 py-2">{{ $movement->customer_name ?? '—' }}</td><td class="px-3 py-2">{{ $movement->recorded_by_name }}</td><td class="px-3 py-2">{{ $movement->notes }}</td></tr>@empty<tr><td colspan="8" class="p-3 text-slate-500">No movements recorded yet.</td></tr>@endforelse
+            @forelse($movements as $movement)<tr class="border-t border-slate-100"><td class="whitespace-nowrap px-3 py-2">{{ $movement->created_at }}</td><td class="px-3 py-2">{{ $movement->gallon_name }} / {{ $movement->gallon_type ?? 'Unspecified type' }}</td><td class="px-3 py-2">{{ ucfirst($movement->action) }}</td><td class="px-3 py-2">{{ $movement->from_status ?? 'New' }} → {{ $movement->to_status }}</td><td class="px-3 py-2">{{ $movement->quantity }}</td><td class="px-3 py-2">{{ $movement->customer_name ?? '—' }}</td><td class="px-3 py-2">{{ $movement->recorded_by_name }}</td><td class="px-3 py-2">{{ $movement->notes }}</td></tr>@empty<tr><td colspan="8" class="p-3 text-slate-500">{{ request()->filled('movement_search') ? 'No movements match your search.' : 'No movements recorded yet.' }}</td></tr>@endforelse
         </tbody></table></div>
         <div class="mt-3">{{ $movements->links() }}</div></details>
     </x-card>
