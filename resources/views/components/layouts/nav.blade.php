@@ -14,41 +14,41 @@ $procurementActive = request()->routeIs('admin.suppliers*') || request()->routeI
 
 @if(auth()->user()->isAdmin())
     <a href="{{ route('admin.dashboard') }}" class="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium {{ $navLink('admin.dashboard') }}">
-        <x-admin-nav-icon name="home" sidebar />
+        <x-icon name="home" class="size-5 shrink-0" />
         <span x-bind:class="$store.sidebar.collapsed && 'lg:hidden'">Dashboard</span>
     </a>
     <a href="{{ route('pos.index') }}" class="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium {{ $navLink('pos') }}">
-        <x-admin-nav-icon name="cart" sidebar />
+        <x-icon name="cart" class="size-5 shrink-0" />
         <span x-bind:class="$store.sidebar.collapsed && 'lg:hidden'">Point of Sale</span>
     </a>
 
     <a href="{{ route('admin.products.index') }}" class="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium {{ $inventoryActive ? 'sidebar-nav-link is-active bg-gradient-to-r from-primary-500 to-primary-700 text-white' : 'sidebar-nav-link text-secondary-100/80 hover:bg-white/10 hover:text-white' }}">
-        <x-admin-nav-icon name="archive" sidebar />
+        <x-icon name="archive" class="size-5 shrink-0" />
         <span x-bind:class="$store.sidebar.collapsed && 'lg:hidden'">Inventory Management</span>
     </a>
     <a href="{{ route('admin.maintenance.index') }}" class="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium {{ $navLink('admin.maintenance') }}">
-        <x-admin-nav-icon name="cog" sidebar />
+        <x-icon name="cog" class="size-5 shrink-0" />
         <span x-bind:class="$store.sidebar.collapsed && 'lg:hidden'">Maintenance</span>
     </a>
 
     <a href="{{ route('admin.suppliers.index') }}" class="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium {{ $procurementActive ? 'sidebar-nav-link is-active bg-gradient-to-r from-primary-500 to-primary-700 text-white' : 'sidebar-nav-link text-secondary-100/80 hover:bg-white/10 hover:text-white' }}">
-        <x-admin-nav-icon name="building" sidebar />
+        <x-icon name="building" class="size-5 shrink-0" />
         <span x-bind:class="$store.sidebar.collapsed && 'lg:hidden'">Procurement</span>
     </a>
     <a href="{{ route('admin.customers.index') }}" class="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium {{ $navLink('admin.customers') }}">
-        <x-admin-nav-icon name="users" sidebar />
+        <x-icon name="users" class="size-5 shrink-0" />
         <span x-bind:class="$store.sidebar.collapsed && 'lg:hidden'">Customers</span>
     </a>
     <a href="{{ route('deliveries.index') }}" class="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium {{ $navLink('deliveries') }}">
-        <x-admin-nav-icon name="truck" sidebar />
+        <x-icon name="truck" class="size-5 shrink-0" />
         <span x-bind:class="$store.sidebar.collapsed && 'lg:hidden'">Deliveries</span>
     </a>
     <a href="{{ route('admin.staff.index') }}" class="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium {{ $navLink('admin.staff') }}">
-        <x-admin-nav-icon name="user-circle" sidebar />
+        <x-icon name="user-circle" class="size-5 shrink-0" />
         <span x-bind:class="$store.sidebar.collapsed && 'lg:hidden'">Staff</span>
     </a>
     <a href="{{ route('admin.reports.index') }}" class="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium {{ $navLink('admin.reports') }}">
-        <x-admin-nav-icon name="chart" sidebar />
+        <x-icon name="chart" class="size-5 shrink-0" />
         <span x-bind:class="$store.sidebar.collapsed && 'lg:hidden'">Financial Reports</span>
     </a>
 @elseif(auth()->user()->isStaff())
@@ -72,9 +72,9 @@ $procurementActive = request()->routeIs('admin.suppliers*') || request()->routeI
         <span x-bind:class="$store.sidebar.collapsed && 'lg:hidden'">Collections</span>
     </a>
     <div x-data="{ open: {{ $inventoryActive ? 'true' : 'false' }} }">
-        <button type="button" x-on:click="open = !open; $nextTick(() => $dispatch('sidebar-navigation-resize'))" class="sidebar-nav-link flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-sm font-medium {{ $inventoryActive ? 'bg-white/10 text-white' : 'text-secondary-100/80 hover:bg-white/10 hover:text-white' }}">
+        <button type="button" x-bind:aria-expanded="open" x-on:click="open = !open; $nextTick(() => $dispatch('sidebar-navigation-resize'))" class="sidebar-nav-link flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-medium {{ $inventoryActive ? 'bg-white/10 text-white' : 'text-secondary-100/80 hover:bg-white/10 hover:text-white' }}">
             <x-icon name="archive" class="size-5 shrink-0" />
-            <span class="flex-1 whitespace-nowrap text-[13px]" x-bind:class="$store.sidebar.collapsed && 'lg:hidden'">Inventory Management</span>
+            <span class="flex-1 text-sm" x-bind:class="$store.sidebar.collapsed && 'lg:hidden'">Inventory Management</span>
             <x-icon name="chevron-down" class="size-4 shrink-0 transition-transform" x-bind:class="[open && 'rotate-180', $store.sidebar.collapsed && 'lg:hidden']" />
         </button>
         <div x-show="open" x-transition x-bind:class="$store.sidebar.collapsed && 'lg:hidden'" class="space-y-0 py-0">

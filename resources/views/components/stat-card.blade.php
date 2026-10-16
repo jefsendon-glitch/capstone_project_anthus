@@ -1,11 +1,6 @@
 @props(['label', 'value', 'icon' => 'chart', 'color' => 'primary', 'hint' => null, 'variant' => 'plain', 'compact' => false])
 
 @php
-if (auth()->user()?->isAdmin()) {
-    $variant = 'solid';
-    $color = $color === 'delivery' ? 'secondary' : $color;
-}
-
 $iconColors = [
     'primary' => 'bg-primary-50 text-primary-600 dark:bg-primary-500/10 dark:text-primary-400',
     'secondary' => 'bg-secondary-50 text-secondary-600 dark:bg-secondary-500/10 dark:text-secondary-400',

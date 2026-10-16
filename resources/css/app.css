@@ -249,6 +249,8 @@
 /* All signed-in accounts share the same compact visual style. */
 body[data-ui='minimal'] {
     background: #f8fafc;
+    font-size: 0.875rem;
+    line-height: 1.5;
 }
 
 .dark body[data-ui='minimal'] {
