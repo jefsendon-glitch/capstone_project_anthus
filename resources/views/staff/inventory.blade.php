@@ -1,5 +1,4 @@
 <x-layouts.app title="Stock Overview" :heading="'Stock Overview'" :subheading="'Current product and supply quantities maintained by Admin'">
-    <x-portal-nav />
     <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
         <p class="text-xs text-slate-500">Review stock before sales or delivery. Contact Admin for restocking or corrections.</p>
         <x-button as="a" :href="route('pos.create')" class="!py-2 !text-xs">Record a Sale</x-button>

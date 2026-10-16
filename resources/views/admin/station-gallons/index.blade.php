@@ -4,7 +4,6 @@
     $movementRoute = $canManage ? 'admin.inventory.gallon-inventory.move' : 'staff.gallons.move';
 @endphp
 <x-layouts.app title="Gallon Tracking" :heading="'Gallon Tracking'">
-    <x-portal-nav />
     @unless($canManage)<p class="mb-3 text-sm text-slate-500">Record customer releases and returns. Admin manages gallon registration, filling, and stock adjustments.</p>@endunless
     @push('admin-reset-actions')
     @if(auth()->user()->isAdmin())

@@ -1,5 +1,4 @@
 <x-layouts.app title="My Payments" :heading="'My Payments'">
-    <x-portal-nav />
     <x-card class="mb-6">
         <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>

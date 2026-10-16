@@ -1,5 +1,4 @@
 <x-layouts.app title="My Account" :heading="'My Account'" :subheading="'Your balance, credit status, and purchase records'">
-    <x-portal-nav />
     <div class="mb-4 grid gap-3 sm:grid-cols-3">
         <x-stat-card compact label="Outstanding Balance" :value="'₱'.number_format(auth()->user()->credit_balance, 2)" icon="credit-card" color="warning" />
         <x-stat-card compact label="Credit Status" :value="ucfirst(auth()->user()->credit_status ?? 'active')" icon="check-circle" :color="auth()->user()->credit_status === 'suspended' ? 'danger' : 'success'" />

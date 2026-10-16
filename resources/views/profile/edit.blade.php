@@ -1,5 +1,4 @@
 <x-layouts.app title="My Profile" :heading="'My Profile'">
-    @if($user->isCustomer() || $user->isStaff())<x-portal-nav />@endif
     @php($avatarUrl = $user->avatar_url)
     <div class="mx-auto max-w-5xl space-y-6">
         <section class="overflow-hidden rounded-3xl bg-gradient-to-br from-primary-700 via-primary-600 to-cyan-500 p-6 text-white shadow-xl shadow-primary-950/15 sm:p-8">

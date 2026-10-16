@@ -1,5 +1,4 @@
 <x-layouts.app title="My Orders" :heading="'My Orders'">
-    <x-portal-nav />
     <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
         <form method="GET">
             <x-input-label for="order-status" value="Order Status" />

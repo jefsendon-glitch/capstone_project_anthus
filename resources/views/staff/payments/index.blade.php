@@ -1,5 +1,4 @@
 <x-layouts.app title="Collections" :heading="'Collections'" :subheading="'Record customer credit payments and review collection history'">
-    <x-portal-nav />
     @if($errors->any())<div role="alert" class="mb-3 rounded-lg bg-red-50 p-3 text-sm text-red-700 dark:bg-red-500/10 dark:text-red-300">@foreach($errors->all() as $error)<p>{{ $error }}</p>@endforeach</div>@endif
     <div class="mb-4">
         <form method="GET" class="flex max-w-lg gap-2">

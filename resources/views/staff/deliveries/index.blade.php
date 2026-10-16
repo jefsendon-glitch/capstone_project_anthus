@@ -1,5 +1,4 @@
 <x-layouts.app title="Delivery Orders" :heading="'Delivery Orders'" :subheading="'Manage customer orders from confirmation through fulfillment'">
-    <x-portal-nav />
     @if($errors->any())
         <div role="alert" class="mb-3 rounded-xl bg-red-50 p-3 text-sm text-red-700">
             @foreach($errors->all() as $error)<p>{{ $error }}</p>@endforeach

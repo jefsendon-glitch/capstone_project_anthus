@@ -1,5 +1,4 @@
 <x-layouts.app title="Staff Dashboard" :heading="'Dashboard'" :subheading="now()->format('l, F j, Y')">
-    <x-portal-nav />
     <div class="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div class="min-w-0"><h2 class="break-words text-lg font-semibold">Welcome, {{ auth()->user()->first_name ?: auth()->user()->name }}</h2><p class="mt-1 text-sm text-slate-500 dark:text-slate-400">Review today's activity and manage station transactions.</p></div>
         <x-button as="a" :href="route('pos.create')"><x-icon name="plus" class="size-4" /> Record a Sale</x-button>

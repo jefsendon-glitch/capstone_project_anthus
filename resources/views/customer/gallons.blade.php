@@ -1,5 +1,4 @@
 <x-layouts.app title="My Gallons" :heading="'My Gallons'" :subheading="'Your borrowed gallons, returns, and container records'">
-    <x-portal-nav />
 
     <x-card padding="p-4" class="mb-4">
         <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
