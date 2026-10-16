@@ -81,7 +81,7 @@ class StationGallonController extends Controller
             $this->record($id, 'add', null, 'empty', $data['quantity'], $request->user()->id);
         });
 
-        return back()->with('success', 'Station gallon type created.');
+        return back()->with('success', 'Gallon registered. Opening quantity added to empty stock.');
     }
 
     public function update(Request $request, int $gallon)
@@ -106,18 +106,18 @@ class StationGallonController extends Controller
                 $decrease = $data['quantity_action'] === 'decrease';
                 if ($decrease && $quantity > $stock->empty) {
                     throw ValidationException::withMessages([
-                        'adjustment_quantity' => 'Not enough empty gallons available to decrease by this quantity.',
+                        'adjustment_quantity' => 'The decrease cannot exceed the available empty gallons.',
                     ]);
                 }
                 $changes['empty'] = $stock->empty + ($decrease ? -$quantity : $quantity);
                 $this->record($gallon, $decrease ? 'decrease' : 'add', $decrease ? 'empty' : null,
                     $decrease ? 'removed' : 'empty', $quantity, $request->user()->id, null,
-                    $data['adjustment_notes'] ?? 'Quantity adjusted from container inventory.');
+                    $data['adjustment_notes'] ?? 'Empty stock adjusted from the inventory form.');
             }
             DB::table('station_gallons')->where('id', $gallon)->update($changes);
         });
 
-        return back()->with('success', 'Registered gallon updated successfully.');
+        return back()->with('success', 'Gallon details and any stock adjustment saved.');
     }
 
     public function reset(Request $request)
@@ -191,7 +191,7 @@ class StationGallonController extends Controller
                     }
                     $missing = ($data['settle_return'] ?? true) ? $balance - $quantity : 0;
                     if ($quantity === 0 && $missing === 0) {
-                        throw ValidationException::withMessages(['quantity' => 'Enter a returned quantity or close the loan to record the missing gallons.']);
+                        throw ValidationException::withMessages(['quantity' => 'Enter at least 1 returned gallon, or choose Automatically record shortage as missing.']);
                     }
                     $damaged = (int) ($data['damaged_quantity'] ?? ($to === 'damaged' ? $quantity : 0));
                     $usable = $quantity - $damaged;
@@ -208,8 +208,11 @@ class StationGallonController extends Controller
                     foreach (['empty' => $usable, 'damaged' => $damaged, 'missing' => $missing] as $status => $count) {
                         if ($count > 0) {
                             $notes = $status === 'missing'
-                                ? 'Automatically recorded: '.$quantity.' of '.$balance.' borrowed gallons returned.'.(! empty($data['notes']) ? ' '.$data['notes'] : '')
-                                : ($data['notes'] ?? null);
+                                ? 'Return shortage: '.$balance.' borrowed, '.$quantity.' returned; '.$missing.' recorded as missing.'
+                                : ($status === 'damaged' ? 'Damaged return: '.$damaged.' of '.$quantity.' returned gallons.' : 'Usable return: '.$usable.' of '.$quantity.' returned gallons.');
+                            if (! empty($data['notes'])) {
+                                $notes .= ' Notes: '.$data['notes'];
+                            }
                             $this->record($gallon->id, $status === 'missing' ? 'missing' : 'return', 'borrowed',
                                 $status, $count, $request->user()->id, $customerId, $notes);
                         }
@@ -241,10 +244,10 @@ class StationGallonController extends Controller
         });
 
         return back()->with('success', $data['action'] === 'return'
-            ? 'Return recorded. Any shortage on a closed loan was automatically recorded as missing under this customer.'
+            ? 'Customer return saved. Damaged returns and any missing shortage are recorded under the customer.'
             : ($data['action'] === 'missing' && $customerId
-            ? 'Missing gallons recorded against the borrowing customer. Borrowed balance updated; these gallons are not counted as returned.'
-            : 'Gallon inventory and movement history updated.'));
+            ? 'Missing gallons recorded under the customer. Borrowed balance updated.'
+            : 'Gallon movement saved. Stock and history updated.'));
     }
 
     private function record(int $id, string $action, ?string $from, string $to, int $quantity, int $userId, ?int $customerId = null, ?string $notes = null): int
