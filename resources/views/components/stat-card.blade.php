@@ -1,4 +1,4 @@
-@props(['label', 'value', 'icon' => 'chart', 'color' => 'primary', 'hint' => null, 'variant' => 'plain', 'compact' => false])
+@props(['label', 'value', 'icon' => 'chart', 'color' => 'primary', 'hint' => null, 'variant' => 'tinted', 'compact' => false])
 
 @php
 $iconColors = [
