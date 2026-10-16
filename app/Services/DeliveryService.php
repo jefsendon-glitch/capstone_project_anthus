@@ -85,6 +85,8 @@ class DeliveryService
 
     public function cancel(DeliveryOrder $order, User $cancelledBy): DeliveryOrder
     {
+        abort_unless($cancelledBy->isAdmin() || $cancelledBy->isStaff(), 403);
+
         if (! in_array($order->status, ['pending', 'confirmed'], true)) {
             throw ValidationException::withMessages([
                 'status' => 'Only pending or confirmed delivery orders can be cancelled.',

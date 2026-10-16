@@ -12,7 +12,7 @@ beforeEach(function () {
     $this->staffUser->assignRole('staff');
     Staff::factory()->create(['user_id' => $this->staffUser->id]);
 
-    $this->customer = User::factory()->create(['credit_balance' => 0]);
+    $this->customer = User::factory()->create(['credit_balance' => 0, 'credit_status' => 'eligible']);
     $this->customer->assignRole('customer');
 
     $this->product = Product::factory()->create(['unit_price' => 25, 'stock_quantity' => 50]);
@@ -236,18 +236,21 @@ test('staff cannot fulfill an order for more than the current stock on hand', fu
     expect($this->product->fresh()->stock_quantity)->toBe(1);
 });
 
-test('customer can cancel their own pending order', function () {
+test('customer cannot cancel their placed order even through a direct request', function (string $status) {
     $order = app(\App\Services\DeliveryService::class)->placeOrder([
         'product_id' => $this->product->id,
         'quantity' => 1,
         'customer_address' => 'Somewhere',
     ], $this->customer);
 
-    $response = $this->actingAs($this->customer)->patch(route('customer.orders.cancel', $order));
+    $order->update(['status' => $status]);
+    $this->actingAs($this->customer)->get(route('customer.orders.show', $order))->assertOk()
+        ->assertDontSee('Cancel Order')->assertSee('Placed orders cannot be cancelled by customers.');
+    $response = $this->patch(route('customer.orders.cancel', $order));
 
-    $response->assertRedirect(route('customer.orders.show', $order));
-    expect($order->fresh()->status)->toBe('cancelled');
-});
+    $response->assertForbidden();
+    expect($order->fresh()->status)->toBe($status);
+})->with(['pending', 'confirmed']);
 
 test('customer cannot cancel another customers order', function () {
     $order = app(\App\Services\DeliveryService::class)->placeOrder([

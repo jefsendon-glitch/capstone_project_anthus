@@ -33,7 +33,7 @@ class DeliveryOrderPolicy
 
     public function cancel(User $user, DeliveryOrder $deliveryOrder): bool
     {
-        return $user->id === $deliveryOrder->customer_id
+        return ($user->isAdmin() || $user->isStaff())
             && in_array($deliveryOrder->status, ['pending', 'confirmed'], true);
     }
 }
