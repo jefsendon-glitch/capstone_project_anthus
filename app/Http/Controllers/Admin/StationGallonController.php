@@ -26,7 +26,7 @@ class StationGallonController extends Controller
             ->join('station_gallons as g', 'g.id', '=', 'l.station_gallon_id')
             ->join('users as u', 'u.id', '=', 'l.customer_id')
             ->where('l.quantity', '>', 0)
-            ->select('g.name', 'g.type', 'g.size', 'u.name as customer_name', 'l.quantity')->get();
+            ->select('l.station_gallon_id', 'l.customer_id', 'g.name', 'g.type', 'g.size', 'u.name as customer_name', 'l.quantity')->get();
 
         $customerIssues = $this->movementQuery('')
             ->whereNotNull('m.customer_id')
