@@ -60,7 +60,7 @@ test('drafts without a supplier email show the required steps before sending', f
     $this->order->update(['status' => 'draft']);
     $this->supplier->update(['email' => null]);
     $this->get(route('admin.purchase-orders.show', $this->order))->assertOk()
-        ->assertSee('Add Supplier Email')->assertSee('Review and Place Order')
+        ->assertSee('Add Supplier Email')
         ->assertSee('This order is a draft.');
 });
 
@@ -116,12 +116,12 @@ test('mail failures are recorded without exposing secrets and a confirmed retry 
     expect(PurchaseOrderEmail::where('status', 'sent')->count())->toBe(1);
 });
 
-test('unconfigured or logging email cannot be reported as sent', function () {
+test('unconfigured or non-SMTP transport cannot be reported as sent', function () {
     Mail::fake();
     $payload = purchaseOrderEmailPayload($this);
-    config(['mail.default' => 'log']);
+    config(['mail.mailers.smtp.transport' => 'log']);
     $this->post(route('admin.purchase-orders.email.send', $this->order), $payload)->assertSessionHasErrors('email');
-    config(['mail.default' => 'smtp', 'mail.mailers.smtp.password' => null]);
+    config(['mail.mailers.smtp.transport' => 'smtp', 'mail.mailers.smtp.password' => null]);
     $this->post(route('admin.purchase-orders.email.send', $this->order), $payload)->assertSessionHasErrors('email');
     $this->get(route('admin.purchase-orders.email.preview', $this->order))->assertSee('Email sending is not configured.');
     Mail::assertNothingSent();
@@ -155,13 +155,13 @@ test('only admins can preview send or download purchase order emails', function 
     Mail::assertNothingSent();
 });
 
-test('draft cancelled and received orders cannot be sent', function (string $status) {
+test('cancelled and received orders cannot be sent', function (string $status) {
     Mail::fake();
     $payload = purchaseOrderEmailPayload($this);
     $this->order->update(['status' => $status]);
     $this->post(route('admin.purchase-orders.email.send', $this->order), $payload)->assertSessionHasErrors('email');
     Mail::assertNothingSent();
-})->with(['draft', 'cancelled', 'received']);
+})->with(['cancelled', 'received']);
 
 test('an interrupted attempt needs explicit confirmation before another attempt', function () {
     Mail::fake();
@@ -189,4 +189,35 @@ test('an active sending attempt blocks a concurrent email even with resend confi
         ->assertSessionHasErrors('email');
     Mail::assertNothingSent();
     $this->assertDatabaseCount('purchase_order_emails', 1);
+});
+
+
+test('draft can be reviewed placed and sent with explicit confirmation', function () {
+    Mail::fake();
+    $this->order->update(['status' => 'draft']);
+    $this->get(route('admin.purchase-orders.show', $this->order))->assertOk()->assertSee('Review and Send');
+    $payload = purchaseOrderEmailPayload($this);
+    $url = route('admin.purchase-orders.email.send', $this->order);
+    $this->post($url, $payload)->assertSessionHasErrors('place_order_confirmation');
+    expect($this->order->fresh()->status)->toBe('draft');
+    Mail::assertNothingSent();
+    $this->post($url, $payload + ['place_order_confirmation' => '1'])->assertSessionHasNoErrors();
+    expect($this->order->fresh()->status)->toBe('ordered');
+    expect(PurchaseOrderEmail::first()->order_snapshot['status'])->toBe('ordered');
+    $this->assertDatabaseHas('expenses', ['purchase_order_id' => $this->order->id, 'amount' => 125]);
+    Mail::assertSent(SupplierPurchaseOrder::class, 1);
+    expect($this->product->fresh()->stock_quantity)->toBe(10);
+});
+
+
+test('purchase order uses configured SMTP even when the global default mailer is log', function () {
+    $transport = new ArrayTransport;
+    Mail::mailer('smtp')->setSymfonyTransport($transport);
+    config(['mail.default' => 'log']);
+    $payload = purchaseOrderEmailPayload($this);
+    $this->get(route('admin.purchase-orders.show', $this->order))->assertOk()
+        ->assertDontSee('Station email setup is incomplete.');
+    $this->post(route('admin.purchase-orders.email.send', $this->order), $payload)->assertSessionHasNoErrors();
+    expect($transport->messages())->toHaveCount(1);
+    $this->assertDatabaseHas('purchase_order_emails', ['status' => 'sent']);
 });
