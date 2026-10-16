@@ -26,7 +26,7 @@ class StationGallonController extends Controller
             ->join('station_gallons as g', 'g.id', '=', 'l.station_gallon_id')
             ->join('users as u', 'u.id', '=', 'l.customer_id')
             ->where('l.quantity', '>', 0)
-            ->select('g.name', 'g.size', 'u.name as customer_name', 'l.quantity')->get();
+            ->select('g.name', 'g.type', 'g.size', 'u.name as customer_name', 'l.quantity')->get();
 
         return view('admin.station-gallons.index', compact('gallons', 'customers', 'movements', 'loans', 'month'));
     }
@@ -48,7 +48,7 @@ class StationGallonController extends Controller
             ->join('station_gallons as g', 'g.id', '=', 'm.station_gallon_id')
             ->join('users as u', 'u.id', '=', 'm.recorded_by')
             ->leftJoin('users as c', 'c.id', '=', 'm.customer_id')
-            ->select('m.*', 'g.name as gallon_name', 'g.size as gallon_size', 'u.name as recorded_by_name', 'c.name as customer_name');
+            ->select('m.*', 'g.name as gallon_name', 'g.type as gallon_type', 'g.size as gallon_size', 'u.name as recorded_by_name', 'c.name as customer_name');
         if ($month !== '') {
             $start = CarbonImmutable::createFromFormat('!Y-m', $month, config('app.timezone'));
             $query->where('m.created_at', '>=', $start)->where('m.created_at', '<', $start->addMonth());
@@ -61,12 +61,13 @@ class StationGallonController extends Controller
     {
         $data = $request->validate([
             'name' => ['required', 'string', 'max:255'],
+            'type' => ['required', 'string', 'max:100'],
             'size' => ['required', 'string', 'max:100'],
             'quantity' => ['required', 'integer', 'min:1', 'max:1000000'],
         ]);
         DB::transaction(function () use ($data, $request) {
             $id = DB::table('station_gallons')->insertGetId([
-                'name' => $data['name'], 'size' => $data['size'], 'empty' => $data['quantity'],
+                'name' => $data['name'], 'type' => $data['type'], 'size' => $data['size'], 'empty' => $data['quantity'],
                 'created_at' => now(), 'updated_at' => now(),
             ]);
             $this->record($id, 'add', null, 'empty', $data['quantity'], $request->user()->id);
@@ -81,6 +82,7 @@ class StationGallonController extends Controller
 
         $data = $request->validate([
             'name' => ['required', 'string', 'max:255'],
+            'type' => ['required', 'string', 'max:100'],
             'size' => ['required', 'string', 'max:100'],
             'quantity_action' => ['nullable', Rule::in(['increase', 'decrease'])],
             'adjustment_quantity' => ['nullable', 'required_with:quantity_action', 'integer', 'min:1', 'max:1000000'],
@@ -90,7 +92,7 @@ class StationGallonController extends Controller
         DB::transaction(function () use ($request, $data, $gallon) {
             $stock = DB::table('station_gallons')->where('id', $gallon)->lockForUpdate()->first();
             abort_unless($stock, 404);
-            $changes = ['name' => $data['name'], 'size' => $data['size'], 'updated_at' => now()];
+            $changes = ['name' => $data['name'], 'type' => $data['type'], 'size' => $data['size'], 'updated_at' => now()];
             if (! empty($data['quantity_action'])) {
                 $quantity = (int) $data['adjustment_quantity'];
                 $decrease = $data['quantity_action'] === 'decrease';
@@ -138,7 +140,7 @@ class StationGallonController extends Controller
             'gallon_id' => ['required', 'integer', 'exists:station_gallons,id'],
             'action' => ['required', Rule::in(['add', 'fill', 'release', 'return', 'damage', 'missing'])],
             'quantity' => ['required', 'integer', 'min:1', 'max:1000000'],
-            'from_status' => ['nullable', Rule::in(['empty', 'filled', 'borrowed'])],
+            'from_status' => ['nullable', 'required_if:action,damage,missing', Rule::in(['empty', 'filled', 'borrowed'])],
             'return_status' => ['nullable', Rule::in(['empty', 'damaged'])],
             'customer_id' => ['nullable', 'integer', 'exists:users,id'],
             'notes' => ['nullable', 'required_if:action,damage,missing', 'string', 'max:1000'],

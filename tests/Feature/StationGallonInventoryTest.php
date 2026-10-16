@@ -14,7 +14,7 @@ beforeEach(function () {
 
 test('new inventory independently tracks stock, customer loans and returns', function () {
     $this->actingAs($this->admin)->post(route('admin.inventory.gallon-inventory.store'), [
-        'name' => 'Round', 'size' => '5 gallons', 'quantity' => 10,
+        'type' => 'Round', 'name' => 'Round', 'size' => '5 gallons', 'quantity' => 10,
     ])->assertSessionHasNoErrors();
     $id = DB::table('station_gallons')->value('id');
     foreach ([
@@ -65,41 +65,41 @@ test('new inventory independently tracks stock, customer loans and returns', fun
 
 test('admin can edit registered gallon details while preserving inventory', function () {
     $this->actingAs($this->admin)->post(route('admin.inventory.gallon-inventory.store'), [
-        'name' => 'Round', 'size' => '5 gallons', 'quantity' => 10,
+        'type' => 'Round', 'name' => 'Round', 'size' => '5 gallons', 'quantity' => 10,
     ])->assertSessionHasNoErrors();
     $id = DB::table('station_gallons')->value('id');
     $url = route('admin.inventory.gallon-inventory.update', $id);
 
-    $this->patch($url, ['name' => 'Slim', 'size' => '20 liters', 'empty' => 999])
+    $this->patch($url, ['type' => 'Round', 'name' => 'Slim', 'size' => '20 liters', 'empty' => 999])
         ->assertRedirect()->assertSessionHasNoErrors();
     $this->assertDatabaseHas('station_gallons', [
-        'id' => $id, 'name' => 'Slim', 'size' => '20 liters', 'empty' => 10,
+        'id' => $id, 'type' => 'Round', 'name' => 'Slim', 'size' => '20 liters', 'empty' => 10,
     ]);
     $this->assertDatabaseCount('station_gallon_movements', 1);
 
-    $this->patch($url, ['name' => '', 'size' => ''])->assertSessionHasErrors(['name', 'size']);
-    $this->assertDatabaseHas('station_gallons', ['id' => $id, 'name' => 'Slim', 'size' => '20 liters']);
+    $this->patch($url, ['type' => 'Round', 'name' => '', 'size' => ''])->assertSessionHasErrors(['name', 'size']);
+    $this->assertDatabaseHas('station_gallons', ['id' => $id, 'type' => 'Round', 'name' => 'Slim', 'size' => '20 liters']);
     $this->patch(route('admin.inventory.gallon-inventory.update', $id + 1), [
-        'name' => 'Missing', 'size' => '5 gallons',
+        'type' => 'Round', 'name' => 'Missing', 'size' => '5 gallons',
     ])->assertNotFound();
 
-    $this->actingAs($this->customer)->patch($url, ['name' => 'Changed', 'size' => '1 liter'])->assertForbidden();
-    $this->assertDatabaseHas('station_gallons', ['id' => $id, 'name' => 'Slim']);
+    $this->actingAs($this->customer)->patch($url, ['type' => 'Round', 'name' => 'Changed', 'size' => '1 liter'])->assertForbidden();
+    $this->assertDatabaseHas('station_gallons', ['id' => $id, 'type' => 'Round', 'name' => 'Slim']);
 });
 
 test('edit quantity adjustments update totals and reject excessive deductions atomically', function () {
     $this->actingAs($this->admin)->post(route('admin.inventory.gallon-inventory.store'), [
-        'name' => 'Round', 'size' => '5 gallons', 'quantity' => 10,
+        'type' => 'Round', 'name' => 'Round', 'size' => '5 gallons', 'quantity' => 10,
     ])->assertSessionHasNoErrors();
     $id = DB::table('station_gallons')->value('id');
     $url = route('admin.inventory.gallon-inventory.update', $id);
-    $details = ['name' => 'Round', 'size' => '5 gallons', 'edit_gallon_id' => $id];
+    $details = ['type' => 'Round', 'name' => 'Round', 'size' => '5 gallons', 'edit_gallon_id' => $id];
 
     $this->patch($url, $details + ['quantity_action' => 'increase', 'adjustment_quantity' => 5])
         ->assertSessionHasNoErrors();
     $this->assertDatabaseHas('station_gallons', ['id' => $id, 'empty' => 15]);
     $this->get(route('admin.inventory.gallon-inventory'))
-        ->assertSee('Total Gallons</p><p class="text-xl font-semibold tabular-nums">15</p>', false);
+        ->assertViewHas('gallons', fn ($rows) => $rows->sum('empty') === 15);
 
     $this->patch($url, $details + ['quantity_action' => 'decrease', 'adjustment_quantity' => 15, 'adjustment_notes' => 'Opening count correction'])
         ->assertSessionHasNoErrors();
@@ -109,11 +109,11 @@ test('edit quantity adjustments update totals and reject excessive deductions at
         'to_status' => 'removed', 'quantity' => 15, 'notes' => 'Opening count correction',
     ]);
     $this->get(route('admin.inventory.gallon-inventory'))
-        ->assertSee('Total Gallons</p><p class="text-xl font-semibold tabular-nums">0</p>', false);
+        ->assertViewHas('gallons', fn ($rows) => $rows->sum('empty') === 0);
 
-    $this->patch($url, ['name' => 'Changed', 'size' => '5 gallons', 'quantity_action' => 'decrease', 'adjustment_quantity' => 1])
+    $this->patch($url, ['type' => 'Round', 'name' => 'Changed', 'size' => '5 gallons', 'quantity_action' => 'decrease', 'adjustment_quantity' => 1])
         ->assertSessionHasErrors('adjustment_quantity');
-    $this->assertDatabaseHas('station_gallons', ['id' => $id, 'name' => 'Round', 'empty' => 0]);
+    $this->assertDatabaseHas('station_gallons', ['id' => $id, 'type' => 'Round', 'name' => 'Round', 'empty' => 0]);
     foreach ([null, 0, -1, 1.5, 1000001] as $quantity) {
         $this->patch($url, $details + ['quantity_action' => 'increase', 'adjustment_quantity' => $quantity])
             ->assertSessionHasErrors('adjustment_quantity');
@@ -123,7 +123,7 @@ test('edit quantity adjustments update totals and reject excessive deductions at
 
 test('reset requires confirmation and admin access and supports history or entire inventory', function () {
     $this->actingAs($this->admin)->post(route('admin.inventory.gallon-inventory.store'), [
-        'name' => 'Round', 'size' => '5 gallons', 'quantity' => 10,
+        'type' => 'Round', 'name' => 'Round', 'size' => '5 gallons', 'quantity' => 10,
     ])->assertSessionHasNoErrors();
     $id = DB::table('station_gallons')->value('id');
     foreach (['fill', 'release'] as $action) {
@@ -154,14 +154,14 @@ test('reset requires confirmation and admin access and supports history or entir
     ]);
     $this->get(route('admin.water-production.index'))->assertOk()->assertSee('Round');
     $this->post(route('admin.inventory.gallon-inventory.store'), [
-        'name' => 'Slim', 'size' => '5 gallons', 'quantity' => 3,
+        'type' => 'Round', 'name' => 'Slim', 'size' => '5 gallons', 'quantity' => 3,
     ])->assertSessionHasNoErrors();
-    $this->assertDatabaseHas('station_gallons', ['name' => 'Slim', 'empty' => 3]);
+    $this->assertDatabaseHas('station_gallons', ['type' => 'Round', 'name' => 'Slim', 'empty' => 3]);
 });
 
 test('monthly movement filter and report include only the selected month across pages', function () {
     $this->actingAs($this->admin)->post(route('admin.inventory.gallon-inventory.store'), [
-        'name' => 'Round', 'size' => '5 gallons', 'quantity' => 10,
+        'type' => 'Round', 'name' => 'Round', 'size' => '5 gallons', 'quantity' => 10,
     ])->assertSessionHasNoErrors();
     $id = DB::table('station_gallons')->value('id');
     DB::table('station_gallon_movements')->delete();
@@ -199,7 +199,24 @@ test('old module is removed and new inventory is admin only', function () {
     $this->actingAs($this->admin)->get('/admin/gallon-stocks')->assertNotFound();
     $this->actingAs($this->customer)->get(route('admin.inventory.gallon-inventory'))->assertForbidden();
     $this->post(route('admin.inventory.gallon-inventory.store'), [
-        'name' => 'Round', 'size' => '5 gallons', 'quantity' => 10,
+        'type' => 'Round', 'name' => 'Round', 'size' => '5 gallons', 'quantity' => 10,
     ])->assertForbidden();
     $this->assertDatabaseCount('station_gallons', 0);
+});
+
+
+test('missing reports transfer only available stock and preserve totals on rejection', function () {
+    $this->actingAs($this->admin)->post(route('admin.inventory.gallon-inventory.store'), [
+        'name' => 'Station A', 'type' => 'Slim', 'size' => '5 gallons', 'quantity' => 5,
+    ])->assertSessionHasNoErrors();
+    $id = DB::table('station_gallons')->value('id');
+    $url = route('admin.inventory.gallon-inventory.move');
+    $report = ['gallon_id' => $id, 'action' => 'missing', 'quantity' => 2, 'notes' => 'Count discrepancy'];
+    $this->post($url, $report)->assertSessionHasErrors('from_status');
+    $this->post($url, $report + ['from_status' => 'empty'])->assertSessionHasNoErrors();
+    $this->assertDatabaseHas('station_gallons', ['id' => $id, 'empty' => 3, 'missing' => 2, 'type' => 'Slim']);
+    $this->post($url, array_replace($report, ['from_status' => 'empty', 'quantity' => 4]))->assertSessionHasErrors('quantity');
+    $this->post($url, $report + ['from_status' => 'borrowed'])->assertSessionHasErrors('customer_id');
+    $this->assertDatabaseHas('station_gallons', ['id' => $id, 'empty' => 3, 'missing' => 2]);
+    $this->assertDatabaseCount('station_gallon_movements', 2);
 });
