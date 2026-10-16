@@ -29,7 +29,7 @@
                 <div class="flex justify-between"><span class="text-slate-400">Type</span><span class="text-slate-900 dark:text-white">{{ $transactions->first()->transaction_type === 'delivery' ? 'Delivery' : 'Walk-in' }}</span></div>
                 <div class="flex justify-between"><span class="text-slate-400">Cashier</span><span class="text-slate-900 dark:text-white">{{ $transactions->first()->processedBy?->name ?? '—' }}</span></div>
                 <div class="flex justify-between"><span class="text-slate-400">Customer</span><span class="text-slate-900 dark:text-white">{{ $transactions->first()->customer?->name ?? $transactions->first()->customer_name ?? 'Walk-in guest' }}</span></div>
-                <div class="flex justify-between"><span class="text-slate-400">Payment</span><span class="text-slate-900 dark:text-white">{{ $transactions->first()->payment_method === 'loan' ? 'Credit / Loan' : 'Cash' }}</span></div>
+                <div class="flex justify-between"><span class="text-slate-400">Payment</span><span class="text-slate-900 dark:text-white">{{ $transactions->first()->payment_method === 'loan' ? 'Credit' : 'Cash' }}</span></div>
                 @if($transactions->first()->payment_method === 'cash')
                     <div class="flex justify-between"><span class="text-slate-400">Amount received</span><span class="font-mono text-slate-900 dark:text-white">&#8369;{{ number_format((float) $transactions->first()->tendered_amount, 2) }}</span></div>
                     <div class="flex justify-between"><span class="text-slate-400">Change</span><span class="font-mono font-semibold text-slate-900 dark:text-white">&#8369;{{ number_format((float) $transactions->first()->change_amount, 2) }}</span></div>

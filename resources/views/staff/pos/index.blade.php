@@ -59,7 +59,7 @@
                                 <td class="px-6 py-3 font-mono text-sm font-medium text-slate-900 dark:text-white">₱{{ number_format($transaction->total_amount, 2) }}</td>
                                 <td class="px-6 py-3">
                                     <x-badge :color="$transaction->payment_method === 'loan' ? 'warning' : 'success'">
-                                        {{ $transaction->payment_method === 'loan' ? 'Loan' : 'Cash' }}
+                                        {{ $transaction->payment_method === 'loan' ? 'Credit' : 'Cash' }}
                                     </x-badge>
                                 </td>
                                 <td class="px-6 py-3 text-right">

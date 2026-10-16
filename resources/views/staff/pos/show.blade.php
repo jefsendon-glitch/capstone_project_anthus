@@ -17,7 +17,7 @@
             <div class="flex justify-between"><dt class="text-slate-400">Customer</dt><dd class="font-medium text-slate-900 dark:text-white">{{ $transaction->customer_name ?? '—' }}</dd></div>
             <div class="flex justify-between">
                 <dt class="text-slate-400">Payment</dt>
-                <dd><x-badge :color="$transaction->payment_method === 'loan' ? 'warning' : 'success'">{{ $transaction->payment_method === 'loan' ? 'Loan' : 'Cash' }}</x-badge></dd>
+                <dd><x-badge :color="$transaction->payment_method === 'loan' ? 'warning' : 'success'">{{ $transaction->payment_method === 'loan' ? 'Credit' : 'Cash' }}</x-badge></dd>
             </div>
         </dl>
 

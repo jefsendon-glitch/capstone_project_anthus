@@ -2,7 +2,8 @@
     <x-portal-nav />
     <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
         <form method="GET">
-            <x-select name="status" onchange="this.form.submit()" class="w-auto">
+            <x-input-label for="order-status" value="Order Status" />
+            <x-select id="order-status" name="status" onchange="this.form.submit()" class="w-auto">
                 <option value="">All Statuses</option>
                 @foreach(['pending' => 'Pending', 'confirmed' => 'Confirmed', 'out_for_delivery' => 'Out for Delivery', 'delivered' => 'Delivered', 'cancelled' => 'Cancelled'] as $value => $label)
                     <option value="{{ $value }}" @selected(request('status') === $value)>{{ $label }}</option>
@@ -18,7 +19,7 @@
     <x-card padding="p-0">
         @if($orders->isEmpty())
             <div class="p-6">
-                <x-empty-state icon="truck" title="No orders yet" description="Place an advance delivery order and track its status here." />
+                <x-empty-state icon="truck" :title="request()->filled('status') ? 'No matching orders' : 'No orders yet'" :description="request()->filled('status') ? 'Choose another status to see your orders.' : 'Place a delivery order to view and track it here.'" />
             </div>
         @else
             <div class="overflow-x-auto">

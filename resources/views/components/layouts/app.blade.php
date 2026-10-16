@@ -18,12 +18,14 @@
 <body
     data-admin-ui="{{ auth()->user()->isAdmin() ? 'minimal' : '' }}"
     x-data="{ sidebarOpen: false, logoutConfirm: false }"
+    x-on:keydown.escape.window="sidebarOpen = false"
     data-live-notifications-url="{{ route('realtime.notifications') }}"
     class="min-h-screen bg-surface font-sans antialiased dark:bg-slate-950"
 >
     @php
         $avatarUrl = auth()->user()->avatar_url;
     @endphp
+    <a href="#main-content" class="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[110] focus:rounded-lg focus:bg-primary-700 focus:px-4 focus:py-2 focus:text-white">Skip to content</a>
     <div class="app-canvas flex min-h-screen">
         {{-- Mobile sidebar backdrop --}}
         <div
@@ -35,7 +37,7 @@
         ></div>
 
         {{-- Sidebar --}}
-        <aside
+        <aside id="app-sidebar"
             x-bind:class="[sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0', $store.sidebar.collapsed ? 'lg:w-20' : 'lg:w-72']"
             class="fixed inset-y-0 left-0 z-50 flex w-72 flex-col border-r border-white/5 bg-gradient-to-b from-[#0c2340] via-[#102f52] to-[#071a30] shadow-2xl shadow-slate-950/20 transition-all duration-200 lg:sticky lg:top-0 lg:inset-auto lg:h-screen lg:self-start"
         >
@@ -113,19 +115,19 @@
         {{-- Main column --}}
         <div class="flex min-w-0 flex-1 flex-col">
             {{-- Topbar --}}
-            <header class="sticky top-0 z-30 flex h-[4.5rem] shrink-0 items-center gap-4 border-b border-slate-200/80 bg-white/80 px-4 shadow-sm shadow-slate-200/30 backdrop-blur-xl sm:px-6 dark:border-white/10 dark:bg-slate-900/80 dark:shadow-none">
-                <button type="button" class="rounded-xl p-2 text-slate-500 transition hover:bg-slate-100 hover:text-primary-600 lg:hidden dark:hover:bg-white/5" x-on:click="sidebarOpen = true" aria-label="Open navigation">
+            <header class="sticky top-0 z-30 flex min-h-[4.5rem] shrink-0 items-center gap-2 py-3 sm:gap-4 border-b border-slate-200/80 bg-white/80 px-4 shadow-sm shadow-slate-200/30 backdrop-blur-xl sm:px-6 dark:border-white/10 dark:bg-slate-900/80 dark:shadow-none">
+                <button type="button" class="rounded-xl p-2 text-slate-500 transition hover:bg-slate-100 hover:text-primary-600 lg:hidden dark:hover:bg-white/5" x-on:click="sidebarOpen = true" aria-label="Open navigation" aria-controls="app-sidebar" x-bind:aria-expanded="sidebarOpen">
                     <x-icon name="menu" class="size-6" />
                 </button>
 
                 <div class="min-w-0 flex-1">
-                    <h1 class="font-heading truncate text-xl font-bold tracking-tight text-slate-900 dark:text-white">{{ $heading ?? ($title ?? 'Shaunti Water') }}</h1>
+                    <h1 class="font-heading break-words text-base font-bold leading-tight tracking-tight sm:text-xl text-slate-900 dark:text-white">{{ $heading ?? ($title ?? 'Shaunti Water') }}</h1>
                     @if(isset($subheading))
-                        <p class="truncate text-sm text-slate-500 dark:text-slate-400">{{ $subheading }}</p>
+                        <p class="mt-0.5 line-clamp-2 text-xs leading-relaxed text-slate-500 dark:text-slate-400 sm:text-sm">{{ $subheading }}</p>
                     @endif
                 </div>
 
-                <div class="ml-auto flex items-center gap-2 sm:gap-3">
+                <div class="ml-auto flex shrink-0 items-center gap-1 sm:gap-3">
                     {{-- Dark mode toggle --}}
                     <button
                         type="button"
@@ -147,7 +149,7 @@
                         $unreadCount = auth()->user()->unreadNotifications()->count();
                     @endphp
                     <div class="relative" x-data="{ open: false }">
-                        <button type="button" x-on:click="open = !open" class="relative rounded-xl border border-transparent p-2.5 text-slate-500 transition hover:border-slate-200 hover:bg-slate-100 hover:text-primary-600 dark:text-slate-300 dark:hover:border-white/10 dark:hover:bg-white/5" aria-label="Open notifications">
+                        <button type="button" x-on:click="open = !open" class="relative rounded-xl border border-transparent p-2.5 text-slate-500 transition hover:border-slate-200 hover:bg-slate-100 hover:text-primary-600 dark:text-slate-300 dark:hover:border-white/10 dark:hover:bg-white/5" aria-label="Open notifications" aria-controls="notification-panel" x-bind:aria-expanded="open">
                             <x-icon name="bell" class="size-5" />
                             @if($unreadCount > 0)
                                 <span class="absolute -top-0.5 -right-0.5 flex size-4 items-center justify-center rounded-full bg-danger-600 text-[10px] font-bold text-white">
@@ -160,20 +162,20 @@
                             x-on:click.outside="open = false"
                             x-transition
                             x-cloak
-                            class="absolute right-0 mt-2 w-80 rounded-2xl bg-white p-2 shadow-lg ring-1 ring-slate-900/5 dark:bg-slate-900 dark:ring-white/10"
+                            id="notification-panel" x-on:keydown.escape.window="open = false" class="fixed inset-x-3 top-20 z-50 max-h-[70vh] overflow-y-auto rounded-xl border border-slate-200 bg-white p-2 shadow-lg sm:absolute sm:inset-x-auto sm:right-0 sm:top-full sm:mt-2 sm:w-80 dark:border-slate-700 dark:bg-slate-900"
                         >
                             <div class="flex items-center justify-between px-2 py-1.5">
                                 <p class="text-sm font-semibold text-slate-900 dark:text-white">Notifications</p>
                                 @if($unreadCount > 0)
                                     <form method="POST" action="{{ route('notifications.read-all') }}">
                                         @csrf
-                                        <button type="submit" class="text-xs font-medium text-primary-600 hover:text-primary-700">Mark all read</button>
+                                        <button type="submit" class="text-xs font-medium text-primary-600 hover:text-primary-700">Mark all as read</button>
                                     </form>
                                 @endif
                             </div>
 
                             @if($unreadNotifications->isEmpty())
-                                <x-empty-state icon="bell" title="No notifications yet" description="Order and delivery alerts will show up here." />
+                                <x-empty-state icon="bell" title="No unread notifications" description="New account and order updates will appear here." />
                             @else
                                 <div class="max-h-96 divide-y divide-slate-100 overflow-y-auto dark:divide-white/5">
                                     @foreach($unreadNotifications as $notification)
@@ -193,7 +195,7 @@
 
                     {{-- Profile dropdown --}}
                     <div class="relative" x-data="{ open: false }">
-                        <button type="button" x-on:click="open = !open" class="flex items-center rounded-full ring-2 ring-primary-100 transition hover:ring-primary-300 dark:ring-primary-500/20" aria-label="Open profile menu">
+                        <button type="button" x-on:click="open = !open" class="flex items-center rounded-full ring-2 ring-primary-100 transition hover:ring-primary-300 dark:ring-primary-500/20" aria-label="Open profile menu" aria-controls="profile-panel" x-bind:aria-expanded="open">
                             @if($avatarUrl)
                                 <img src="{{ $avatarUrl }}" alt="{{ auth()->user()->name }}" class="size-9 rounded-full object-cover shadow-sm ring-2 ring-primary-100 dark:ring-primary-500/20">
                             @else
@@ -205,7 +207,7 @@
                             x-on:click.outside="open = false"
                             x-transition
                             x-cloak
-                            class="absolute right-0 mt-2 w-56 rounded-2xl bg-white p-2 shadow-lg ring-1 ring-slate-900/5 dark:bg-slate-900 dark:ring-white/10"
+                            id="profile-panel" x-on:keydown.escape.window="open = false" class="absolute right-0 mt-2 w-56 rounded-xl border border-slate-200 bg-white p-2 shadow-lg dark:border-slate-700 dark:bg-slate-900"
                         >
                             <div class="border-b border-slate-100 px-3 py-2 dark:border-white/10">
                                 <p class="truncate text-sm font-semibold text-slate-900 dark:text-white">{{ auth()->user()->name }}</p>
@@ -220,7 +222,7 @@
                 </div>
             </header>
 
-            <main class="flex-1 px-4 py-7 sm:px-6 lg:px-8">
+            <main id="main-content" tabindex="-1" class="min-w-0 flex-1 px-3 py-4 sm:px-6 sm:py-5 lg:px-8">
                 @if(isset($breadcrumbs))
                     <nav class="mb-4 flex text-sm text-slate-500 dark:text-slate-400">
                         {{ $breadcrumbs }}
@@ -228,13 +230,13 @@
                 @endif
 
                 @if (session('success'))
-                    <div class="mb-6 rounded-2xl bg-success-50 px-4 py-3 text-sm font-medium text-success-700 dark:bg-success-500/10 dark:text-success-500">
+                    <div role="status" class="mb-4 rounded-xl bg-success-50 px-4 py-3 text-sm font-medium text-success-700 dark:bg-success-500/10 dark:text-success-500">
                         {{ session('success') }}
                     </div>
                 @endif
 
                 @if (session('error'))
-                    <div class="mb-6 rounded-2xl bg-danger-50 px-4 py-3 text-sm font-medium text-danger-700 dark:bg-danger-500/10 dark:text-danger-500">
+                    <div role="alert" class="mb-4 rounded-xl bg-danger-50 px-4 py-3 text-sm font-medium text-danger-700 dark:bg-danger-500/10 dark:text-danger-500">
                         {{ session('error') }}
                     </div>
                 @endif

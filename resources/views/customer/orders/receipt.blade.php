@@ -20,7 +20,7 @@
             <div class="mt-4 space-y-1 border-t border-dashed border-slate-300 pt-4 text-sm dark:border-white/10">
                 <div class="flex justify-between"><span class="text-slate-400">Order no.</span><span class="font-mono font-medium text-slate-900 dark:text-white">{{ $order->order_code }}</span></div>
                 <div class="flex justify-between"><span class="text-slate-400">Delivered</span><span class="text-slate-900 dark:text-white">{{ $order->delivered_at?->format('M j, Y g:i A') }}</span></div>
-                <div class="flex justify-between"><span class="text-slate-400">Payment</span><span class="text-slate-900 dark:text-white">{{ $order->payment_method === 'loan' ? 'Credit / Loan' : 'Cash' }}</span></div>
+                <div class="flex justify-between"><span class="text-slate-400">Payment</span><span class="text-slate-900 dark:text-white">{{ $order->payment_method === 'loan' ? 'Credit' : 'Cash' }}</span></div>
             </div>
 
             <div class="mt-4 border-t border-dashed border-slate-300 pt-4 dark:border-white/10">
