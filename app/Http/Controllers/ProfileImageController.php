@@ -6,6 +6,7 @@ use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use League\Flysystem\Local\LocalFilesystemAdapter;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class ProfileImageController extends Controller
@@ -19,7 +20,7 @@ class ProfileImageController extends Controller
 
         abort_unless($disk->exists($user->avatar_path), 404);
 
-        if (config("filesystems.disks.{$diskName}.driver") !== 'local') {
+        if (! ($disk->getAdapter() instanceof LocalFilesystemAdapter)) {
             return redirect()->away($disk->url($user->avatar_path));
         }
 

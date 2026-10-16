@@ -1,5 +1,6 @@
 <x-layouts.app title="My Orders" :heading="'My Orders'">
-    <div class="mb-6 flex items-center justify-between gap-4">
+    <x-portal-nav />
+    <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
         <form method="GET">
             <x-select name="status" onchange="this.form.submit()" class="w-auto">
                 <option value="">All Statuses</option>

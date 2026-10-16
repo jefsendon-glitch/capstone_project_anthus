@@ -1,6 +1,7 @@
 <x-layouts.app title="My Payments" :heading="'My Payments'">
+    <x-portal-nav />
     <x-card class="mb-6">
-        <div class="flex items-center justify-between">
+        <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
                 <p class="text-sm font-medium text-slate-500 dark:text-slate-400">Outstanding Balance</p>
                 <p class="mt-1 font-mono text-2xl font-bold {{ auth()->user()->credit_balance > 0 ? 'text-warning-600' : 'text-success-600' }}">
@@ -32,7 +33,7 @@
                             <tr>
                                 <td class="px-6 py-3 text-sm text-slate-600 dark:text-slate-300">{{ $payment->payment_date->format('M d, Y') }}</td>
                                 <td class="px-6 py-3 font-mono text-sm font-semibold text-slate-900 dark:text-white">₱{{ number_format($payment->amount, 2) }}</td>
-                                <td class="px-6 py-3 text-sm text-slate-600 dark:text-slate-300">{{ $payment->staff_name ?? '—' }}</td>
+                                <td class="px-6 py-3 text-sm text-slate-600 dark:text-slate-300">{{ $payment->recordedBy?->name ?? $payment->staff_name ?? '—' }}</td>
                                 <td class="px-6 py-3 text-sm text-slate-400">{{ $payment->notes ?? '—' }}</td>
                             </tr>
                         @endforeach

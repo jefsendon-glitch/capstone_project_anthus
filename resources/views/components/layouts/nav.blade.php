@@ -7,7 +7,7 @@ $navLink = function (string $route) {
         : 'sidebar-nav-link text-secondary-100/80 hover:bg-white/10 hover:text-white';
 };
 
-$inventoryActive = request()->routeIs('admin.products*') || (auth()->user()->isStaff() && request()->routeIs('admin.maintenance*'))
+$inventoryActive = request()->routeIs('staff.inventory') || request()->routeIs('admin.products*') || (auth()->user()->isStaff() && request()->routeIs('admin.maintenance*', 'admin.consumables*'))
     || request()->routeIs('admin.inventory.*') || request()->routeIs('admin.water-production*') || request()->routeIs('admin.stock-movements*');
 $procurementActive = request()->routeIs('admin.suppliers*') || request()->routeIs('admin.purchase-orders*') || request()->routeIs('admin.consumables*') || request()->routeIs('admin.procurement.*');
 @endphp
@@ -75,7 +75,8 @@ $procurementActive = request()->routeIs('admin.suppliers*') || request()->routeI
             <x-icon name="chevron-down" class="size-4 shrink-0 transition-transform" x-bind:class="[open && 'rotate-180', $store.sidebar.collapsed && 'lg:hidden']" />
         </button>
         <div x-show="open" x-transition x-bind:class="$store.sidebar.collapsed && 'lg:hidden'" class="space-y-0 py-0">
-            <a href="{{ route('admin.products.index') }}" class="flex items-center gap-3 rounded-lg py-1 pl-10 pr-3 text-sm font-medium {{ $navLink('admin.products') }}">Product</a>
+            <a href="{{ route('admin.products.index') }}" class="flex items-center gap-3 rounded-lg py-1 pl-10 pr-3 text-sm font-medium {{ $navLink('admin.products') }}">Products</a>
+            <a href="{{ route('staff.inventory') }}" class="flex items-center gap-3 rounded-lg py-1 pl-10 pr-3 text-sm font-medium {{ $navLink('staff.inventory') }}">Stock Overview</a>
             <a href="{{ route('admin.water-production.index') }}" class="flex items-center gap-3 rounded-lg py-1 pl-10 pr-3 text-sm font-medium {{ $navLink('admin.water-production') }}">Water Production</a>
             <a href="{{ route('admin.maintenance.index') }}" class="flex items-center gap-3 rounded-lg py-1 pl-10 pr-3 text-sm font-medium {{ $navLink('admin.maintenance') }}">Maintenance</a>
             <a href="{{ route('admin.stock-movements.index') }}" class="flex items-center gap-3 rounded-lg py-1 pl-10 pr-3 text-sm font-medium {{ $navLink('admin.stock-movements') }}">Stock Movements</a>
@@ -93,6 +94,12 @@ $procurementActive = request()->routeIs('admin.suppliers*') || request()->routeI
     <a href="{{ route('customer.payments.index') }}" class="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium {{ $navLink('customer.payments') }}">
         <x-icon name="dollar" class="size-5 shrink-0" />
         <span x-bind:class="$store.sidebar.collapsed && 'lg:hidden'">My Payments</span>
+    </a>
+    <a href="{{ route('customer.gallons') }}" class="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium {{ $navLink('customer.gallons') }}">
+        <x-icon name="archive" class="size-5 shrink-0" /><span x-bind:class="$store.sidebar.collapsed &amp;&amp; 'lg:hidden'">My Gallons</span>
+    </a>
+    <a href="{{ route('customer.account') }}" class="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium {{ $navLink('customer.account') }}">
+        <x-icon name="user-circle" class="size-5 shrink-0" /><span x-bind:class="$store.sidebar.collapsed &amp;&amp; 'lg:hidden'">My Account</span>
     </a>
 @endif
 
