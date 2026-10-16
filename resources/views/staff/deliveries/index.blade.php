@@ -10,16 +10,9 @@
         <x-reset-dot :action="route('deliveries.reset')" title="Reset Delivery Orders" description="Deletes all delivery orders and their items, including pending orders and records outside the current filters. Sales, payments and inventory remain. This cannot be undone." />
     @endif
     @endpush
-    <div class="grid grid-cols-2 gap-2 lg:grid-cols-4">
+    <div class="grid grid-cols-2 gap-3 lg:grid-cols-4">
         @foreach(['pending' => 'Pending', 'confirmed' => 'Confirmed', 'outForDelivery' => 'Out for Delivery', 'today' => 'Due Today'] as $key => $label)
-            @if(auth()->user()->isAdmin())
-                <x-stat-card compact :label="$label" :value="number_format($deliveryStats[$key])" :icon="['pending' => 'clock', 'confirmed' => 'check-circle', 'outForDelivery' => 'truck', 'today' => 'calendar'][$key]" :color="['pending' => 'warning', 'confirmed' => 'success', 'outForDelivery' => 'delivery', 'today' => 'primary'][$key]" />
-            @else
-            <div class="rounded-lg border border-slate-200 bg-white px-3 py-2 dark:border-white/10 dark:bg-slate-800">
-                <p class="text-xs text-slate-500 dark:text-slate-400">{{ $label }}</p>
-                <p class="mt-1 text-xl font-semibold tabular-nums text-slate-900 dark:text-white">{{ number_format($deliveryStats[$key]) }}</p>
-            </div>
-            @endif
+            <x-stat-card variant="tinted" compact :label="$label" :value="number_format($deliveryStats[$key])" :icon="['pending' => 'clock', 'confirmed' => 'check-circle', 'outForDelivery' => 'truck', 'today' => 'calendar'][$key]" :color="['pending' => 'warning', 'confirmed' => 'success', 'outForDelivery' => 'delivery', 'today' => 'primary'][$key]" />
         @endforeach
     </div>
 
