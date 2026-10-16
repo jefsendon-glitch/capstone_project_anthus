@@ -33,6 +33,45 @@ $canReceive = in_array($purchaseOrder->status, ['ordered', 'partially_received']
     </div>
 
     @foreach($errors->all() as $error)<p class="mb-2 text-sm text-red-600" role="alert">{{ $error }}</p>@endforeach
+    <x-card class="mb-4" padding="p-4">
+        <div class="flex flex-wrap items-start justify-between gap-3">
+            <div>
+                <h2 class="text-sm font-semibold">Supplier Email</h2>
+                <p class="mt-1 text-sm text-slate-500">{{ $purchaseOrder->supplier->email ?: 'No supplier email registered.' }}</p>
+                @if(!$mailConfigured)<p class="mt-1 text-xs text-amber-700 dark:text-amber-300">Station email setup is incomplete. Email sending will be available after configuration.</p>@endif
+                @if(!in_array($purchaseOrder->status, ['ordered', 'partially_received']))<p class="mt-1 text-xs text-slate-500">Only ordered or partially received purchase orders can be sent.</p>@endif
+            </div>
+            <div class="flex flex-wrap gap-2">
+                <x-button as="a" :href="route('admin.purchase-orders.pdf', $purchaseOrder)" variant="secondary" class="!py-2 !text-xs">Download PDF</x-button>
+                @if(!$purchaseOrder->supplier->email)
+                    <x-button as="a" :href="route('admin.suppliers.edit', $purchaseOrder->supplier)" variant="info" class="!py-2 !text-xs">Add Supplier Email</x-button>
+                @elseif(in_array($purchaseOrder->status, ['ordered', 'partially_received']))
+                    <x-button as="a" :href="route('admin.purchase-orders.email.preview', $purchaseOrder)" class="!py-2 !text-xs">{{ $hasSentEmail ? 'Resend to Supplier' : ($emailHistory->first()?->status === 'failed' ? 'Retry Email' : 'Send to Supplier') }}</x-button>
+                @endif
+            </div>
+        </div>
+        <details id="email-history" class="mt-3 border-t border-slate-100 pt-3 dark:border-white/10" @if(request()->has('emails_page') || session('error')) open @endif>
+            <summary class="cursor-pointer text-xs font-semibold">Email History ({{ $emailHistory->total() }})</summary>
+            <p class="mt-2 text-xs text-slate-500">Sent means the mail server accepted the email. It does not confirm delivery, reading, or supplier acceptance.</p>
+            <div class="mt-2 overflow-x-auto"><table class="min-w-full text-left text-xs">
+                <thead><tr>@foreach(['Attempted', 'Recipient', 'Status', 'Admin', 'Details'] as $label)<th class="px-2 py-2">{{ $label }}</th>@endforeach</tr></thead>
+                <tbody>
+                    @forelse($emailHistory as $email)
+                        <tr class="border-t border-slate-100 dark:border-white/10">
+                            <td class="whitespace-nowrap px-2 py-2">{{ $email->created_at->format('M d, Y h:i A') }}</td>
+                            <td class="px-2 py-2">{{ $email->recipient }}</td>
+                            <td class="px-2 py-2"><x-badge :color="$email->status === 'sent' ? 'success' : ($email->status === 'failed' ? 'danger' : 'warning')">{{ $email->status === 'sending' ? 'Sending / Unconfirmed' : ucfirst($email->status) }}</x-badge></td>
+                            <td class="px-2 py-2">{{ $email->sentBy?->name ?? 'Deleted account' }}</td>
+                            <td class="px-2 py-2">{{ $email->failure_reason ?: ($email->sent_at ? 'Sent '.$email->sent_at->format('M d, Y h:i A') : 'Check with the supplier before retrying an interrupted attempt.') }}</td>
+                        </tr>
+                    @empty
+                        <tr><td colspan="5" class="px-2 py-3 text-slate-500">No emails have been sent for this purchase order.</td></tr>
+                    @endforelse
+                </tbody>
+            </table></div>
+            <div class="mt-2">{{ $emailHistory->links() }}</div>
+        </details>
+    </x-card>
     <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <x-card class="lg:col-span-2">
             <h2 class="font-heading text-base font-bold text-slate-900 dark:text-white">Line Items</h2>

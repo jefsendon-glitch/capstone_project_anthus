@@ -103,7 +103,12 @@ class PurchaseOrderController extends Controller
 
         $purchase_order->load(['supplier', 'items.itemable', 'createdBy']);
 
-        return view('admin.purchase-orders.show', ['purchaseOrder' => $purchase_order]);
+        return view('admin.purchase-orders.show', [
+            'purchaseOrder' => $purchase_order,
+            'emailHistory' => $purchase_order->emails()->with('sentBy')->latest('id')->paginate(5, ['*'], 'emails_page')->withQueryString()->fragment('email-history'),
+            'hasSentEmail' => $purchase_order->emails()->where('status', 'sent')->exists(),
+            'mailConfigured' => app(\App\Services\PurchaseOrderMailService::class)->isConfigured(),
+        ]);
     }
 
     public function edit(PurchaseOrder $purchase_order): View|RedirectResponse
@@ -185,6 +190,7 @@ class PurchaseOrderController extends Controller
             if (! Storage::disk('local')->put($backup, json_encode([
                 'created_at' => now()->toIso8601String(), 'purchase_orders' => $orders,
                 'purchase_order_items' => $items,
+                'purchase_order_emails' => DB::table('purchase_order_emails')->whereIn('purchase_order_id', $orders->pluck('id'))->get(),
             ], JSON_PRETTY_PRINT | JSON_THROW_ON_ERROR))) {
                 throw ValidationException::withMessages(['reset_confirmation' => 'Backup failed. No purchase orders were deleted.']);
             }
