@@ -20,8 +20,8 @@ test('new inventory independently tracks stock, customer loans and returns', fun
     foreach ([
         ['action' => 'fill', 'quantity' => 6],
         ['action' => 'release', 'quantity' => 4],
-        ['action' => 'return', 'quantity' => 1, 'return_status' => 'empty'],
-        ['action' => 'return', 'quantity' => 1, 'return_status' => 'damaged'],
+        ['action' => 'return', 'settle_return' => false, 'quantity' => 1, 'return_status' => 'empty'],
+        ['action' => 'return', 'settle_return' => false, 'quantity' => 1, 'return_status' => 'damaged'],
         ['action' => 'missing', 'quantity' => 1, 'from_status' => 'borrowed', 'notes' => 'Lost by customer'],
         ['action' => 'damage', 'quantity' => 1, 'from_status' => 'empty', 'notes' => 'Cracked container'],
     ] as $movement) {
@@ -53,7 +53,7 @@ test('new inventory independently tracks stock, customer loans and returns', fun
         ->assertSee($this->customer->name)->assertSee('Lost by customer');
     $this->post(route('admin.inventory.gallon-inventory.move'), [
         'gallon_id' => $id, 'customer_id' => $this->customer->id,
-        'action' => 'return', 'quantity' => 2,
+        'action' => 'return', 'settle_return' => false, 'quantity' => 2,
     ])->assertSessionHasErrors('quantity');
     $this->assertDatabaseCount('station_gallon_movements', 7);
     $this->post(route('admin.inventory.gallon-inventory.move'), [
@@ -254,7 +254,7 @@ test('unreturned customer gallons are recorded as missing against the correct bo
     ]);
     $this->post($url, $report)->assertSessionHasErrors('quantity');
     $this->post($url, [
-        'gallon_id' => $id, 'action' => 'return', 'quantity' => 1, 'customer_id' => $this->customer->id,
+        'gallon_id' => $id, 'action' => 'return', 'settle_return' => false, 'quantity' => 1, 'customer_id' => $this->customer->id,
     ])->assertSessionHasNoErrors();
     $this->assertDatabaseHas('station_gallons', [
         'id' => $id, 'empty' => 7, 'borrowed' => 0, 'missing' => 3, 'returned' => 1,
@@ -262,4 +262,58 @@ test('unreturned customer gallons are recorded as missing against the correct bo
     $this->get(route('admin.inventory.gallon-inventory'))->assertOk()
         ->assertSee($this->customer->name)->assertSee($report['notes']);
     $this->assertDatabaseCount('station_gallon_movements', 5);
+});
+
+
+test('short returns automatically record missing and damaged customer gallons atomically', function () {
+    $this->actingAs($this->admin)->post(route('admin.inventory.gallon-inventory.store'), [
+        'name' => 'Station', 'type' => 'Round Gallon', 'size' => '5 gallons', 'quantity' => 10,
+    ])->assertSessionHasNoErrors();
+    $id = DB::table('station_gallons')->value('id');
+    $url = route('admin.inventory.gallon-inventory.move');
+    foreach (['fill', 'release'] as $action) {
+        $this->post($url, ['gallon_id' => $id, 'action' => $action, 'quantity' => 10,
+            'customer_id' => $this->customer->id])->assertSessionHasNoErrors();
+    }
+    $return = ['gallon_id' => $id, 'action' => 'return', 'quantity' => 7,
+        'damaged_quantity' => 2, 'customer_id' => $this->customer->id];
+    $this->post($url, array_replace($return, ['damaged_quantity' => 8]))->assertSessionHasErrors('damaged_quantity');
+    $this->post($url, array_replace($return, ['quantity' => 11]))->assertSessionHasErrors('quantity');
+    $this->assertDatabaseCount('station_gallon_movements', 3);
+    $this->post($url, $return)->assertSessionHasNoErrors();
+    $this->assertDatabaseHas('station_gallons', ['id' => $id, 'borrowed' => 0, 'empty' => 5,
+        'damaged' => 2, 'missing' => 3, 'returned' => 7]);
+    $this->assertDatabaseHas('station_gallon_loans', ['station_gallon_id' => $id,
+        'customer_id' => $this->customer->id, 'quantity' => 0]);
+    foreach (['empty' => 5, 'damaged' => 2, 'missing' => 3] as $status => $quantity) {
+        $this->assertDatabaseHas('station_gallon_movements', ['station_gallon_id' => $id,
+            'customer_id' => $this->customer->id, 'from_status' => 'borrowed', 'to_status' => $status,
+            'action' => $status === 'missing' ? 'missing' : 'return', 'quantity' => $quantity]);
+    }
+    $this->get(route('admin.inventory.gallon-inventory', ['month' => '2020-01']))->assertOk()
+        ->assertSee('Customer Missing &amp; Damaged Return Records', false)
+        ->assertViewHas('customerIssues', fn ($rows) => $rows->count() === 2
+            && $rows->every(fn ($row) => $row->customer_id === $this->customer->id));
+    $this->post($url, $return)->assertSessionHasErrors('quantity');
+    $this->assertDatabaseCount('station_gallon_movements', 6);
+});
+
+test('zero returned gallons closes only the selected customer loan as missing', function () {
+    $this->actingAs($this->admin)->post(route('admin.inventory.gallon-inventory.store'), [
+        'name' => 'Station', 'type' => 'Slim Gallon', 'size' => '5 gallons', 'quantity' => 10,
+    ])->assertSessionHasNoErrors();
+    $id = DB::table('station_gallons')->value('id');
+    $url = route('admin.inventory.gallon-inventory.move');
+    $other = User::factory()->create(); $other->assignRole('customer');
+    $this->post($url, ['gallon_id' => $id, 'action' => 'fill', 'quantity' => 10])->assertSessionHasNoErrors();
+    foreach ([$this->customer, $other] as $customer) {
+        $this->post($url, ['gallon_id' => $id, 'action' => 'release', 'quantity' => 5,
+            'customer_id' => $customer->id])->assertSessionHasNoErrors();
+    }
+    $this->post($url, ['gallon_id' => $id, 'action' => 'return', 'quantity' => 0,
+        'damaged_quantity' => 0, 'customer_id' => $this->customer->id])->assertSessionHasNoErrors();
+    $this->assertDatabaseHas('station_gallons', ['id' => $id, 'borrowed' => 5, 'missing' => 5, 'returned' => 0]);
+    $this->assertDatabaseHas('station_gallon_loans', ['station_gallon_id' => $id, 'customer_id' => $other->id, 'quantity' => 5]);
+    $this->assertDatabaseHas('station_gallon_movements', ['station_gallon_id' => $id,
+        'customer_id' => $this->customer->id, 'action' => 'missing', 'quantity' => 5]);
 });

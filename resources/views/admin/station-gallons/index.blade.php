@@ -67,8 +67,19 @@
                         <x-input-label for="movement-customer" value="Customer" /><x-select id="movement-customer" name="customer_id" data-tom-select placeholder="Search customer name..." x-effect="const needsCustomer = action === 'release' || action === 'return' || ((action === 'damage' || action === 'missing') &amp;&amp; source === 'borrowed'); if ($el.tomselect) { needsCustomer ? $el.tomselect.enable() : $el.tomselect.disable(); }" x-bind:disabled="!(action === 'release' || action === 'return' || ((action === 'damage' || action === 'missing') && source === 'borrowed'))" x-bind:required="action === 'release' || action === 'return' || ((action === 'damage' || action === 'missing') && source === 'borrowed')"><option value="">Select customer</option>@foreach($customers as $customer)<option value="{{ $customer->id }}" @selected((string) old('customer_id') === (string) $customer->id)>{{ $customer->name }}</option>@endforeach</x-select>
                     </div>
                     <p x-show="action === 'missing' &amp;&amp; source === 'borrowed'" x-cloak class="text-xs text-slate-500 sm:col-span-2">Select the customer who did not return the borrowed gallons. The quantity moves from Borrowed to Missing and is recorded under that customer in movement history.</p>
-                    <div x-show="action === 'return'" x-cloak><x-input-label value="Returned condition" /><x-select name="return_status" x-bind:disabled="action !== 'return'"><option value="empty">Usable / Empty</option><option value="damaged">Damaged</option></x-select></div>
-                    <div><x-input-label value="Quantity" /><x-text-input name="quantity" :value="old('quantity')" type="number" step="1" min="1" max="1000000" required /></div>
+                    <div x-show="action === 'return'" x-cloak>
+                        <x-input-label for="returned-damaged" value="Damaged gallons included in return" />
+                        <x-text-input id="returned-damaged" name="damaged_quantity" type="number" min="0" step="1" :value="old('damaged_quantity', 0)" x-bind:disabled="action !== 'return'" />
+                    </div>
+                    <div x-show="action === 'return'" x-cloak>
+                        <x-input-label for="return-settlement" value="Remaining borrowed gallons" />
+                        <x-select id="return-settlement" name="settle_return" x-bind:disabled="action !== 'return'">
+                            <option value="1" @selected(old('settle_return', '1') == '1')>Automatically record shortage as missing</option>
+                            <option value="0" @selected(old('settle_return', '1') == '0')>Keep balance borrowed (return later)</option>
+                        </x-select>
+                    </div>
+                    <p x-show="action === 'return'" x-cloak class="text-xs text-slate-500 sm:col-span-2">Quantity means the total physically returned, including damaged gallons. Example: 10 borrowed, 7 returned (2 damaged) = 5 usable, 2 damaged, and 3 automatically missing. This closes all outstanding borrowing for the selected customer and gallon type unless you choose Return later.</p>
+                    <div><x-input-label value="Quantity" /><x-text-input name="quantity" :value="old('quantity')" type="number" step="1" min="1" x-bind:min="action === 'return' ? 0 : 1" max="1000000" required /></div>
                     <div><x-input-label value="Notes / reason" /><x-textarea name="notes" rows="2" maxlength="1000" x-bind:required="action === 'damage' || action === 'missing'">{{ old('notes') }}</x-textarea></div>
                     <x-button variant="success" type="submit">Save Movement</x-button>
                 </form>
@@ -144,6 +155,32 @@
         <div class="overflow-x-auto"><table class="min-w-full text-left text-sm"><thead><tr><th class="px-3 py-2">Customer</th><th class="px-3 py-2">Gallon Type</th><th class="px-3 py-2">Borrowed</th></tr></thead><tbody>
             @forelse($loans as $loan)<tr class="border-t border-slate-100"><td class="px-3 py-2">{{ $loan->customer_name }}</td><td class="px-3 py-2">{{ $loan->name }} / {{ $loan->type ?? 'Unspecified type' }} / {{ $loan->size }}</td><td class="px-3 py-2">{{ $loan->quantity }}</td></tr>@empty<tr><td colspan="3" class="p-3 text-slate-500">No outstanding borrowed gallons.</td></tr>@endforelse
         </tbody></table></div></details>
+    </x-card>
+
+    <x-card padding="p-3" class="mb-3">
+        <h3 class="mb-2 text-sm font-semibold">Customer Missing &amp; Damaged Return Records</h3>
+        <p class="mb-2 text-xs text-slate-500">Customer records across all months. Missing quantities are not counted as returns. Clearing movement history also clears these records.</p>
+        <div x-data="{ search: '' }">
+            <x-input-label for="issue-customer-search" value="Search customer" />
+            <x-text-input id="issue-customer-search" type="search" x-model="search" placeholder="Enter customer name..." class="mb-3" />
+            <div class="overflow-x-auto"><table class="min-w-full text-left text-sm">
+                <thead><tr>@foreach(['Date', 'Customer', 'Gallon', 'Record', 'Quantity', 'Notes'] as $label)<th class="px-3 py-2">{{ $label }}</th>@endforeach</tr></thead>
+                <tbody>
+                    @forelse($customerIssues as $issue)
+                        <tr class="border-t border-slate-100" data-customer="{{ $issue->customer_name }}" x-show="$el.dataset.customer.toLowerCase().includes(search.toLowerCase())">
+                            <td class="whitespace-nowrap px-3 py-2">{{ $issue->created_at }}</td>
+                            <td class="px-3 py-2">{{ $issue->customer_name }}</td>
+                            <td class="px-3 py-2">{{ $issue->gallon_name }} / {{ $issue->gallon_type ?? 'Unspecified' }} / {{ $issue->gallon_size }}</td>
+                            <td class="px-3 py-2">{{ $issue->action === 'missing' ? 'Missing / Not returned' : 'Damaged returned' }}</td>
+                            <td class="px-3 py-2">{{ $issue->quantity }}</td>
+                            <td class="px-3 py-2">{{ $issue->notes }}</td>
+                        </tr>
+                    @empty
+                        <tr><td colspan="6" class="p-3 text-slate-500">No customer missing or damaged return records.</td></tr>
+                    @endforelse
+                </tbody>
+            </table></div>
+        </div>
     </x-card>
 
     <x-card padding="p-3">

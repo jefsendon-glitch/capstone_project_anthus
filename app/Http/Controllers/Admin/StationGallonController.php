@@ -28,7 +28,15 @@ class StationGallonController extends Controller
             ->where('l.quantity', '>', 0)
             ->select('g.name', 'g.type', 'g.size', 'u.name as customer_name', 'l.quantity')->get();
 
-        return view('admin.station-gallons.index', compact('gallons', 'customers', 'movements', 'loans', 'month'));
+        $customerIssues = $this->movementQuery('')
+            ->whereNotNull('m.customer_id')
+            ->where(function (Builder $query) {
+                $query->where('m.action', 'missing')->orWhere(function (Builder $query) {
+                    $query->where('m.action', 'return')->where('m.to_status', 'damaged');
+                });
+            })->orderByDesc('m.id')->get();
+
+        return view('admin.station-gallons.index', compact('gallons', 'customers', 'movements', 'loans', 'month', 'customerIssues'));
     }
 
     public function report(Request $request)
@@ -139,9 +147,11 @@ class StationGallonController extends Controller
         $data = $request->validate([
             'gallon_id' => ['required', 'integer', 'exists:station_gallons,id'],
             'action' => ['required', Rule::in(['add', 'fill', 'release', 'return', 'damage', 'missing'])],
-            'quantity' => ['required', 'integer', 'min:1', 'max:1000000'],
+            'quantity' => ['required', 'integer', 'min:'.($request->input('action') === 'return' ? 0 : 1), 'max:1000000'],
             'from_status' => ['nullable', 'required_if:action,damage', Rule::in(['empty', 'filled', 'borrowed'])],
             'return_status' => ['nullable', Rule::in(['empty', 'damaged'])],
+            'damaged_quantity' => ['nullable', 'integer', 'min:0', 'max:1000000', 'lte:quantity'],
+            'settle_return' => ['nullable', 'boolean'],
             'customer_id' => ['nullable', 'integer', 'exists:users,id'],
             'notes' => ['nullable', 'required_if:action,damage,missing', 'string', 'max:1000'],
         ]);
@@ -175,6 +185,38 @@ class StationGallonController extends Controller
                 if ($from === 'borrowed' && $balance < $quantity) {
                     throw ValidationException::withMessages(['quantity' => 'Quantity exceeds this customer’s borrowed gallons.']);
                 }
+                if ($data['action'] === 'return') {
+                    if ($balance === 0) {
+                        throw ValidationException::withMessages(['customer_id' => 'This customer has no borrowed gallons of this type.']);
+                    }
+                    $missing = ($data['settle_return'] ?? true) ? $balance - $quantity : 0;
+                    if ($quantity === 0 && $missing === 0) {
+                        throw ValidationException::withMessages(['quantity' => 'Enter a returned quantity or close the loan to record the missing gallons.']);
+                    }
+                    $damaged = (int) ($data['damaged_quantity'] ?? ($to === 'damaged' ? $quantity : 0));
+                    $usable = $quantity - $damaged;
+                    DB::table('station_gallon_loans')->where('station_gallon_id', $gallon->id)
+                        ->where('customer_id', $customerId)->update(['quantity' => $balance - $quantity - $missing]);
+                    DB::table('station_gallons')->where('id', $gallon->id)->update([
+                        'borrowed' => $gallon->borrowed - $quantity - $missing,
+                        'empty' => $gallon->empty + $usable,
+                        'damaged' => $gallon->damaged + $damaged,
+                        'missing' => $gallon->missing + $missing,
+                        'returned' => $gallon->returned + $quantity,
+                        'updated_at' => now(),
+                    ]);
+                    foreach (['empty' => $usable, 'damaged' => $damaged, 'missing' => $missing] as $status => $count) {
+                        if ($count > 0) {
+                            $notes = $status === 'missing'
+                                ? 'Automatically recorded: '.$quantity.' of '.$balance.' borrowed gallons returned.'.(! empty($data['notes']) ? ' '.$data['notes'] : '')
+                                : ($data['notes'] ?? null);
+                            $this->record($gallon->id, $status === 'missing' ? 'missing' : 'return', 'borrowed',
+                                $status, $count, $request->user()->id, $customerId, $notes);
+                        }
+                    }
+
+                    return;
+                }
                 DB::table('station_gallon_loans')->updateOrInsert(
                     ['station_gallon_id' => $gallon->id, 'customer_id' => $customerId],
                     ['quantity' => $balance + ($to === 'borrowed' ? $quantity : -$quantity)],
@@ -198,9 +240,11 @@ class StationGallonController extends Controller
             }
         });
 
-        return back()->with('success', $data['action'] === 'missing' && $customerId
+        return back()->with('success', $data['action'] === 'return'
+            ? 'Return recorded. Any shortage on a closed loan was automatically recorded as missing under this customer.'
+            : ($data['action'] === 'missing' && $customerId
             ? 'Missing gallons recorded against the borrowing customer. Borrowed balance updated; these gallons are not counted as returned.'
-            : 'Gallon inventory and movement history updated.');
+            : 'Gallon inventory and movement history updated.'));
     }
 
     private function record(int $id, string $action, ?string $from, string $to, int $quantity, int $userId, ?int $customerId = null, ?string $notes = null): int
