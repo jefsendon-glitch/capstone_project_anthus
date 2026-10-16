@@ -103,12 +103,7 @@ class PurchaseOrderController extends Controller
 
         $purchase_order->load(['supplier', 'items.itemable', 'createdBy']);
 
-        return view('admin.purchase-orders.show', [
-            'purchaseOrder' => $purchase_order,
-            'emailHistory' => $purchase_order->emails()->with('sentBy')->latest('id')->paginate(5, ['*'], 'emails_page')->withQueryString()->fragment('email-history'),
-            'hasSentEmail' => $purchase_order->emails()->where('status', 'sent')->exists(),
-            'mailConfigured' => app(\App\Services\PurchaseOrderMailService::class)->isConfigured(),
-        ]);
+        return view('admin.purchase-orders.show', ['purchaseOrder' => $purchase_order]);
     }
 
     public function edit(PurchaseOrder $purchase_order): View|RedirectResponse

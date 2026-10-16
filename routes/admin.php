@@ -20,9 +20,6 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::resource('customers', CustomerController::class)->only(['index', 'show', 'edit', 'update']);
     Route::resource('suppliers', SupplierController::class)->except('show');
     Route::delete('purchase-orders/reset', [PurchaseOrderController::class, 'reset'])->name('purchase-orders.reset');
-    Route::get('purchase-orders/{purchase_order}/email', [\App\Http\Controllers\Admin\PurchaseOrderEmailController::class, 'preview'])->name('purchase-orders.email.preview');
-    Route::post('purchase-orders/{purchase_order}/email', [\App\Http\Controllers\Admin\PurchaseOrderEmailController::class, 'send'])->middleware('throttle:6,1')->name('purchase-orders.email.send');
-    Route::get('purchase-orders/{purchase_order}/pdf', [\App\Http\Controllers\Admin\PurchaseOrderEmailController::class, 'document'])->name('purchase-orders.pdf');
     Route::resource('purchase-orders', PurchaseOrderController::class);
     Route::get('procurement/receiving', [ProcurementController::class, 'receiving'])->name('procurement.receiving');
     Route::get('procurement/reorders', [ProcurementController::class, 'reorders'])->name('procurement.reorders');

@@ -156,3 +156,18 @@ test('a draft purchase order cannot be edited once ordered', function () {
     $this->actingAs($this->admin)->get(route('admin.purchase-orders.edit', $purchaseOrder))
         ->assertRedirect(route('admin.purchase-orders.show', $purchaseOrder));
 });
+
+
+test('purchase orders use the original workflow without supplier email actions', function () {
+    $order = PurchaseOrder::create([
+        'po_number' => 'PO-WITHOUT-EMAIL', 'supplier_id' => $this->supplier->id,
+        'status' => 'ordered', 'ordered_at' => today(), 'created_by' => $this->admin->id,
+    ]);
+    $this->actingAs($this->admin)->get(route('admin.purchase-orders.show', $order))->assertOk()
+        ->assertSee('Line Items')->assertSee('Details')->assertSee('Record Receipt')
+        ->assertDontSee('Send to Supplier')->assertDontSee('Supplier Email')
+        ->assertDontSee('Email History')->assertDontSee('Station email setup is incomplete.');
+    $this->get('/admin/purchase-orders/'.$order->id.'/email')->assertNotFound();
+    $this->post('/admin/purchase-orders/'.$order->id.'/email')->assertNotFound();
+    $this->get('/admin/purchase-orders/'.$order->id.'/pdf')->assertNotFound();
+});
