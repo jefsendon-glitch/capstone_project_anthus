@@ -11,15 +11,15 @@
     </form>
     <div class="grid items-start gap-4 xl:grid-cols-2">
         <x-card padding="p-4">
-            <h2 class="mb-3 text-sm font-semibold">Currently Borrowed</h2>
-            <div class="overflow-x-auto"><table class="min-w-full text-left text-xs"><thead><tr class="border-b border-slate-200 text-slate-500 dark:border-white/10"><th class="py-2">Gallon</th><th class="py-2">Type / Size</th><th class="py-2 text-right">Quantity</th></tr></thead><tbody>
+            <h2 class="mb-3 text-base font-semibold">Currently Borrowed</h2>
+            <div class="overflow-x-auto"><table class="min-w-full text-left text-sm"><thead><tr class="border-b border-slate-200 text-slate-500 dark:border-white/10"><th class="py-2">Gallon</th><th class="py-2">Type / Size</th><th class="py-2 text-right">Quantity</th></tr></thead><tbody>
                 @forelse($balances as $balance)<tr class="border-b border-slate-100 dark:border-white/5"><td class="py-3">{{ $balance->name }}</td><td class="py-3">{{ $balance->type ?? 'Unspecified' }} / {{ $balance->size }}</td><td class="py-3 text-right font-semibold">{{ $balance->quantity }}</td></tr>
                 @empty<tr><td colspan="3" class="py-5 text-slate-500">{{ request()->filled('search') ? 'No borrowed gallons match your search.' : 'You have no outstanding borrowed gallons.' }}</td></tr>@endforelse
             </tbody></table></div><div class="mt-3">{{ $balances->links() }}</div>
         </x-card>
         <x-card padding="p-4">
-            <h2 class="mb-1 text-sm font-semibold">Gallon History</h2><p class="mb-3 text-xs text-slate-500">Missing gallons are separate from returned gallons. History is available while retained by the station.</p>
-            <div class="overflow-x-auto"><table class="min-w-full text-left text-xs"><thead><tr class="border-b border-slate-200 text-slate-500 dark:border-white/10"><th class="py-2">Date / Gallon</th><th class="px-2 py-2">Record</th><th class="py-2 text-right">Quantity</th></tr></thead><tbody>
+            <h2 class="mb-1 text-base font-semibold">Gallon History</h2><p class="mb-3 text-xs text-slate-500">Missing gallons are separate from returned gallons. History is available while retained by the station.</p>
+            <div class="overflow-x-auto"><table class="min-w-full text-left text-sm"><thead><tr class="border-b border-slate-200 text-slate-500 dark:border-white/10"><th class="py-2">Date / Gallon</th><th class="px-2 py-2">Record</th><th class="py-2 text-right">Quantity</th></tr></thead><tbody>
                 @forelse($history as $record)
                     <tr class="border-b border-slate-100 dark:border-white/5"><td class="py-3"><p>{{ $record->name }} / {{ $record->type ?? 'Unspecified' }}</p><p class="mt-1 text-slate-500">{{ \Illuminate\Support\Carbon::parse($record->created_at)->format('M d, Y') }}</p></td><td class="px-2 py-3"><x-badge :color="$record->to_status === 'missing' ? 'danger' : ($record->to_status === 'damaged' ? 'warning' : 'primary')">{{ $record->action === 'return' ? ($record->to_status === 'damaged' ? 'Damaged return' : 'Usable return') : ($record->action === 'release' ? 'Borrowed' : ucfirst($record->to_status)) }}</x-badge></td><td class="py-3 text-right font-semibold">{{ $record->quantity }}</td></tr>
                 @empty<tr><td colspan="3" class="py-5 text-slate-500">No gallon history found.</td></tr>@endforelse

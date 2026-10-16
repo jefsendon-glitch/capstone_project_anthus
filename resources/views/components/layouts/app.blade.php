@@ -16,7 +16,7 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body
-    data-admin-ui="{{ auth()->user()->isAdmin() ? 'minimal' : '' }}"
+    data-ui="minimal"
     x-data="{ sidebarOpen: false, logoutConfirm: false }"
     x-on:keydown.escape.window="sidebarOpen = false"
     data-live-notifications-url="{{ route('realtime.notifications') }}"

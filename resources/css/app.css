@@ -194,6 +194,10 @@
         @apply relative min-h-full;
     }
 
+    .app-canvas :is(h1, h2, h3, h4, h5, h6) {
+        font-family: var(--font-sans);
+    }
+
     .app-canvas::before {
         content: '';
         @apply pointer-events-none fixed inset-0 -z-10 opacity-70;
@@ -242,39 +246,39 @@
     }
 }
 
-/* Admin pages share a restrained visual style without changing other roles. */
-body[data-admin-ui='minimal'] {
+/* All signed-in accounts share the same compact visual style. */
+body[data-ui='minimal'] {
     background: #f8fafc;
 }
 
-.dark body[data-admin-ui='minimal'] {
+.dark body[data-ui='minimal'] {
     background: #020617;
 }
 
-body[data-admin-ui='minimal'] .app-canvas::before {
+body[data-ui='minimal'] .app-canvas::before {
     display: none;
 }
 
-body[data-admin-ui='minimal'] :is(h1, h2, h3, h4, h5, h6) {
+body[data-ui='minimal'] :is(h1, h2, h3, h4, h5, h6) {
     font-family: var(--font-sans);
 }
 
-body[data-admin-ui='minimal'] .ui-card {
+body[data-ui='minimal'] .ui-card {
     border-radius: 12px;
     border-color: #e2e8f0;
     box-shadow: none;
     animation: none;
 }
 
-body[data-admin-ui='minimal'] .ui-card.p-6 {
+body[data-ui='minimal'] .ui-card.p-6 {
     padding: 1rem;
 }
 
-.dark body[data-admin-ui='minimal'] .ui-card {
+.dark body[data-ui='minimal'] .ui-card {
     border-color: #1e293b;
 }
 
-body[data-admin-ui='minimal'] .ui-button {
+body[data-ui='minimal'] .ui-button {
     min-height: 38px;
     border-radius: 8px;
     background-image: none;
@@ -282,50 +286,50 @@ body[data-admin-ui='minimal'] .ui-button {
     transform: none;
 }
 
-body[data-admin-ui='minimal'] .ui-button-primary {
+body[data-ui='minimal'] .ui-button-primary {
     background-color: #0369a1;
 }
 
-body[data-admin-ui='minimal'] .ui-button-primary:hover {
+body[data-ui='minimal'] .ui-button-primary:hover {
     background-color: #075985;
 }
 
-body[data-admin-ui='minimal'] .ui-button-danger {
+body[data-ui='minimal'] .ui-button-danger {
     background-color: #b91c1c;
 }
 
-body[data-admin-ui='minimal'] .ui-button-danger:hover {
+body[data-ui='minimal'] .ui-button-danger:hover {
     background-color: #991b1b;
 }
 
-body[data-admin-ui='minimal'] .ui-button-secondary {
+body[data-ui='minimal'] .ui-button-secondary {
     border: 1px solid #e2e8f0;
 }
 
-.dark body[data-admin-ui='minimal'] .ui-button-secondary {
+.dark body[data-ui='minimal'] .ui-button-secondary {
     border-color: #334155;
 }
 
-body[data-admin-ui='minimal'] :is(input:not([type='checkbox']):not([type='radio']), select, textarea) {
+body[data-ui='minimal'] :is(input:not([type='checkbox']):not([type='radio']), select, textarea) {
     border-radius: 8px;
 }
 
-body[data-admin-ui='minimal'] .sidebar-nav-link {
+body[data-ui='minimal'] .sidebar-nav-link {
     border-radius: 8px;
     transform: none;
     box-shadow: none;
 }
 
-body[data-admin-ui='minimal'] .sidebar-nav-link.is-active {
+body[data-ui='minimal'] .sidebar-nav-link.is-active {
     background-image: none;
     background-color: #0369a1;
 }
 
-body[data-admin-ui='minimal'] .app-canvas > aside {
+body[data-ui='minimal'] .app-canvas > aside {
     box-shadow: none;
 }
 
-body[data-admin-ui='minimal'] header {
+body[data-ui='minimal'] header {
     min-height: 64px;
     height: auto;
     background-color: #fff;
@@ -333,31 +337,31 @@ body[data-admin-ui='minimal'] header {
     backdrop-filter: none;
 }
 
-.dark body[data-admin-ui='minimal'] header {
+.dark body[data-ui='minimal'] header {
     background-color: #0f172a;
 }
 
-body[data-admin-ui='minimal'] main {
+body[data-ui='minimal'] main {
     min-width: 0;
     padding: 1rem;
 }
 
 @media (min-width: 640px) {
-    body[data-admin-ui='minimal'] main {
+    body[data-ui='minimal'] main {
         padding: 1.25rem 1.5rem;
     }
 }
 
 @media (max-width: 639px) {
-    body[data-admin-ui='minimal'] .ui-card.p-6 {
+    body[data-ui='minimal'] .ui-card.p-6 {
         padding: 0.875rem;
     }
 
-    body[data-admin-ui='minimal'] header h1 {
+    body[data-ui='minimal'] header h1 {
         font-size: 1rem;
     }
 
-    body[data-admin-ui='minimal'] main table :is(th, td) {
+    body[data-ui='minimal'] main table :is(th, td) {
         padding-left: 0.75rem;
         padding-right: 0.75rem;
     }
