@@ -39,7 +39,14 @@
             <form method="POST" action="{{ route('admin.inventory.gallon-inventory.store') }}" class="mt-3 grid gap-3 sm:grid-cols-2">
                 @csrf
                 <div><x-input-label for="gallon-name" value="Gallon name" /><x-text-input id="gallon-name" name="name" placeholder="Round gallon" maxlength="255" required /></div>
-                <div><x-input-label for="gallon-type" value="Gallon type" /><x-text-input id="gallon-type" name="type" :value="old('type')" placeholder="Round / Slim" maxlength="100" required /></div>
+                <div>
+                    <x-input-label for="gallon-type" value="Gallon type" />
+                    <x-select id="gallon-type" name="type" required>
+                        <option value="" disabled @selected(!old('type'))>Select gallon type</option>
+                        <option value="Round Gallon" @selected(old('type') === 'Round Gallon')>Round Gallon</option>
+                        <option value="Slim Gallon" @selected(old('type') === 'Slim Gallon')>Slim Gallon</option>
+                    </x-select>
+                </div>
                 <div><x-input-label for="gallon-size" value="Size" /><x-text-input id="gallon-size" name="size" placeholder="5 gallons" maxlength="100" required /></div>
                 <div><x-input-label for="opening-quantity" value="Opening empty gallons" /><x-text-input id="opening-quantity" name="quantity" :value="old('quantity')" type="number" step="1" min="1" max="1000000" required /></div>
                 <x-button variant="success" type="submit">Register Gallons</x-button>
