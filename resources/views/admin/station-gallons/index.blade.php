@@ -58,7 +58,7 @@
             @if($gallons->isEmpty())
                 <p class="text-sm text-slate-500">Register a gallon type to begin adding, filling, and releasing containers.</p>
             @else
-                <form method="POST" action="{{ route('admin.inventory.gallon-inventory.move') }}" class="mt-3 grid gap-3 sm:grid-cols-2" x-data="{
+                <form method="POST" action="{{ route('admin.inventory.gallon-inventory.move') }}" class="mt-4 grid gap-4 sm:grid-cols-2" x-data="{
                     action: @js(in_array(old('action'), ['add', 'fill', 'release', 'return']) ? old('action') : 'add'),
                     gallonId: @js((string) old('gallon_id', $gallons->first()->id)),
                     customerId: @js((string) old('customer_id', '')),
@@ -72,8 +72,12 @@
                     get invalidReturn() { return !this.customerId || this.borrowed === 0 || this.returned === '' || Number(this.returned) > this.borrowed || Number(this.returned) &lt; 0 || Number(this.damaged) > Number(this.returned) || Number(this.damaged) &lt; 0 || (Number(this.returned) === 0 &amp;&amp; this.settlement === '0'); }
                 }">
                     @csrf
+                    <div x-show="action === 'return'" x-cloak class="border-b border-slate-200 pb-3 dark:border-white/10 sm:col-span-2">
+                        <h3 class="text-base font-semibold text-slate-900 dark:text-white">Customer Return Details</h3>
+                        <p class="mt-1 text-sm text-slate-500">Select the customer and container, enter the returned quantities, and review the summary before saving.</p>
+                    </div>
                     <div>
-                        <x-input-label for="movement-action" value="1. Select action" />
+                        <x-input-label for="movement-action" value="Movement Type" />
                         <x-select id="movement-action" name="action" x-model="action">
                             <optgroup label="Station inventory">
                                 <option value="add">Add new empty containers</option>
@@ -84,41 +88,41 @@
                                 <option value="return">Return from Customer</option>
                             </optgroup>
                         </x-select>
-                        <p class="mt-1 text-xs text-slate-500" x-text="{ add: 'Add newly purchased empty gallons to station stock.', fill: 'Fill empty gallons. Water production is recorded automatically.', release: 'Record filled gallons borrowed by a customer.', return: 'Enter the total returned and how many were damaged. Any shortage is recorded under the customer.' }[action]"></p>
+                        <p class="mt-1 text-xs text-slate-500" x-text="{ add: 'Add newly purchased empty gallons to station stock.', fill: 'Fill empty gallons. Water production is recorded automatically.', release: 'Record filled gallons borrowed by a customer.', return: 'Record returned containers, their condition, and the disposition of any unreturned balance.' }[action]"></p>
                     </div>
-                    <div><x-input-label for="movement-gallon" value="2. Select gallon" /><x-select id="movement-gallon" name="gallon_id" x-model="gallonId" required>@foreach($gallons as $gallon)<option value="{{ $gallon->id }}" @selected((string) old('gallon_id') === (string) $gallon->id)>{{ $gallon->name }} / {{ $gallon->type ?? 'Unspecified' }} — {{ $gallon->size }}</option>@endforeach</x-select></div>
+                    <div><x-input-label for="movement-gallon" value="Gallon Container" /><x-select id="movement-gallon" name="gallon_id" x-model="gallonId" required>@foreach($gallons as $gallon)<option value="{{ $gallon->id }}" @selected((string) old('gallon_id') === (string) $gallon->id)>{{ $gallon->name }} / {{ $gallon->type ?? 'Unspecified' }} — {{ $gallon->size }}</option>@endforeach</x-select></div>
                     <div x-show="action === 'release' || action === 'return'" x-cloak>
                         <x-input-label for="movement-customer" value="Customer" /><x-select id="movement-customer" name="customer_id" x-model="customerId" data-tom-select placeholder="Search customer name..." x-effect="const needsCustomer = action === 'release' || action === 'return'; if ($el.tomselect) { needsCustomer ? $el.tomselect.enable() : $el.tomselect.disable(); }" x-bind:disabled="!(action === 'release' || action === 'return')" x-bind:required="action === 'release' || action === 'return'"><option value="">Select customer</option>@foreach($customers as $customer)<option value="{{ $customer->id }}" @selected((string) old('customer_id') === (string) $customer->id)>{{ $customer->name }}</option>@endforeach</x-select>
                     </div>
-                    <div x-show="action === 'return'" x-cloak class="rounded-xl bg-slate-50 p-3 dark:bg-white/5 sm:col-span-2">
-                        <p class="text-sm font-semibold">Outstanding borrowed gallons: <span x-text="customerId ? borrowed : 'Select a customer'"></span></p>
-                        <p class="mt-1 text-xs text-slate-500">Para sa napiling customer at gallon type lamang.</p>
-                        <p x-show="customerId &amp;&amp; borrowed === 0" class="mt-1 text-sm text-red-600" role="status">Walang hiniram na natitirang galon para sa customer at type na ito.</p>
+                    <div x-show="action === 'return'" x-cloak class="rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-white/10 dark:bg-white/5 sm:col-span-2">
+                        <p class="text-sm font-semibold">Outstanding Borrowed Quantity: <span x-text="customerId ? borrowed : 'Select a customer'"></span></p>
+                        <p class="mt-1 text-xs text-slate-500">Current outstanding balance for the selected customer and container type.</p>
+                        <p x-show="customerId &amp;&amp; borrowed === 0" class="mt-1 text-sm text-red-600" role="status">No outstanding borrowed containers were found for this customer and container type.</p>
                     </div>
-                    <div><label class="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300" for="movement-quantity" x-text="{ add: 'New empty containers to add', fill: 'Empty containers to fill', release: 'Filled containers to lend', return: 'Total returned / Lahat ng ibinalik' }[action]">Quantity</label><x-text-input id="movement-quantity" name="quantity" x-model="returned" x-bind:max="action === 'return' ? borrowed : 1000000" :value="old('action') ? old('quantity') : ''" type="number" step="1" min="1" x-bind:min="action === 'return' ? 0 : 1" placeholder="Enter quantity" max="1000000" required /></div>
+                    <div><label class="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300" for="movement-quantity" x-text="{ add: 'New empty containers to add', fill: 'Empty containers to fill', release: 'Filled containers to lend', return: 'Total Returned Quantity' }[action]">Quantity</label><x-text-input id="movement-quantity" name="quantity" x-model="returned" x-bind:max="action === 'return' ? borrowed : 1000000" :value="old('action') ? old('quantity') : ''" type="number" step="1" min="1" x-bind:min="action === 'return' ? 0 : 1" placeholder="Enter quantity" max="1000000" required /></div>
                     <div x-show="action === 'return'" x-cloak>
-                        <x-input-label for="returned-damaged" value="Damaged / Ilan sa ibinalik ang sira?" />
+                        <x-input-label for="returned-damaged" value="Damaged Quantity" />
                         <x-text-input id="returned-damaged" name="damaged_quantity" x-model="damaged" x-bind:max="Number(returned || 0)" type="number" min="0" step="1" :value="old('damaged_quantity', 0)" x-bind:disabled="action !== 'return'" />
-                        <p class="mt-1 text-xs text-slate-500">Kasama na ito sa total returned. Ilagay ang 0 kung walang sira.</p>
+                        <p class="mt-1 text-xs text-slate-500">Included in the total returned quantity. Enter 0 if all returned containers are usable.</p>
                     </div>
-                    <div x-show="action === 'return'" x-cloak>
-                        <x-input-label for="return-settlement" value="Kung may kulang sa ibinalik" />
+                    <div x-show="action === 'return'" x-cloak class="sm:col-span-2">
+                        <x-input-label for="return-settlement" value="Unreturned Balance" />
                         <x-select id="return-settlement" name="settle_return" x-model="settlement" x-bind:disabled="action !== 'return'">
-                            <option value="1" @selected(old('settle_return', '1') == '1')>Missing - hindi na ibabalik (automatic)</option>
-                            <option value="0" @selected(old('settle_return', '1') == '0')>Borrowed pa rin - ibabalik sa susunod</option>
+                            <option value="1" @selected(old('settle_return', '1') == '1')>Record as missing (close borrowed balance)</option>
+                            <option value="0" @selected(old('settle_return', '1') == '0')>Keep as borrowed (return expected later)</option>
                         </x-select>
                     </div>
-                    <div x-show="action === 'return'" x-cloak class="rounded-xl border border-slate-200 p-3 dark:border-white/10 sm:col-span-2" aria-live="polite">
-                        <p class="mb-2 text-sm font-semibold">Return summary</p>
+                    <div x-show="action === 'return'" x-cloak class="rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-white/10 dark:bg-white/5 sm:col-span-2" aria-live="polite">
+                        <p class="mb-2 text-sm font-semibold">Return Summary</p>
                         <dl class="grid grid-cols-2 gap-2 text-sm">
-                            <dt>Maayos na ibinalik</dt><dd class="text-right font-semibold" x-text="usable"></dd>
-                            <dt>Sirang ibinalik</dt><dd class="text-right font-semibold" x-text="Number(damaged || 0)"></dd>
-                            <dt x-text="settlement === '1' ? 'Missing (automatic)' : 'Ibabalik sa susunod'"></dt><dd class="text-right font-semibold" x-text="shortage"></dd>
+                            <dt class="text-slate-500">Usable Containers Returned</dt><dd class="text-right font-semibold tabular-nums" x-text="usable"></dd>
+                            <dt class="text-slate-500">Damaged Containers Returned</dt><dd class="text-right font-semibold tabular-nums" x-text="Number(damaged || 0)"></dd>
+                            <dt class="text-slate-500" x-text="settlement === '1' ? 'Missing Containers' : 'Remaining Borrowed Containers'"></dt><dd class="text-right font-semibold tabular-nums" x-text="shortage"></dd>
                         </dl>
-                        <p class="mt-2 text-xs text-slate-500">Halimbawa: 10 hiniram, 7 ibinalik, 2 sira = 5 maayos, 2 damaged, 3 missing. Ilagay ang 0 sa total returned kung walang naibalik.</p>
-                        <p x-show="Number(returned) > borrowed || Number(damaged) > Number(returned)" class="mt-2 text-sm text-red-600">Hindi puwedeng lumampas ang ibinalik sa hiniram, o ang damaged sa total returned.</p>
+                        <p class="mt-2 text-xs text-slate-500">The total returned quantity must include both usable and damaged containers. Enter 0 if no containers were returned.</p>
+                        <p x-show="Number(returned) > borrowed || Number(damaged) > Number(returned)" class="mt-2 text-sm text-red-600">Returned quantity cannot exceed the borrowed balance. Damaged quantity cannot exceed the total returned quantity.</p>
                     </div>
-                    <div class="sm:col-span-2"><x-input-label for="movement-notes" value="Notes / reason (optional)" /><x-textarea id="movement-notes" name="notes" rows="2" maxlength="1000" placeholder="Optional: explain the return, damage, or stock change.">{{ old('notes') }}</x-textarea></div>
+                    <div class="sm:col-span-2"><x-input-label for="movement-notes" value="Additional Notes (Optional)" /><x-textarea id="movement-notes" name="notes" rows="2" maxlength="1000" placeholder="Enter relevant details about the return, container condition, or stock adjustment.">{{ old('notes') }}</x-textarea></div>
                     <div class="flex justify-end border-t border-slate-100 pt-3 dark:border-white/10 sm:col-span-2"><x-button variant="success" type="submit" x-bind:disabled="action === 'return' &amp;&amp; invalidReturn"><span x-text="action === 'return' ? 'Save Customer Return' : 'Save Movement'">Save Movement</span></x-button></div>
                 </form>
             @endif
