@@ -58,15 +58,26 @@
             @if($gallons->isEmpty())
                 <p class="text-sm text-slate-500">Register a gallon type to begin adding, filling, and releasing containers.</p>
             @else
-                <form method="POST" action="{{ route('admin.inventory.gallon-inventory.move') }}" class="mt-3 grid gap-3 sm:grid-cols-2" x-data="{ action: @js(old('action', 'add')), source: @js(old('from_status', old('action') === 'missing' ? 'borrowed' : 'empty')) }" x-init="$watch('action', value => { if (value === 'missing') source = 'borrowed'; })">
+                <form method="POST" action="{{ route('admin.inventory.gallon-inventory.move') }}" class="mt-3 grid gap-3 sm:grid-cols-2" x-data="{ action: @js(in_array(old('action'), ['add', 'fill', 'release', 'return']) ? old('action') : 'add') }">
                     @csrf
                     <div><x-input-label value="Registered gallon" /><x-select name="gallon_id" required>@foreach($gallons as $gallon)<option value="{{ $gallon->id }}" @selected((string) old('gallon_id') === (string) $gallon->id)>{{ $gallon->name }} / {{ $gallon->type ?? 'Unspecified' }} — {{ $gallon->size }}</option>@endforeach</x-select></div>
-                    <div><x-input-label value="Action" /><x-select name="action" x-model="action"><option value="add">Add empty gallons</option><option value="fill">Fill gallons</option><option value="release">Release to customer</option><option value="return">Return from customer</option><option value="damage">Report damaged</option><option value="missing">Report missing / Not returned by customer</option></x-select></div>
-                    <div x-show="action === 'damage' || action === 'missing'" x-cloak><x-input-label value="Current location / condition" /><x-select name="from_status" x-model="source" x-bind:disabled="action !== 'damage' && action !== 'missing'"><option value="empty">Empty</option><option value="filled">Filled</option><option value="borrowed">Borrowed by customer</option></x-select></div>
-                    <div x-show="action === 'release' || action === 'return' || ((action === 'damage' || action === 'missing') && source === 'borrowed')" x-cloak>
-                        <x-input-label for="movement-customer" value="Customer" /><x-select id="movement-customer" name="customer_id" data-tom-select placeholder="Search customer name..." x-effect="const needsCustomer = action === 'release' || action === 'return' || ((action === 'damage' || action === 'missing') &amp;&amp; source === 'borrowed'); if ($el.tomselect) { needsCustomer ? $el.tomselect.enable() : $el.tomselect.disable(); }" x-bind:disabled="!(action === 'release' || action === 'return' || ((action === 'damage' || action === 'missing') && source === 'borrowed'))" x-bind:required="action === 'release' || action === 'return' || ((action === 'damage' || action === 'missing') && source === 'borrowed')"><option value="">Select customer</option>@foreach($customers as $customer)<option value="{{ $customer->id }}" @selected((string) old('customer_id') === (string) $customer->id)>{{ $customer->name }}</option>@endforeach</x-select>
+                    <div>
+                        <x-input-label for="movement-action" value="Action" />
+                        <x-select id="movement-action" name="action" x-model="action">
+                            <optgroup label="Station inventory">
+                                <option value="add">Add new empty containers</option>
+                                <option value="fill">Fill empty containers with water</option>
+                            </optgroup>
+                            <optgroup label="Customer borrowing and returns">
+                                <option value="release">Lend filled containers to customer</option>
+                                <option value="return">Record customer return (usable / damaged / missing)</option>
+                            </optgroup>
+                        </x-select>
+                        <p class="mt-1 text-xs text-slate-500" x-text="{ add: 'Adds purchased or newly acquired containers to empty stock.', fill: 'Moves empty containers to filled stock and records water production.', release: 'Moves filled containers to borrowed stock under the selected customer.', return: 'Records the actual returned quantity, damaged returns, and any missing balance under the customer.' }[action]"></p>
                     </div>
-                    <p x-show="action === 'missing' &amp;&amp; source === 'borrowed'" x-cloak class="text-xs text-slate-500 sm:col-span-2">Select the customer who did not return the borrowed gallons. The quantity moves from Borrowed to Missing and is recorded under that customer in movement history.</p>
+                    <div x-show="action === 'release' || action === 'return'" x-cloak>
+                        <x-input-label for="movement-customer" value="Customer" /><x-select id="movement-customer" name="customer_id" data-tom-select placeholder="Search customer name..." x-effect="const needsCustomer = action === 'release' || action === 'return'; if ($el.tomselect) { needsCustomer ? $el.tomselect.enable() : $el.tomselect.disable(); }" x-bind:disabled="!(action === 'release' || action === 'return')" x-bind:required="action === 'release' || action === 'return'"><option value="">Select customer</option>@foreach($customers as $customer)<option value="{{ $customer->id }}" @selected((string) old('customer_id') === (string) $customer->id)>{{ $customer->name }}</option>@endforeach</x-select>
+                    </div>
                     <div x-show="action === 'return'" x-cloak>
                         <x-input-label for="returned-damaged" value="Damaged gallons included in return" />
                         <x-text-input id="returned-damaged" name="damaged_quantity" type="number" min="0" step="1" :value="old('damaged_quantity', 0)" x-bind:disabled="action !== 'return'" />
@@ -79,8 +90,8 @@
                         </x-select>
                     </div>
                     <p x-show="action === 'return'" x-cloak class="text-xs text-slate-500 sm:col-span-2">Quantity means the total physically returned, including damaged gallons. Example: 10 borrowed, 7 returned (2 damaged) = 5 usable, 2 damaged, and 3 automatically missing. This closes all outstanding borrowing for the selected customer and gallon type unless you choose Return later.</p>
-                    <div><x-input-label value="Quantity" /><x-text-input name="quantity" :value="old('quantity')" type="number" step="1" min="1" x-bind:min="action === 'return' ? 0 : 1" max="1000000" required /></div>
-                    <div><x-input-label value="Notes / reason" /><x-textarea name="notes" rows="2" maxlength="1000" x-bind:required="action === 'damage' || action === 'missing'">{{ old('notes') }}</x-textarea></div>
+                    <div><label class="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300" for="movement-quantity" x-text="{ add: 'New empty containers to add', fill: 'Empty containers to fill', release: 'Filled containers to lend', return: 'Total physically returned (including damaged)' }[action]">Quantity</label><x-text-input id="movement-quantity" name="quantity" :value="old('quantity')" type="number" step="1" min="1" x-bind:min="action === 'return' ? 0 : 1" max="1000000" required /></div>
+                    <div><x-input-label value="Notes / reason" /><x-textarea name="notes" rows="2" maxlength="1000">{{ old('notes') }}</x-textarea></div>
                     <x-button variant="success" type="submit">Save Movement</x-button>
                 </form>
             @endif
@@ -158,7 +169,9 @@
     </x-card>
 
     <x-card padding="p-3" class="mb-3">
-        <h3 class="mb-2 text-sm font-semibold">Customer Missing &amp; Damaged Return Records</h3>
+        <details>
+        <summary class="cursor-pointer text-sm font-semibold">Customer Missing &amp; Damaged Return Records <span class="ml-1 text-xs font-normal text-slate-500">({{ $customerIssues->count() }})</span></summary>
+        <div class="mt-3">
         <p class="mb-2 text-xs text-slate-500">Customer records across all months. Missing quantities are not counted as returns. Clearing movement history also clears these records.</p>
         <div x-data="{ search: '' }">
             <x-input-label for="issue-customer-search" value="Search customer" />
@@ -181,6 +194,8 @@
                 </tbody>
             </table></div>
         </div>
+        </div>
+        </details>
     </x-card>
 
     <x-card padding="p-3">
