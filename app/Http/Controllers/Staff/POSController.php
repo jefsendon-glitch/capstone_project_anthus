@@ -38,7 +38,7 @@ class POSController extends Controller
             })
             ->when($request->filled('type'), fn ($query) => $query->where('transaction_type', $request->string('type')))
             ->latest()->orderByDesc('id')
-            ->paginate(5)
+            ->paginate(10)
             ->withQueryString();
 
         return view('staff.pos.index', compact('transactions'));
