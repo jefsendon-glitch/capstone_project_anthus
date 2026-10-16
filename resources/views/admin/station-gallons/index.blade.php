@@ -33,14 +33,14 @@
         </div>
     @endif
 
-    <div class="mb-3 grid items-start gap-3 xl:grid-cols-2">
-        <x-card padding="p-3">
+    <div class="mb-3 grid items-start gap-3 xl:grid-cols-5 [&_form_input]:!py-2 [&_form_select]:!py-2 [&_form_textarea]:!py-2 [&_form_label]:!text-xs">
+        <x-card padding="p-3" class="xl:col-span-2">
             <details @if($gallons->isEmpty() || ($errors->any() && !old('action') && !old('edit_gallon_id'))) open @endif><summary class="cursor-pointer text-sm font-semibold">Register Gallon Type</summary>
-            <form method="POST" action="{{ route('admin.inventory.gallon-inventory.store') }}" class="mt-4 grid gap-4 sm:grid-cols-2">
+            <form method="POST" action="{{ route('admin.inventory.gallon-inventory.store') }}" class="mt-3 grid gap-3 sm:grid-cols-2">
                 @csrf
-                <div><x-input-label for="gallon-name" value="Gallon name" /><x-text-input id="gallon-name" name="name" :value="!old('action') && !old('edit_gallon_id') ? old('name') : ''" placeholder="e.g. Station container" maxlength="255" required /></div>
+                <div><x-input-label for="gallon-name" value="Gallon Name" /><x-text-input id="gallon-name" name="name" :value="!old('action') && !old('edit_gallon_id') ? old('name') : ''" placeholder="e.g. Station container" maxlength="255" required /></div>
                 <div>
-                    <x-input-label for="gallon-type" value="Gallon type" />
+                    <x-input-label for="gallon-type" value="Gallon Type" />
                     <x-select id="gallon-type" name="type" required>
                         <option value="" disabled @selected(!old('type'))>Select gallon type</option>
                         <option value="Round Gallon" @selected(old('type') === 'Round Gallon')>Round Gallon</option>
@@ -48,17 +48,17 @@
                     </x-select>
                 </div>
                 <div><x-input-label for="gallon-size" value="Size" /><x-text-input id="gallon-size" name="size" :value="!old('action') && !old('edit_gallon_id') ? old('size') : ''" placeholder="e.g. 5 gallons / 20 liters" maxlength="100" required /></div>
-                <div><x-input-label for="opening-quantity" value="Opening empty gallons" /><x-text-input id="opening-quantity" name="quantity" :value="!old('action') && !old('edit_gallon_id') ? old('quantity') : ''" placeholder="Enter initial empty stock" type="number" step="1" min="1" max="1000000" required /></div>
+                <div><x-input-label for="opening-quantity" value="Initial Empty Stock" /><x-text-input id="opening-quantity" name="quantity" :value="!old('action') && !old('edit_gallon_id') ? old('quantity') : ''" placeholder="Enter initial empty stock" type="number" step="1" min="1" max="1000000" required /></div>
                 <div class="flex justify-end border-t border-slate-100 pt-3 dark:border-white/10 sm:col-span-2"><x-button variant="success" type="submit">Register Gallons</x-button></div>
             </form>
             </details>
         </x-card>
-        <x-card padding="p-3">
+        <x-card padding="p-3" class="xl:col-span-3">
             <details @if($errors->any() && old('action')) open @endif><summary class="cursor-pointer text-sm font-semibold">Record Gallon Movement</summary>
             @if($gallons->isEmpty())
                 <p class="text-sm text-slate-500">Register a gallon type to begin adding, filling, and releasing containers.</p>
             @else
-                <form method="POST" action="{{ route('admin.inventory.gallon-inventory.move') }}" class="mt-4 grid gap-4 sm:grid-cols-2" x-data="{
+                <form method="POST" action="{{ route('admin.inventory.gallon-inventory.move') }}" class="mt-3 grid gap-3 sm:grid-cols-2" x-data="{
                     action: @js(in_array(old('action'), ['add', 'fill', 'release', 'return']) ? old('action') : 'add'),
                     gallonId: @js((string) old('gallon_id', $gallons->first()->id)),
                     customerId: @js((string) old('customer_id', '')),
@@ -72,57 +72,52 @@
                     get invalidReturn() { return !this.customerId || this.borrowed === 0 || this.returned === '' || Number(this.returned) > this.borrowed || Number(this.returned) &lt; 0 || Number(this.damaged) > Number(this.returned) || Number(this.damaged) &lt; 0 || (Number(this.returned) === 0 &amp;&amp; this.settlement === '0'); }
                 }">
                     @csrf
-                    <div x-show="action === 'return'" x-cloak class="border-b border-slate-200 pb-3 dark:border-white/10 sm:col-span-2">
-                        <h3 class="text-base font-semibold text-slate-900 dark:text-white">Customer Return Details</h3>
-                        <p class="mt-1 text-sm text-slate-500">Select the customer and container, enter the returned quantities, and review the summary before saving.</p>
-                    </div>
                     <div>
-                        <x-input-label for="movement-action" value="Movement Type" />
+                        <x-input-label for="movement-action" value="Action" />
                         <x-select id="movement-action" name="action" x-model="action">
                             <optgroup label="Station inventory">
-                                <option value="add">Add new empty containers</option>
-                                <option value="fill">Fill empty containers with water</option>
+                                <option value="add">Add Empty Gallons</option>
+                                <option value="fill">Fill Gallons</option>
                             </optgroup>
                             <optgroup label="Customer borrowing and returns">
-                                <option value="release">Lend filled containers to customer</option>
+                                <option value="release">Lend to Customer</option>
                                 <option value="return">Return from Customer</option>
                             </optgroup>
                         </x-select>
-                        <p class="mt-1 text-xs text-slate-500" x-text="{ add: 'Add newly purchased empty gallons to station stock.', fill: 'Fill empty gallons. Water production is recorded automatically.', release: 'Record filled gallons borrowed by a customer.', return: 'Record returned containers, their condition, and the disposition of any unreturned balance.' }[action]"></p>
+                        <p class="mt-1 text-xs text-slate-500" x-text="{ add: 'Add newly purchased empty gallons to station stock.', fill: 'Fill empty gallons. Water production is recorded automatically.', release: 'Record filled gallons borrowed by a customer.', return: 'Record returned gallons and select how to handle any shortage.' }[action]"></p>
                     </div>
-                    <div><x-input-label for="movement-gallon" value="Gallon Container" /><x-select id="movement-gallon" name="gallon_id" x-model="gallonId" required>@foreach($gallons as $gallon)<option value="{{ $gallon->id }}" @selected((string) old('gallon_id') === (string) $gallon->id)>{{ $gallon->name }} / {{ $gallon->type ?? 'Unspecified' }} — {{ $gallon->size }}</option>@endforeach</x-select></div>
+                    <div><x-input-label for="movement-gallon" value="Gallon" /><x-select id="movement-gallon" name="gallon_id" x-model="gallonId" required>@foreach($gallons as $gallon)<option value="{{ $gallon->id }}" @selected((string) old('gallon_id') === (string) $gallon->id)>{{ $gallon->name }} / {{ $gallon->type ?? 'Unspecified' }} — {{ $gallon->size }}</option>@endforeach</x-select></div>
                     <div x-show="action === 'release' || action === 'return'" x-cloak>
                         <x-input-label for="movement-customer" value="Customer" /><x-select id="movement-customer" name="customer_id" x-model="customerId" data-tom-select placeholder="Search customer name..." x-effect="const needsCustomer = action === 'release' || action === 'return'; if ($el.tomselect) { needsCustomer ? $el.tomselect.enable() : $el.tomselect.disable(); }" x-bind:disabled="!(action === 'release' || action === 'return')" x-bind:required="action === 'release' || action === 'return'"><option value="">Select customer</option>@foreach($customers as $customer)<option value="{{ $customer->id }}" @selected((string) old('customer_id') === (string) $customer->id)>{{ $customer->name }}</option>@endforeach</x-select>
                     </div>
-                    <div x-show="action === 'return'" x-cloak class="rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-white/10 dark:bg-white/5 sm:col-span-2">
-                        <p class="text-sm font-semibold">Outstanding Borrowed Quantity: <span x-text="customerId ? borrowed : 'Select a customer'"></span></p>
-                        <p class="mt-1 text-xs text-slate-500">Current outstanding balance for the selected customer and container type.</p>
-                        <p x-show="customerId &amp;&amp; borrowed === 0" class="mt-1 text-sm text-red-600" role="status">No outstanding borrowed containers were found for this customer and container type.</p>
+                    <div x-show="action === 'return'" x-cloak class="flex flex-col justify-center rounded-lg bg-slate-50 px-3 py-2 dark:bg-white/5">
+                        <p class="text-xs text-slate-500">Borrowed Balance</p>
+                        <p class="text-sm font-semibold tabular-nums" x-text="customerId ? borrowed + ' gallons' : 'Select a customer'"></p>
+                        <p x-show="customerId &amp;&amp; borrowed === 0" class="mt-1 text-xs text-red-600" role="status">No borrowed gallons for this selection.</p>
                     </div>
-                    <div><label class="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300" for="movement-quantity" x-text="{ add: 'New empty containers to add', fill: 'Empty containers to fill', release: 'Filled containers to lend', return: 'Total Returned Quantity' }[action]">Quantity</label><x-text-input id="movement-quantity" name="quantity" x-model="returned" x-bind:max="action === 'return' ? borrowed : 1000000" :value="old('action') ? old('quantity') : ''" type="number" step="1" min="1" x-bind:min="action === 'return' ? 0 : 1" placeholder="Enter quantity" max="1000000" required /></div>
+                    <div><label class="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300" for="movement-quantity" x-text="{ add: 'Quantity to Add', fill: 'Quantity to Fill', release: 'Quantity to Lend', return: 'Total Returned' }[action]">Quantity</label><x-text-input id="movement-quantity" name="quantity" x-model="returned" x-bind:max="action === 'return' ? borrowed : 1000000" :value="old('action') ? old('quantity') : ''" type="number" step="1" min="1" x-bind:min="action === 'return' ? 0 : 1" aria-describedby="returned-quantity-help" placeholder="Enter quantity" max="1000000" required /><p id="returned-quantity-help" x-show="action === 'return'" x-cloak class="mt-1 text-xs text-slate-500">Include usable and damaged gallons. Enter 0 if none were returned.</p></div>
                     <div x-show="action === 'return'" x-cloak>
-                        <x-input-label for="returned-damaged" value="Damaged Quantity" />
+                        <x-input-label for="returned-damaged" value="Damaged Returned" />
                         <x-text-input id="returned-damaged" name="damaged_quantity" x-model="damaged" x-bind:max="Number(returned || 0)" type="number" min="0" step="1" :value="old('damaged_quantity', 0)" x-bind:disabled="action !== 'return'" />
-                        <p class="mt-1 text-xs text-slate-500">Included in the total returned quantity. Enter 0 if all returned containers are usable.</p>
+                        <p class="mt-1 text-xs text-slate-500">Included in Total Returned. Enter 0 if none are damaged.</p>
                     </div>
                     <div x-show="action === 'return'" x-cloak class="sm:col-span-2">
-                        <x-input-label for="return-settlement" value="Unreturned Balance" />
+                        <x-input-label for="return-settlement" value="Remaining Gallons" />
                         <x-select id="return-settlement" name="settle_return" x-model="settlement" x-bind:disabled="action !== 'return'">
-                            <option value="1" @selected(old('settle_return', '1') == '1')>Record as missing (close borrowed balance)</option>
-                            <option value="0" @selected(old('settle_return', '1') == '0')>Keep as borrowed (return expected later)</option>
+                            <option value="1" @selected(old('settle_return', '1') == '1')>Record shortage as missing</option>
+                            <option value="0" @selected(old('settle_return', '1') == '0')>Keep shortage as borrowed</option>
                         </x-select>
                     </div>
-                    <div x-show="action === 'return'" x-cloak class="rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-white/10 dark:bg-white/5 sm:col-span-2" aria-live="polite">
-                        <p class="mb-2 text-sm font-semibold">Return Summary</p>
-                        <dl class="grid grid-cols-2 gap-2 text-sm">
-                            <dt class="text-slate-500">Usable Containers Returned</dt><dd class="text-right font-semibold tabular-nums" x-text="usable"></dd>
-                            <dt class="text-slate-500">Damaged Containers Returned</dt><dd class="text-right font-semibold tabular-nums" x-text="Number(damaged || 0)"></dd>
-                            <dt class="text-slate-500" x-text="settlement === '1' ? 'Missing Containers' : 'Remaining Borrowed Containers'"></dt><dd class="text-right font-semibold tabular-nums" x-text="shortage"></dd>
+                    <div x-show="action === 'return'" x-cloak class="rounded-lg border border-slate-200 bg-slate-50 p-3 dark:border-white/10 dark:bg-white/5 sm:col-span-2" aria-live="polite">
+                        <p class="mb-2 text-xs font-semibold text-slate-700 dark:text-slate-300">Return Summary</p>
+                        <dl class="grid grid-cols-3 gap-2 text-center">
+                            <div><dt class="text-xs text-slate-500">Usable</dt><dd class="mt-1 text-base font-semibold tabular-nums" x-text="usable"></dd></div>
+                            <div><dt class="text-xs text-slate-500">Damaged</dt><dd class="mt-1 text-base font-semibold tabular-nums" x-text="Number(damaged || 0)"></dd></div>
+                            <div><dt class="text-xs text-slate-500" x-text="settlement === '1' ? 'Missing' : 'Still Borrowed'"></dt><dd class="mt-1 text-base font-semibold tabular-nums" x-text="shortage"></dd></div>
                         </dl>
-                        <p class="mt-2 text-xs text-slate-500">The total returned quantity must include both usable and damaged containers. Enter 0 if no containers were returned.</p>
-                        <p x-show="Number(returned) > borrowed || Number(damaged) > Number(returned)" class="mt-2 text-sm text-red-600">Returned quantity cannot exceed the borrowed balance. Damaged quantity cannot exceed the total returned quantity.</p>
+                        <p x-show="Number(returned) > borrowed || Number(damaged) > Number(returned)" class="mt-2 text-xs text-red-600">Returned quantity cannot exceed the borrowed balance. Damaged quantity cannot exceed total returned.</p>
                     </div>
-                    <div class="sm:col-span-2"><x-input-label for="movement-notes" value="Additional Notes (Optional)" /><x-textarea id="movement-notes" name="notes" rows="2" maxlength="1000" placeholder="Enter relevant details about the return, container condition, or stock adjustment.">{{ old('notes') }}</x-textarea></div>
+                    <details class="sm:col-span-2" @if(old('notes')) open @endif><summary class="cursor-pointer text-xs font-medium text-slate-600 dark:text-slate-300">Add Notes (Optional)</summary><div class="mt-2"><x-input-label for="movement-notes" value="Notes (Optional)" /><x-textarea id="movement-notes" name="notes" rows="2" maxlength="1000" placeholder="Add a short reason or describe the container condition.">{{ old('notes') }}</x-textarea></div></details>
                     <div class="flex justify-end border-t border-slate-100 pt-3 dark:border-white/10 sm:col-span-2"><x-button variant="success" type="submit" x-bind:disabled="action === 'return' &amp;&amp; invalidReturn"><span x-text="action === 'return' ? 'Save Customer Return' : 'Save Movement'">Save Movement</span></x-button></div>
                 </form>
             @endif
@@ -146,16 +141,16 @@
                     </tr>
                     <tr id="gallon-editor-{{ $gallon->id }}" x-show="editing === '{{ $gallon->id }}'" x-cloak class="border-b border-slate-100 bg-slate-50/70 dark:bg-white/5">
                         <td colspan="9" class="p-3">
-                                <form method="POST" action="{{ route('admin.inventory.gallon-inventory.update', $gallon->id) }}" class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                                <form method="POST" action="{{ route('admin.inventory.gallon-inventory.update', $gallon->id) }}" class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 [&_input]:!py-2 [&_select]:!py-2 [&_textarea]:!py-2 [&_label]:!text-xs">
                                     @csrf
                                     @method('PATCH')
                                     <input type="hidden" name="edit_gallon_id" value="{{ $gallon->id }}">
                                     <div>
-                                        <x-input-label for="edit-name-{{ $gallon->id }}" value="Gallon name" />
+                                        <x-input-label for="edit-name-{{ $gallon->id }}" value="Gallon Name" />
                                         <x-text-input id="edit-name-{{ $gallon->id }}" name="name" :value="(string) old('edit_gallon_id') === (string) $gallon->id ? old('name', $gallon->name) : $gallon->name" maxlength="255" required />
                                     </div>
                                     <div>
-                                        <x-input-label for="edit-type-{{ $gallon->id }}" value="Gallon type" />
+                                        <x-input-label for="edit-type-{{ $gallon->id }}" value="Gallon Type" />
                                         @php($editingType = (string) old('edit_gallon_id') === (string) $gallon->id ? old('type', $gallon->type) : $gallon->type)
                                         <x-select id="edit-type-{{ $gallon->id }}" name="type" required>
                                             <option value="" disabled @selected(!$editingType)>Select gallon type</option>
@@ -171,7 +166,7 @@
                                         <x-text-input id="edit-size-{{ $gallon->id }}" name="size" :value="(string) old('edit_gallon_id') === (string) $gallon->id ? old('size', $gallon->size) : $gallon->size" maxlength="100" required />
                                     </div>
                                     <div>
-                                        <x-input-label for="quantity-action-{{ $gallon->id }}" value="Adjust quantity" />
+                                        <x-input-label for="quantity-action-{{ $gallon->id }}" value="Stock Adjustment" />
                                         <x-select id="quantity-action-{{ $gallon->id }}" name="quantity_action">
                                             @foreach(['' => 'Keep current quantity', 'increase' => 'Increase empty gallons', 'decrease' => 'Decrease empty gallons'] as $value => $label)
                                                 <option value="{{ $value }}" @selected((string) old('edit_gallon_id') === (string) $gallon->id && old('quantity_action', '') === $value)>{{ $label }}</option>
@@ -182,12 +177,12 @@
                                         <x-input-label for="adjustment-quantity-{{ $gallon->id }}" value="Quantity" />
                                         <x-text-input id="adjustment-quantity-{{ $gallon->id }}" name="adjustment_quantity" type="number" step="1" min="1" max="1000000" :value="(string) old('edit_gallon_id') === (string) $gallon->id ? old('adjustment_quantity') : ''" />
                                     </div>
-                                    <div class="sm:col-span-2">
-                                        <x-input-label for="adjustment-notes-{{ $gallon->id }}" value="Adjustment reason (optional)" />
-                                        <x-textarea id="adjustment-notes-{{ $gallon->id }}" name="adjustment_notes" rows="2" maxlength="1000" placeholder="e.g. Stock count correction or newly purchased gallons">{{ (string) old('edit_gallon_id') === (string) $gallon->id ? old('adjustment_notes') : '' }}</x-textarea>
+                                    <div class="sm:col-span-2 lg:col-span-1">
+                                        <x-input-label for="adjustment-notes-{{ $gallon->id }}" value="Reason (Optional)" />
+                                        <x-textarea id="adjustment-notes-{{ $gallon->id }}" name="adjustment_notes" rows="1" maxlength="1000" placeholder="e.g. Stock count correction or newly purchased gallons">{{ (string) old('edit_gallon_id') === (string) $gallon->id ? old('adjustment_notes') : '' }}</x-textarea>
                                     </div>
                                     <div class="flex flex-wrap items-end justify-between gap-3 border-t border-slate-200 pt-3 dark:border-white/10 sm:col-span-2 lg:col-span-3">
-                                        <p class="text-xs text-slate-500">{{ number_format($gallon->empty) }} empty available<br>Only empty stock is adjusted. Total Gallons updates automatically.</p>
+                                        <p class="text-xs text-slate-500">{{ number_format($gallon->empty) }} empty available<br>Adjustments apply to empty stock only.</p>
                                         <div class="flex items-center gap-1">
                                             <x-button type="button" variant="ghost" class="!px-3 !py-1.5 !text-xs" x-on:click="editing = ''">Cancel</x-button>
                                             <x-button variant="success" type="submit" class="!px-3 !py-1.5 !text-xs">Save Changes</x-button>
@@ -216,7 +211,7 @@
         <div class="mt-3">
         <p class="mb-2 text-xs text-slate-500">Shows missing gallons and damaged returns by customer across all months. Missing gallons are not counted as returned. These records are cleared when movement history is reset.</p>
         <div x-data="{ search: '' }">
-            <x-input-label for="issue-customer-search" value="Search customer" />
+            <x-input-label for="issue-customer-search" value="Search Customer" />
             <x-text-input id="issue-customer-search" type="search" x-model="search" placeholder="Enter customer name..." class="mb-3" />
             <div class="overflow-x-auto"><table class="min-w-full text-left text-sm">
                 <thead><tr>@foreach(['Date', 'Customer', 'Gallon', 'Record', 'Quantity', 'Notes'] as $label)<th class="px-3 py-2">{{ $label }}</th>@endforeach</tr></thead>
@@ -243,7 +238,7 @@
     <x-card padding="p-3">
         <details @if(request()->has('page') || request()->has('month')) open @endif><summary class="mb-2 cursor-pointer text-sm font-semibold">Gallon Movement History <span class="ml-1 text-xs font-normal text-slate-500">({{ $movements->total() }})</span></summary>
         <form method="GET" action="{{ route('admin.inventory.gallon-inventory') }}" class="mb-3 flex flex-wrap items-end gap-2">
-            <div><x-input-label for="movement-month" value="Movement month" /><x-text-input id="movement-month" name="month" type="month" :value="$month" class="!py-1.5" /></div>
+            <div><x-input-label for="movement-month" value="Month" /><x-text-input id="movement-month" name="month" type="month" :value="$month" class="!py-1.5" /></div>
             <x-button type="submit" class="!px-3 !py-1.5 !text-xs">Filter</x-button>
             <x-button as="a" href="{{ route('admin.inventory.gallon-inventory', ['month' => '']) }}" variant="secondary" class="!px-3 !py-1.5 !text-xs">All Months</x-button>
             <x-button type="submit" formaction="{{ route('admin.inventory.gallon-inventory.report') }}" variant="success" class="!px-3 !py-1.5 !text-xs">Generate Monthly Report</x-button>
