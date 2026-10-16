@@ -212,11 +212,54 @@ test('missing reports transfer only available stock and preserve totals on rejec
     $id = DB::table('station_gallons')->value('id');
     $url = route('admin.inventory.gallon-inventory.move');
     $report = ['gallon_id' => $id, 'action' => 'missing', 'quantity' => 2, 'notes' => 'Count discrepancy'];
-    $this->post($url, $report)->assertSessionHasErrors('from_status');
+    $this->post($url, $report)->assertSessionHasErrors('customer_id');
     $this->post($url, $report + ['from_status' => 'empty'])->assertSessionHasNoErrors();
     $this->assertDatabaseHas('station_gallons', ['id' => $id, 'empty' => 3, 'missing' => 2, 'type' => 'Slim']);
     $this->post($url, array_replace($report, ['from_status' => 'empty', 'quantity' => 4]))->assertSessionHasErrors('quantity');
     $this->post($url, $report + ['from_status' => 'borrowed'])->assertSessionHasErrors('customer_id');
     $this->assertDatabaseHas('station_gallons', ['id' => $id, 'empty' => 3, 'missing' => 2]);
     $this->assertDatabaseCount('station_gallon_movements', 2);
+});
+
+test('unreturned customer gallons are recorded as missing against the correct borrower', function () {
+    $this->actingAs($this->admin)->post(route('admin.inventory.gallon-inventory.store'), [
+        'name' => 'Station containers', 'type' => 'Round Gallon', 'size' => '5 gallons', 'quantity' => 10,
+    ])->assertSessionHasNoErrors();
+    $id = DB::table('station_gallons')->value('id');
+    $url = route('admin.inventory.gallon-inventory.move');
+    foreach (['fill', 'release'] as $action) {
+        $this->post($url, [
+            'gallon_id' => $id, 'action' => $action, 'quantity' => 4, 'customer_id' => $this->customer->id,
+        ])->assertSessionHasNoErrors();
+    }
+    $report = [
+        'gallon_id' => $id, 'action' => 'missing', 'quantity' => 3,
+        'customer_id' => $this->customer->id, 'notes' => 'Customer did not return the containers',
+    ];
+    $otherCustomer = User::factory()->create();
+    $otherCustomer->assignRole('customer');
+    $this->post($url, array_replace($report, ['customer_id' => $otherCustomer->id]))
+        ->assertSessionHasErrors('quantity');
+    $this->post($url, $report)->assertSessionHasNoErrors();
+    $this->assertDatabaseHas('station_gallons', [
+        'id' => $id, 'empty' => 6, 'filled' => 0, 'borrowed' => 1, 'missing' => 3, 'returned' => 0,
+    ]);
+    $this->assertDatabaseHas('station_gallon_loans', [
+        'station_gallon_id' => $id, 'customer_id' => $this->customer->id, 'quantity' => 1,
+    ]);
+    $this->assertDatabaseHas('station_gallon_movements', [
+        'station_gallon_id' => $id, 'action' => 'missing', 'from_status' => 'borrowed',
+        'to_status' => 'missing', 'quantity' => 3, 'customer_id' => $this->customer->id,
+        'recorded_by' => $this->admin->id, 'notes' => $report['notes'],
+    ]);
+    $this->post($url, $report)->assertSessionHasErrors('quantity');
+    $this->post($url, [
+        'gallon_id' => $id, 'action' => 'return', 'quantity' => 1, 'customer_id' => $this->customer->id,
+    ])->assertSessionHasNoErrors();
+    $this->assertDatabaseHas('station_gallons', [
+        'id' => $id, 'empty' => 7, 'borrowed' => 0, 'missing' => 3, 'returned' => 1,
+    ]);
+    $this->get(route('admin.inventory.gallon-inventory'))->assertOk()
+        ->assertSee($this->customer->name)->assertSee($report['notes']);
+    $this->assertDatabaseCount('station_gallon_movements', 5);
 });

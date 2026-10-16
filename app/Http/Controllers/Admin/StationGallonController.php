@@ -140,7 +140,7 @@ class StationGallonController extends Controller
             'gallon_id' => ['required', 'integer', 'exists:station_gallons,id'],
             'action' => ['required', Rule::in(['add', 'fill', 'release', 'return', 'damage', 'missing'])],
             'quantity' => ['required', 'integer', 'min:1', 'max:1000000'],
-            'from_status' => ['nullable', 'required_if:action,damage,missing', Rule::in(['empty', 'filled', 'borrowed'])],
+            'from_status' => ['nullable', 'required_if:action,damage', Rule::in(['empty', 'filled', 'borrowed'])],
             'return_status' => ['nullable', Rule::in(['empty', 'damaged'])],
             'customer_id' => ['nullable', 'integer', 'exists:users,id'],
             'notes' => ['nullable', 'required_if:action,damage,missing', 'string', 'max:1000'],
@@ -151,7 +151,7 @@ class StationGallonController extends Controller
             'release' => ['filled', 'borrowed'],
             'return' => ['borrowed', $data['return_status'] ?? 'empty'],
             'damage' => [$data['from_status'] ?? 'empty', 'damaged'],
-            'missing' => [$data['from_status'] ?? 'empty', 'missing'],
+            'missing' => [$data['from_status'] ?? 'borrowed', 'missing'],
         };
         $customerId = null;
         if ($from === 'borrowed' || $to === 'borrowed') {
@@ -198,7 +198,9 @@ class StationGallonController extends Controller
             }
         });
 
-        return back()->with('success', 'Gallon inventory and movement history updated.');
+        return back()->with('success', $data['action'] === 'missing' && $customerId
+            ? 'Missing gallons recorded against the borrowing customer. Borrowed balance updated; these gallons are not counted as returned.'
+            : 'Gallon inventory and movement history updated.');
     }
 
     private function record(int $id, string $action, ?string $from, string $to, int $quantity, int $userId, ?int $customerId = null, ?string $notes = null): int
