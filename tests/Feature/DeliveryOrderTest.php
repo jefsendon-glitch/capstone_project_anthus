@@ -62,6 +62,19 @@ test('customer can place a delivery order', function () {
     $response->assertRedirect(route('customer.orders.show', $order));
 });
 
+test('customer cannot place an order with a missing empty or whitespace delivery address', function () {
+    $this->actingAs($this->customer);
+    $order = ['product_id' => $this->product->id, 'quantity' => 2, 'payment_method' => 'cash'];
+    foreach ([[], ['customer_address' => ''], ['customer_address' => " \t\n "]] as $address) {
+        $this->from(route('customer.orders.create'))->post(route('customer.orders.store'), $order + $address)
+            ->assertRedirect(route('customer.orders.create'))
+            ->assertSessionHasErrors(['customer_address' => 'Enter your delivery address before placing an order.']);
+    }
+    $this->assertDatabaseCount('delivery_orders', 0);
+    $this->assertDatabaseCount('delivery_order_items', 0);
+    $this->assertDatabaseHas('products', ['id' => $this->product->id, 'stock_quantity' => 50]);
+});
+
 test('customer can order multiple different available products in one delivery order', function () {
     $secondProduct = Product::factory()->create(['unit_price' => 15, 'stock_quantity' => 10]);
 

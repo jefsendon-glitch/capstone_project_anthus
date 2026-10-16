@@ -16,7 +16,9 @@ class ProfileUpdateRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => ['required', 'string', 'max:255'],
+            'first_name' => ['required', 'string', 'max:100'],
+            'middle_name' => ['nullable', 'string', 'max:100'],
+            'last_name' => ['required', 'string', 'max:100'],
             'contact_number' => ['nullable', 'string', 'max:30'],
             'address' => ['nullable', 'string', 'max:2000'],
             'email' => [
@@ -25,5 +27,16 @@ class ProfileUpdateRequest extends FormRequest
             ],
             'avatar' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
         ];
+    }
+
+    public function after(): array
+    {
+        return [function (\Illuminate\Validation\Validator $validator) {
+            $parts = $this->only(['first_name', 'middle_name', 'last_name']);
+            if (collect($parts)->every(fn ($part) => is_string($part) || $part === null)
+                && mb_strlen(implode(' ', array_filter($parts, fn ($part) => $part !== null && $part !== ''))) > 255) {
+                $validator->errors()->add('last_name', 'Your complete name must not exceed 255 characters.');
+            }
+        }];
     }
 }

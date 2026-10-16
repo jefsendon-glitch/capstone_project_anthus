@@ -13,12 +13,26 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Spatie\Permission\Traits\HasRoles;
 
-#[Fillable(['name', 'email', 'contact_number', 'address', 'status', 'password', 'credit_status', 'credit_suspended_at', 'credit_suspension_reason'])]
+#[Fillable(['name', 'first_name', 'middle_name', 'last_name', 'email', 'contact_number', 'address', 'status', 'password', 'credit_status', 'credit_suspended_at', 'credit_suspension_reason'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
     use HasFactory, HasRoles, Notifiable, SoftDeletes;
+
+    protected static function booted(): void
+    {
+        static::saving(function (User $user) {
+            if ($user->isDirty(['first_name', 'middle_name', 'last_name'])) {
+                $user->name = implode(' ', array_filter([
+                    $user->first_name, $user->middle_name, $user->last_name,
+                ], fn ($part) => $part !== null && $part !== ''));
+            } elseif ($user->isDirty('name') && $user->exists) {
+                // Full-name edits in account management must not leave stale profile fields.
+                $user->first_name = $user->middle_name = $user->last_name = null;
+            }
+        });
+    }
 
     protected function casts(): array
     {

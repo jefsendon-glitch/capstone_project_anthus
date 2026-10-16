@@ -27,6 +27,11 @@ class StoreOrderRequest extends FormRequest
         return $this->user()->isCustomer();
     }
 
+    public function messages(): array
+    {
+        return ['customer_address.required' => 'Enter your delivery address before placing an order.'];
+    }
+
     public function rules(): array
     {
         return [

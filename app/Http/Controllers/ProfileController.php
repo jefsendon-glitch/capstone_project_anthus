@@ -12,8 +12,18 @@ class ProfileController extends Controller
 {
     public function edit(Request $request): View
     {
+        $user = $request->user()->loadMissing('staff');
+        // Existing full names are shown as suggestions only; the user can confirm compound surnames.
+        $legacyParts = preg_split('/\s+/u', trim($user->name), -1, PREG_SPLIT_NO_EMPTY);
+        $lastName = count($legacyParts) > 1 ? array_pop($legacyParts) : '';
+
         return view('profile.edit', [
-            'user' => $request->user()->loadMissing('staff'),
+            'user' => $user,
+            'profileNames' => [
+                'first_name' => $user->first_name ?? implode(' ', $legacyParts),
+                'middle_name' => $user->middle_name,
+                'last_name' => $user->last_name ?? $lastName,
+            ],
         ]);
     }
 

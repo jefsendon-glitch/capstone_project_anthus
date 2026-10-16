@@ -11,7 +11,8 @@ test('a user can view an uploaded profile photo', function () {
     $user = User::factory()->create();
 
     $this->actingAs($user)->patch(route('profile.update'), [
-        'name' => $user->name,
+        'first_name' => 'Profile',
+        'last_name' => 'Owner',
         'email' => $user->email,
         'avatar' => UploadedFile::fake()->image('avatar.jpg'),
     ])->assertSessionHas('status', 'profile-updated');

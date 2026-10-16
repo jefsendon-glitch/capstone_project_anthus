@@ -32,7 +32,14 @@
                         </div>
                         <x-input-error :messages="$errors->get('avatar')" />
                     </div>
-                    <div><x-input-label for="name" value="Full name" /><x-text-input id="name" name="name" :value="old('name', $user->name)" required autocomplete="name" /><x-input-error :messages="$errors->get('name')" /></div>
+                    <fieldset class="sm:col-span-2"><legend class="text-sm font-semibold text-slate-700 dark:text-slate-300">Name</legend>
+                        @if(!$user->first_name)<p class="mt-1 text-xs text-slate-500">Please check the suggested name fields before saving, especially if you have a compound last name.</p>@endif
+                        <div class="mt-2 grid gap-3 sm:grid-cols-3">
+                            <div><x-input-label for="first_name" value="First Name" /><x-text-input id="first_name" name="first_name" :value="old('first_name', $profileNames['first_name'])" maxlength="100" required autocomplete="given-name" /><x-input-error :messages="$errors->get('first_name')" /></div>
+                            <div><x-input-label for="middle_name" value="Middle Name (Optional)" /><x-text-input id="middle_name" name="middle_name" :value="old('middle_name', $profileNames['middle_name'])" maxlength="100" autocomplete="additional-name" /><x-input-error :messages="$errors->get('middle_name')" /></div>
+                            <div><x-input-label for="last_name" value="Last Name" /><x-text-input id="last_name" name="last_name" :value="old('last_name', $profileNames['last_name'])" maxlength="100" required autocomplete="family-name" /><x-input-error :messages="$errors->get('last_name')" /></div>
+                        </div>
+                    </fieldset>
                     <div><x-input-label for="email" value="Email address" /><x-text-input id="email" type="email" name="email" :value="old('email', $user->email)" required autocomplete="email" /><x-input-error :messages="$errors->get('email')" /></div>
                     <div class="sm:col-span-2"><x-input-label for="contact_number" value="Contact number" /><x-text-input id="contact_number" name="contact_number" :value="old('contact_number', $user->contact_number)" autocomplete="tel" /><x-input-error :messages="$errors->get('contact_number')" /></div>
                     @if($user->isCustomer())<div class="sm:col-span-2"><x-input-label for="address" value="Default delivery address" /><x-textarea id="address" name="address" autocomplete="street-address">{{ old('address', $user->address) }}</x-textarea><x-input-error :messages="$errors->get('address')" /></div>@endif
