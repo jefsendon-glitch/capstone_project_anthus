@@ -72,8 +72,8 @@
                     </tbody>
                 </table>
             </div>
-            <div class="border-t border-slate-100 px-6 py-4 dark:border-white/5">
-                {{ $transactions->links() }}
+            <div class="border-t border-slate-100 bg-slate-50/50 px-4 py-3 dark:border-white/5 dark:bg-white/[0.02] sm:px-6">
+                {{ $transactions->links('pagination.pos') }}
             </div>
         @endif
     </x-card>
