@@ -73,8 +73,7 @@
                 </table>
             </div>
             <div class="border-t border-slate-100 px-6 py-4 dark:border-white/5">
-                <p class="mb-2 text-xs text-slate-500">Showing {{ $transactions->firstItem() }}–{{ $transactions->lastItem() }} of {{ $transactions->total() }} transactions</p>
-                {{ $transactions->links('pagination::simple-tailwind') }}
+                {{ $transactions->links() }}
             </div>
         @endif
     </x-card>

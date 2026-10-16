@@ -36,7 +36,7 @@ class StaffController extends Controller
             ->when($request->filled('role'), fn ($query) => $query->role($request->string('role')->toString()))
             ->when($request->filled('status'), fn ($query) => $query->where('status', $request->string('status')->toString()))
             ->orderBy('name')
-            ->paginate(15);
+            ->paginate(15)->withQueryString();
 
         return view('admin.staff.index', compact('team', 'teamStats'));
     }
