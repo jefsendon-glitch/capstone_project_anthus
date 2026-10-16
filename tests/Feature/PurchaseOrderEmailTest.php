@@ -47,11 +47,21 @@ function purchaseOrderEmailPayload($test): array
 test('admin previews and downloads a real PDF without sending mail', function () {
     Mail::fake();
     $this->get(route('admin.purchase-orders.email.preview', $this->order))->assertOk()
-        ->assertSee('supplier@example.com')->assertSee('station@example.com')->assertSee('Confirm and Send');
+        ->assertSee('supplier@example.com')->assertSee('station@example.com')->assertSee('Confirm and Send')
+        ->assertSee('x-bind:disabled="sending || !mailConfigured"', false)
+        ->assertDontSee('@js(', false);
     $response = $this->get(route('admin.purchase-orders.pdf', $this->order))->assertOk()->assertHeader('Content-Type', 'application/pdf');
     expect($response->getContent())->toStartWith('%PDF-');
     expect(strlen($response->getContent()))->toBeGreaterThan(1000);
     Mail::assertNothingSent();
+});
+
+test('drafts without a supplier email show the required steps before sending', function () {
+    $this->order->update(['status' => 'draft']);
+    $this->supplier->update(['email' => null]);
+    $this->get(route('admin.purchase-orders.show', $this->order))->assertOk()
+        ->assertSee('Add Supplier Email')->assertSee('Review and Place Order')
+        ->assertSee('This order is a draft.');
 });
 
 test('the complete mail pipeline creates the PDF attachment and records the recipient and admin', function () {

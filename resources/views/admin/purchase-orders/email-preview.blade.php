@@ -10,7 +10,7 @@
     <div class="grid items-start gap-4 lg:grid-cols-3">
         <x-card class="lg:col-span-2" padding="p-4">
             <h2 class="mb-3 text-sm font-semibold">Email Details</h2>
-            <form method="POST" action="{{ route('admin.purchase-orders.email.send', $purchaseOrder) }}" class="grid gap-3 sm:grid-cols-2" x-data="{ sending: false }" x-on:submit="if (sending) { $event.preventDefault(); } else { sending = true; }">
+            <form method="POST" action="{{ route('admin.purchase-orders.email.send', $purchaseOrder) }}" class="grid gap-3 sm:grid-cols-2" x-data="{ sending: false, mailConfigured: @js($mailConfigured) }" x-on:submit="if (sending) { $event.preventDefault(); } else { sending = true; }">
                 @csrf
                 <input type="hidden" name="preview_token" value="{{ $previewToken }}">
                 <div><x-input-label value="From" /><p class="break-all text-sm">{{ $sender }}</p></div>
@@ -23,7 +23,7 @@
                 @endif
                 <div class="flex flex-wrap justify-end gap-2 border-t border-slate-100 pt-3 sm:col-span-2 dark:border-white/10">
                     <x-button as="a" :href="route('admin.purchase-orders.pdf', $purchaseOrder)" variant="secondary">Download PDF</x-button>
-                    <x-button type="submit" :disabled="!$mailConfigured" x-bind:disabled="sending || @js(!$mailConfigured)"><span x-text="sending ? 'Sending...' : @js($isResend ? 'Confirm and Resend' : 'Confirm and Send')">Confirm and Send</span></x-button>
+                    <x-button type="submit" :disabled="!$mailConfigured" x-bind:disabled="sending || !mailConfigured"><span x-text="sending ? 'Sending...' : @js($isResend ? 'Confirm and Resend' : 'Confirm and Send')">Confirm and Send</span></x-button>
                 </div>
             </form>
         </x-card>

@@ -39,13 +39,20 @@ $canReceive = in_array($purchaseOrder->status, ['ordered', 'partially_received']
                 <h2 class="text-sm font-semibold">Supplier Email</h2>
                 <p class="mt-1 text-sm text-slate-500">{{ $purchaseOrder->supplier->email ?: 'No supplier email registered.' }}</p>
                 @if(!$mailConfigured)<p class="mt-1 text-xs text-amber-700 dark:text-amber-300">Station email setup is incomplete. Email sending will be available after configuration.</p>@endif
-                @if(!in_array($purchaseOrder->status, ['ordered', 'partially_received']))<p class="mt-1 text-xs text-slate-500">Only ordered or partially received purchase orders can be sent.</p>@endif
+                @if($purchaseOrder->status === 'draft')
+                    <p class="mt-1 text-xs text-amber-700 dark:text-amber-300">This order is a draft. Edit the order, select Place order, and save before sending.</p>
+                @elseif(!in_array($purchaseOrder->status, ['ordered', 'partially_received']))
+                    <p class="mt-1 text-xs text-slate-500">Only ordered or partially received purchase orders can be sent.</p>
+                @endif
             </div>
             <div class="flex flex-wrap gap-2">
                 <x-button as="a" :href="route('admin.purchase-orders.pdf', $purchaseOrder)" variant="secondary" class="!py-2 !text-xs">Download PDF</x-button>
                 @if(!$purchaseOrder->supplier->email)
                     <x-button as="a" :href="route('admin.suppliers.edit', $purchaseOrder->supplier)" variant="info" class="!py-2 !text-xs">Add Supplier Email</x-button>
-                @elseif(in_array($purchaseOrder->status, ['ordered', 'partially_received']))
+                @endif
+                @if($purchaseOrder->status === 'draft')
+                    <x-button as="a" :href="route('admin.purchase-orders.edit', $purchaseOrder)" variant="info" class="!py-2 !text-xs">Review and Place Order</x-button>
+                @elseif($purchaseOrder->supplier->email && in_array($purchaseOrder->status, ['ordered', 'partially_received']))
                     <x-button as="a" :href="route('admin.purchase-orders.email.preview', $purchaseOrder)" class="!py-2 !text-xs">{{ $hasSentEmail ? 'Resend to Supplier' : ($emailHistory->first()?->status === 'failed' ? 'Retry Email' : 'Send to Supplier') }}</x-button>
                 @endif
             </div>
