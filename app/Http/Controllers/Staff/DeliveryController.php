@@ -51,6 +51,7 @@ class DeliveryController extends Controller
                     $query->where('order_code', 'like', "%{$search}%")
                         ->orWhere('customer_name', 'like', "%{$search}%")
                         ->orWhere('product_name', 'like', "%{$search}%");
+                    $query->orWhereHas('items', fn ($items) => $items->where('product_name', 'like', "%{$search}%"));
                 });
             })
             ->orderBy('preferred_delivery_date')

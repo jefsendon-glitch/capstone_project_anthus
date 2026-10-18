@@ -26,7 +26,7 @@
                     <thead>
                         <tr class="text-left text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
                             <th class="px-6 py-3">Code</th>
-                            <th class="px-6 py-3">Product</th>
+                            <th class="px-6 py-3">Order Items</th>
                             <th class="px-6 py-3">Total</th>
                             <th class="px-6 py-3">Status</th>
                             <th class="px-6 py-3 text-right">Receipt</th>
@@ -38,8 +38,8 @@
                                 <td class="px-6 py-3 text-sm font-medium text-slate-900 dark:text-white">
                                     <a href="{{ route('customer.orders.show', $order) }}" class="hover:text-primary-600">{{ $order->order_code }}</a>
                                 </td>
-                                <td class="px-6 py-3 text-sm text-slate-600 dark:text-slate-300">{{ $order->items_summary }}</td>
-                                <td class="px-6 py-3 font-mono text-sm text-slate-900 dark:text-white">₱{{ number_format($order->total_amount, 2) }}</td>
+                                <td class="px-6 py-3 text-sm text-slate-600 dark:text-slate-300"><x-delivery-order-items :order="$order" compact /></td>
+                                <td class="px-6 py-3 font-mono text-sm text-slate-900 dark:text-white">₱{{ number_format($order->total_amount, 0) }}</td>
                                 <td class="px-6 py-3"><x-delivery-status-badge :status="$order->status" /></td>
                                 <td class="px-6 py-3 text-right">
                                     @if($order->status === 'delivered')

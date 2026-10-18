@@ -62,6 +62,22 @@ test('customer can place a delivery order', function () {
     $response->assertRedirect(route('customer.orders.show', $order));
 });
 
+test('multi product deliveries show individual quantities prices and searchable item names', function () {
+    $second = Product::factory()->create(['name' => 'Distinct delivery item', 'unit_price' => 15, 'stock_quantity' => 20]);
+    $order = app(\App\Services\DeliveryService::class)->placeOrder([
+        'items' => [['product_id' => $this->product->id, 'quantity' => 2], ['product_id' => $second->id, 'quantity' => 3]],
+        'customer_address' => 'Complete delivery address', 'payment_method' => 'cash',
+    ], $this->customer);
+    $this->actingAs($this->staffUser)->get(route('deliveries.show', $order))->assertOk()
+        ->assertSee('Order Items')->assertSee($this->product->name)->assertSee('Distinct delivery item')
+        ->assertSee('5 total units')->assertSee('Order Total')->assertSee('95')->assertSee('Confirm Order');
+    $this->get(route('deliveries.index', ['search' => 'Distinct delivery item']))->assertOk()
+        ->assertViewHas('orders', fn ($orders) => $orders->total() === 1)
+        ->assertSee($order->order_code)->assertSee('Distinct delivery item')->assertSee('Qty 3');
+    $this->actingAs($this->customer)->get(route('customer.orders.index'))->assertOk()
+        ->assertSee('2 products')->assertSee('Distinct delivery item');
+});
+
 test('customer cannot place an order with a missing empty or whitespace delivery address', function () {
     $this->actingAs($this->customer);
     $order = ['product_id' => $this->product->id, 'quantity' => 2, 'payment_method' => 'cash'];
