@@ -265,6 +265,23 @@ body[data-ui='minimal'] :is(h1, h2, h3, h4, h5, h6) {
     font-family: var(--font-sans);
 }
 
+/* Shared reading and control sizes for Admin, Staff, and Customer pages. */
+body[data-ui='minimal'] main h2 {
+    font-size: 1rem;
+    line-height: 1.5rem;
+}
+
+body[data-ui='minimal'] main :is(h3, label, legend) {
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+}
+
+body[data-ui='minimal'] main :is(input, select, textarea),
+body[data-ui='minimal'] .ui-button {
+    font-size: 0.875rem !important;
+    line-height: 1.25rem;
+}
+
 body[data-ui='minimal'] .ui-card {
     border-radius: 12px;
     border-color: #e2e8f0;
@@ -273,6 +290,10 @@ body[data-ui='minimal'] .ui-card {
 }
 
 body[data-ui='minimal'] .ui-card.p-6 {
+    padding: 1rem;
+}
+
+body[data-ui='minimal'] .ui-card.p-3 {
     padding: 1rem;
 }
 

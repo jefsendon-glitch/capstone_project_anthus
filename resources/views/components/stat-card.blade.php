@@ -44,40 +44,40 @@ $cardPadding = $compact ? 'p-4' : 'p-6';
 @if($variant === 'solid')
     <x-card :padding="$compact ? 'p-3 sm:p-4' : $cardPadding" class="flex {{ $cardHeight }} items-start justify-between gap-2 overflow-hidden bg-gradient-to-br {{ $solidColors[$color] ?? $solidColors['primary'] }} text-white">
         <div class="min-w-0 flex-1">
-            <p class="{{ $compact ? 'text-[11px] leading-4' : 'text-xs' }} font-semibold uppercase tracking-wide text-white/80">{{ $label }}</p>
-            <p class="{{ $compact ? 'mt-1 break-words text-xl sm:text-2xl' : 'mt-2 text-2xl' }} font-bold">{{ $value }}</p>
+            <p class="{{ $compact ? 'text-xs leading-4' : 'text-xs' }} font-semibold uppercase tracking-wide text-white/80">{{ $label }}</p>
+            <p class="{{ $compact ? 'mt-1 break-words text-2xl' : 'mt-2 text-2xl' }} font-bold">{{ $value }}</p>
             @if($hint)
                 <p class="mt-1 text-xs text-white/70">{{ $hint }}</p>
             @endif
         </div>
         <div class="{{ $compact ? 'shrink-0 rounded-lg p-1.5 sm:p-2' : 'shrink-0 rounded-2xl p-3' }} bg-white/20 text-white">
-            <x-icon :name="$icon" :class="$compact ? 'size-4' : 'size-6'" />
+            <x-icon :name="$icon" :class="$compact ? 'size-5' : 'size-6'" />
         </div>
     </x-card>
 @elseif($variant === 'tinted')
     <x-card :padding="$compact ? 'p-3 sm:p-4' : $cardPadding" class="flex {{ $cardHeight }} items-start justify-between gap-2 {{ $tintedColors[$color] ?? $tintedColors['warning'] }}">
         <div class="min-w-0 flex-1">
-            <p class="{{ $compact ? 'text-[11px] leading-4' : 'text-xs' }} font-semibold uppercase tracking-wide {{ $tintedText[$color] ?? $tintedText['warning'] }}">{{ $label }}</p>
-            <p class="{{ $compact ? 'mt-1 break-words text-lg sm:text-xl' : 'mt-2 text-2xl' }} font-bold {{ $tintedText[$color] ?? $tintedText['warning'] }}">{{ $value }}</p>
+            <p class="{{ $compact ? 'text-xs leading-4' : 'text-xs' }} font-semibold uppercase tracking-wide {{ $tintedText[$color] ?? $tintedText['warning'] }}">{{ $label }}</p>
+            <p class="{{ $compact ? 'mt-1 break-words text-2xl' : 'mt-2 text-2xl' }} font-bold {{ $tintedText[$color] ?? $tintedText['warning'] }}">{{ $value }}</p>
             @if($hint)
                 <p class="mt-1 text-xs {{ $tintedText[$color] ?? $tintedText['warning'] }} opacity-80">{{ $hint }}</p>
             @endif
         </div>
         <div class="{{ $compact ? 'hidden shrink-0 rounded-lg p-2 sm:block' : 'rounded-2xl p-3' }} bg-white/50 dark:bg-white/10 {{ $tintedText[$color] ?? $tintedText['warning'] }}">
-            <x-icon :name="$icon" :class="$compact ? 'size-4' : 'size-6'" />
+            <x-icon :name="$icon" :class="$compact ? 'size-5' : 'size-6'" />
         </div>
     </x-card>
 @else
     <x-card :padding="$compact ? 'p-3 sm:p-4' : $cardPadding" class="flex {{ $cardHeight }} items-start justify-between gap-2">
         <div class="min-w-0 flex-1">
-            <p class="{{ $compact ? 'text-[11px] leading-4' : 'text-xs' }} font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">{{ $label }}</p>
-            <p class="{{ $compact ? 'mt-1 break-words text-xl sm:text-2xl' : 'mt-2 text-2xl' }} font-bold text-slate-900 dark:text-white">{{ $value }}</p>
+            <p class="{{ $compact ? 'text-xs leading-4' : 'text-xs' }} font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">{{ $label }}</p>
+            <p class="{{ $compact ? 'mt-1 break-words text-2xl' : 'mt-2 text-2xl' }} font-bold text-slate-900 dark:text-white">{{ $value }}</p>
             @if($hint)
                 <p class="mt-1 text-xs text-slate-400">{{ $hint }}</p>
             @endif
         </div>
         <div class="{{ $compact ? 'hidden shrink-0 rounded-lg p-2 sm:block' : 'rounded-2xl p-3' }} {{ $iconColors[$color] ?? $iconColors['primary'] }}">
-            <x-icon :name="$icon" :class="$compact ? 'size-4' : 'size-6'" />
+            <x-icon :name="$icon" :class="$compact ? 'size-5' : 'size-6'" />
         </div>
     </x-card>
 @endif
