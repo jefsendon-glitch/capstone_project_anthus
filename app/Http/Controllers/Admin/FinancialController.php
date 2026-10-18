@@ -24,17 +24,22 @@ class FinancialController extends Controller
         abort_unless(in_array($section, ['sales', 'expenses', 'collections', 'exports'], true), 404);
         $filters = $request->validate([
             'date_from' => ['nullable', 'date_format:Y-m-d'],
-            'date_to' => ['nullable', 'date_format:Y-m-d', 'after_or_equal:'.($request->input('date_from') ?: now()->startOfMonth()->toDateString())],
+            'date_to' => ['nullable', 'date_format:Y-m-d', ...($request->filled('date_from') ? ['after_or_equal:date_from'] : [])],
             'channel' => ['nullable', Rule::in(['walk-in', 'delivery'])],
             'payment_method' => ['nullable', Rule::in(['cash', 'loan'])],
             'category' => ['nullable', Rule::in(Expense::CATEGORIES)],
         ]);
-        $from = $filters['date_from'] ?? now()->startOfMonth()->toDateString();
+        $from = $filters['date_from'] ?? min(now()->startOfMonth()->toDateString(), $filters['date_to'] ?? today()->toDateString());
         $to = $filters['date_to'] ?? max($from, now()->toDateString());
-        $data = ['section' => $section, 'from' => $from, 'to' => $to, 'summary' => $summary->summarize($from, $to)];
+        $summaryFilters = match ($section) {
+            'sales' => array_intersect_key($filters, array_flip(['channel', 'payment_method'])),
+            'expenses' => array_intersect_key($filters, array_flip(['category'])),
+            default => [],
+        };
+        $data = ['section' => $section, 'from' => $from, 'to' => $to, 'summary' => $summary->summarize($from, $to, $summaryFilters)];
 
         if ($section === 'sales') {
-            $data['sales'] = SalesTransaction::whereBetween('created_at', [$from.' 00:00:00', $to.' 23:59:59'])
+            $data['sales'] = SalesTransaction::where('created_at', '>=', $from.' 00:00:00')->where('created_at', '<', Carbon::parse($to)->addDay()->startOfDay())
                 ->when($filters['channel'] ?? null, fn ($q, $value) => $q->where('transaction_type', $value))
                 ->when($filters['payment_method'] ?? null, fn ($q, $value) => $value === 'loan' ? $q->whereIn('payment_method', ['loan', 'credit']) : $q->where('payment_method', $value))
                 ->latest()->paginate(15)->withQueryString();
@@ -144,7 +149,7 @@ class FinancialController extends Controller
             fputcsv($stream, ['Period', $report->date_from->toDateString(), $report->date_to->toDateString()]);
             fputcsv($stream, ['Generated', $report->created_at->toDateTimeString()]);
             fputcsv($stream, ['Metric', 'Amount (PHP)']);
-            foreach ($report->summary as $label => $amount) fputcsv($stream, [$label, number_format((float) $amount, 2, '.', '')]);
+            foreach ($report->summary as $label => $amount) fputcsv($stream, [$label, number_format((float) $amount, 0, '.', '')]);
             fclose($stream);
         }, 'financial-report-'.$report->id.'.csv', ['Content-Type' => 'text/csv; charset=UTF-8']);
     }

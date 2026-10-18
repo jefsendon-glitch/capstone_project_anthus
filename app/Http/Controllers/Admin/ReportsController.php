@@ -20,10 +20,11 @@ class ReportsController extends Controller
 
         $reportStart = isset($validated['date_from'])
             ? Carbon::parse($validated['date_from'])->startOfDay()
-            : Carbon::today()->subDays(6)->startOfDay();
+            : (isset($validated['date_to']) && Carbon::parse($validated['date_to'])->lt(Carbon::today()->subDays(6))
+                ? Carbon::parse($validated['date_to'])->startOfDay() : Carbon::today()->subDays(6)->startOfDay());
         $reportEnd = isset($validated['date_to'])
             ? Carbon::parse($validated['date_to'])->endOfDay()
-            : Carbon::today()->endOfDay();
+            : $reportStart->copy()->max(Carbon::today())->endOfDay();
 
         $sales = fn () => SalesTransaction::query()
             ->whereBetween('created_at', [$reportStart, $reportEnd]);

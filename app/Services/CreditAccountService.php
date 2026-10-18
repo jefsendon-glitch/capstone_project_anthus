@@ -71,8 +71,9 @@ class CreditAccountService
 
         $credits = SalesTransaction::query()
             ->where('customer_id', $customer->id)
-            ->where('payment_method', 'loan')
-            ->where('credit_status', 'outstanding')
+            ->whereIn('payment_method', ['loan', 'credit'])
+            ->whereColumn('total_amount', '>', 'credit_paid_amount')
+            ->orderByRaw('CASE WHEN credit_due_date IS NULL THEN 1 ELSE 0 END')
             ->orderBy('credit_due_date')
             ->orderBy('id')
             ->lockForUpdate()

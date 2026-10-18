@@ -30,7 +30,7 @@ class SalesService
             }
 
             $lines = collect();
-            $grandTotal = 0;
+            $grandTotalCents = 0;
 
             // Merge duplicate product_id lines first so the stock check below sees the
             // true combined quantity being requested, not each line checked in isolation.
@@ -47,8 +47,9 @@ class SalesService
                     ]);
                 }
 
-                $lineTotal = $product->unit_price * $quantity;
-                $grandTotal += $lineTotal;
+                $lineTotalCents = (int) round((float) $product->unit_price * 100) * $quantity;
+                $lineTotal = $lineTotalCents / 100;
+                $grandTotalCents += $lineTotalCents;
 
                 $lines->push([
                     'product' => $product,
@@ -57,6 +58,7 @@ class SalesService
                 ]);
             }
 
+            $grandTotal = $grandTotalCents / 100;
             $tenderedAmount = null;
             $changeAmount = null;
 

@@ -15,6 +15,11 @@ class CustomerLedgerService
 
     public function recordPayment(User $customer, float $amount, User $staff, ?string $notes = null): CustomerPayment
     {
+        if (! is_finite($amount) || $amount < 0.01 || abs($amount - round($amount, 2)) > 0.000001) {
+            throw ValidationException::withMessages(['amount' => 'Enter a positive payment amount with no more than two decimal places.']);
+        }
+        $amount = round($amount, 2);
+
         return DB::transaction(function () use ($customer, $amount, $staff, $notes) {
             $customer = User::lockForUpdate()->findOrFail($customer->id);
 

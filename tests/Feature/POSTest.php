@@ -65,7 +65,7 @@ test('a cart with multiple products creates one transaction row per line item', 
 });
 
 test('recording a loan sale requires a customer and increases their credit balance by the full cart total', function () {
-    $customer = User::factory()->create(['credit_balance' => 0]);
+    $customer = User::factory()->create(['credit_balance' => 0, 'credit_status' => 'eligible']);
     $customer->assignRole('customer');
     $second = Product::factory()->create(['unit_price' => 10, 'stock_quantity' => 50]);
 

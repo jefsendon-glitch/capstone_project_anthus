@@ -87,49 +87,57 @@ class DeliveryService
     {
         abort_unless($cancelledBy->isAdmin() || $cancelledBy->isStaff(), 403);
 
-        if (! in_array($order->status, ['pending', 'confirmed'], true)) {
-            throw ValidationException::withMessages([
-                'status' => 'Only pending or confirmed delivery orders can be cancelled.',
+        return DB::transaction(function () use ($order, $cancelledBy) {
+            $order = DeliveryOrder::lockForUpdate()->findOrFail($order->id);
+
+            if (! in_array($order->status, ['pending', 'confirmed'], true)) {
+                throw ValidationException::withMessages([
+                    'status' => 'Only pending or confirmed delivery orders can be cancelled.',
+                ]);
+            }
+
+            $order->update([
+                'status' => 'cancelled',
+                'updated_by' => $cancelledBy->id,
             ]);
-        }
+            activity('delivery_orders')->causedBy($cancelledBy)->performedOn($order)->event('cancelled')->log('Cancelled a delivery order');
 
-        $order->update([
-            'status' => 'cancelled',
-            'updated_by' => $cancelledBy->id,
-        ]);
-        activity('delivery_orders')->causedBy($cancelledBy)->performedOn($order)->event('cancelled')->log('Cancelled a delivery order');
-
-        return $order;
+            return $order;
+        });
     }
 
     public function updateStatus(DeliveryOrder $order, string $status, User $updatedBy): DeliveryOrder
     {
-        $allowedTransitions = [
-            'pending' => ['confirmed', 'cancelled'],
-            'confirmed' => ['out_for_delivery', 'cancelled'],
-            'out_for_delivery' => [],
-        ];
+        return DB::transaction(function () use ($order, $status, $updatedBy) {
+            $order = DeliveryOrder::lockForUpdate()->findOrFail($order->id);
+            $allowedTransitions = [
+                'pending' => ['confirmed', 'cancelled'],
+                'confirmed' => ['out_for_delivery', 'cancelled'],
+                'out_for_delivery' => [],
+            ];
 
-        if ($order->status === $status) {
+            if ($order->status === $status) {
+                return $order;
+            }
+
+            if (! in_array($status, $allowedTransitions[$order->status] ?? [], true)) {
+                throw ValidationException::withMessages([
+                    'status' => 'This delivery status change is not allowed.',
+                ]);
+            }
+
+            $order->update(['status' => $status, 'updated_by' => $updatedBy->id]);
+            activity('delivery_orders')->causedBy($updatedBy)->performedOn($order)->event('updated')->log('Changed delivery status to '.str_replace('_', ' ', $status));
+
             return $order;
-        }
-
-        if (! in_array($status, $allowedTransitions[$order->status] ?? [], true)) {
-            throw ValidationException::withMessages([
-                'status' => 'This delivery status change is not allowed.',
-            ]);
-        }
-
-        $order->update(['status' => $status, 'updated_by' => $updatedBy->id]);
-        activity('delivery_orders')->causedBy($updatedBy)->performedOn($order)->event('updated')->log('Changed delivery status to '.str_replace('_', ' ', $status));
-
-        return $order;
+        });
     }
 
     public function fulfill(DeliveryOrder $order, ?string $legacyPaymentMethod, User $updatedBy): SalesTransaction
     {
         return DB::transaction(function () use ($order, $legacyPaymentMethod, $updatedBy) {
             $order = DeliveryOrder::lockForUpdate()->with('customer')->findOrFail($order->id);
+            $order->setRelation('customer', User::lockForUpdate()->findOrFail($order->customer_id));
 
             // New orders always use the customer's choice. The fallback is only
             // for orders that existed before a method was selected at checkout.
