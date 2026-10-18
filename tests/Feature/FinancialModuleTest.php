@@ -29,9 +29,9 @@ test('all integrated financial sections render and reject non admins', function 
 });
 
 test('admin records expenses and invalid amounts are rejected', function () {
-    $payload = ['expense_date' => today()->toDateString(), 'category' => 'Utilities', 'description' => 'Electricity bill', 'amount' => 250.50];
+    $payload = ['expense_date' => today()->toDateString(), 'category' => 'Utilities', 'description' => 'Electricity bill', 'amount' => 250];
     $this->actingAs($this->admin)->post(route('admin.financial.expenses.store'), $payload)->assertSessionHasNoErrors()->assertRedirect();
-    $this->assertDatabaseHas('expenses', ['description' => 'Electricity bill', 'amount' => 250.50, 'recorded_by' => $this->admin->id]);
+    $this->assertDatabaseHas('expenses', ['description' => 'Electricity bill', 'amount' => 250, 'recorded_by' => $this->admin->id]);
     $payload['amount'] = -1;
     $this->post(route('admin.financial.expenses.store'), $payload)->assertSessionHasErrors('amount');
     $this->assertDatabaseCount('expenses', 1);
@@ -107,15 +107,16 @@ test('one sided financial dates produce valid effective report ranges', function
         ->assertViewHas('reportEnd', fn ($end) => $end->toDateString() === $future);
 });
 
-test('collection amounts reject fractions of a cent without changing customer balance', function () {
+test('collection forms accept whole amounts and reject decimal payments', function () {
     $customer = User::factory()->create(['credit_balance' => 100]);
     $customer->assignRole('customer');
     $this->actingAs($this->admin)->post(route('payments.store', $customer), ['amount' => '10.005'])
         ->assertSessionHasErrors('amount');
-    $this->post(route('payments.store', $customer), ['amount' => '10.01'])->assertSessionHasNoErrors();
-    expect((float) $customer->fresh()->credit_balance)->toBe(89.99);
+    $this->post(route('payments.store', $customer), ['amount' => '10.01'])->assertSessionHasErrors('amount');
+    $this->post(route('payments.store', $customer), ['amount' => '10'])->assertSessionHasNoErrors();
+    expect((float) $customer->fresh()->credit_balance)->toBe(90.0);
     $this->assertDatabaseCount('customer_payments', 1);
-    $this->assertDatabaseHas('customer_payments', ['customer_id' => $customer->id, 'amount' => 10.01]);
+    $this->assertDatabaseHas('customer_payments', ['customer_id' => $customer->id, 'amount' => 10]);
 });
 
 test('only admins can delete saved reports without deleting financial source records', function () {
@@ -148,7 +149,7 @@ test('collections allocate to unpaid legacy credit and reconcile reports without
     };
     $undated = $createCredit('UNDATED', 20.20, null, 'not_applicable');
     $overdue = $createCredit('LEGACY-DUE', 30.10, today()->subDay()->toDateString(), 'not_applicable');
-    $this->actingAs($this->admin)->post(route('payments.store', $customer), ['amount' => '35.15'])->assertSessionHasNoErrors();
+    app(\App\Services\CustomerLedgerService::class)->recordPayment($customer, 35.15, $this->admin);
     expect((float) $overdue->fresh()->credit_paid_amount)->toBe(30.10)
         ->and($overdue->fresh()->credit_status)->toBe('paid')
         ->and((float) $undated->fresh()->credit_paid_amount)->toBe(5.05)
@@ -159,7 +160,7 @@ test('collections allocate to unpaid legacy credit and reconcile reports without
         ->and($summary['Current Overdue Credit'])->toBe(0.0)
         ->and($summary['Tracked Unpaid Credit'])->toBe(15.15)
         ->and($summary['Receivables Reconciliation Difference'])->toBe(0.0);
-    $this->post(route('payments.store', $customer), ['amount' => '15.15'])->assertSessionHasNoErrors();
+    app(\App\Services\CustomerLedgerService::class)->recordPayment($customer, 15.15, $this->admin);
     expect((float) $customer->fresh()->credit_balance)->toBe(0.0)
         ->and((float) $undated->fresh()->credit_paid_amount)->toBe(20.20);
 });

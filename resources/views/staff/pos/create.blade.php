@@ -217,7 +217,7 @@ $categories = [
                             <x-input-label for="tendered_amount" value="Amount received" class="text-primary-800 dark:text-primary-200" />
                             <div class="relative">
                                 <span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 font-mono text-sm font-semibold text-primary-600">&#8369;</span>
-                                <input id="tendered_amount" type="number" name="tendered_amount" min="0" step="0.01" inputmode="decimal" x-model.number="tenderedAmount" placeholder="0.00" class="block w-full rounded-xl border-0 bg-white py-2.5 pl-8 pr-3.5 font-mono text-sm text-slate-900 shadow-sm ring-1 ring-inset ring-primary-200 placeholder:text-slate-400 focus:ring-2 focus:ring-inset focus:ring-primary-500 dark:bg-slate-800 dark:text-white dark:ring-primary-500/30">
+                                <input id="tendered_amount" type="number" name="tendered_amount" min="0" step="1" inputmode="numeric" x-model.number="tenderedAmount" placeholder="0" class="block w-full rounded-xl border-0 bg-white py-2.5 pl-8 pr-3.5 font-mono text-sm text-slate-900 shadow-sm ring-1 ring-inset ring-primary-200 placeholder:text-slate-400 focus:ring-2 focus:ring-inset focus:ring-primary-500 dark:bg-slate-800 dark:text-white dark:ring-primary-500/30">
                             </div>
                             <div class="mt-3 flex items-center justify-between text-sm">
                                 <span class="font-medium text-primary-800 dark:text-primary-200">Change</span>

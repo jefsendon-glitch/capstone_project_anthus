@@ -28,7 +28,7 @@ class StoreSaleRequest extends FormRequest
             'payment_method' => ['required', Rule::in(['cash', 'loan'])],
             'customer_id' => ['required_if:payment_method,loan', 'nullable', 'exists:users,id'],
             'customer_name' => ['nullable', 'string', 'max:255'],
-            'tendered_amount' => ['required_if:payment_method,cash', 'nullable', 'numeric', 'min:0'],
+            'tendered_amount' => ['required_if:payment_method,cash', 'nullable', 'integer', 'min:0'],
             'notes' => ['nullable', 'string', 'max:1000'],
             'items' => ['required', 'array', 'min:1'],
             'items.*.product_id' => ['required', 'exists:products,id'],

@@ -2,6 +2,13 @@
 
 @php
     $isPassword = $attributes->get('type') === 'password';
+    if ($attributes->get('type') === 'number') {
+        $attributes = $attributes->except(['step', 'inputmode'])->merge(['step' => '1', 'inputmode' => 'numeric']);
+        $numericValue = $attributes->get('value');
+        if (is_scalar($numericValue) && preg_match('/^-?\d+\.0+$/', (string) $numericValue)) {
+            $attributes = $attributes->except('value')->merge(['value' => explode('.', (string) $numericValue)[0]]);
+        }
+    }
     $inputAttributes = $isPassword ? $attributes->except('type') : $attributes;
     $inputClass = 'block w-full min-w-0 rounded-xl border-0 bg-white/90 px-3.5 py-2.5 text-sm text-slate-900 shadow-sm ring-1 ring-inset ring-slate-200 transition duration-200 placeholder:text-slate-500 dark:placeholder:text-slate-400 hover:ring-slate-300 focus:ring-2 focus:ring-inset focus:ring-primary-500 disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-500 dark:bg-slate-800/90 dark:text-white dark:ring-white/10 dark:hover:ring-white/20 dark:focus:ring-primary-400';
 @endphp

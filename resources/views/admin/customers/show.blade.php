@@ -30,7 +30,7 @@
             </div>
             <form method="POST" action="{{ route('payments.store', $customer) }}" class="mt-5 flex items-center gap-2">
                 @csrf
-                <x-text-input type="number" step="0.01" min="0.01" :max="$customer->credit_balance" name="amount" placeholder="Payment amount" required :disabled="$customer->credit_balance <= 0" />
+                <x-text-input type="number" step="1" min="1" :max="$customer->credit_balance" name="amount" placeholder="Payment amount" required :disabled="$customer->credit_balance <= 0" />
                 <x-button type="submit" variant="secondary" :disabled="$customer->credit_balance <= 0">Record</x-button>
             </form>
         </x-card>

@@ -174,6 +174,7 @@ test('admin can quick-update stock and decimal consumable costs', function () {
     $this->actingAs($this->admin)->post(route('admin.consumables.quick-update', $consumable), [
         'field' => 'unit_cost',
         'value' => 12.5,
-    ])->assertSessionHasNoErrors();
-    expect((float) $consumable->fresh()->unit_cost)->toBe(12.5);
+    ])->assertSessionHasErrors('value');
+    $this->post(route('admin.consumables.quick-update', $consumable), ['field' => 'unit_cost', 'value' => 13])->assertSessionHasNoErrors();
+    expect((float) $consumable->fresh()->unit_cost)->toBe(13.0);
 });

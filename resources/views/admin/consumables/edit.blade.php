@@ -59,7 +59,7 @@
 
                 <div>
                     <x-input-label for="unit_cost" value="Unit cost (₱)" />
-                    <x-text-input id="unit_cost" type="number" step="0.01" min="0" name="unit_cost" :value="old('unit_cost', $consumable->unit_cost)" required />
+                    <x-text-input id="unit_cost" type="number" step="1" min="0" name="unit_cost" :value="old('unit_cost', $consumable->unit_cost)" required />
                     <x-input-error :messages="$errors->get('unit_cost')" />
                 </div>
             </div>

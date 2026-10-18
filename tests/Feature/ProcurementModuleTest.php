@@ -92,7 +92,7 @@ test('draft orders can be edited placed and cancelled without changing stock', f
     $payload = [
         'supplier_id' => $this->supplier->id, 'status' => 'draft', 'ordered_at' => '2026-10-10',
         'expected_date' => '2026-10-15',
-        'items' => [['itemable_type' => 'consumable', 'itemable_id' => $this->supply->id, 'quantity_ordered' => 5, 'unit_cost' => 12.50]],
+        'items' => [['itemable_type' => 'consumable', 'itemable_id' => $this->supply->id, 'quantity_ordered' => 5, 'unit_cost' => 12]],
     ];
     $this->actingAs($this->admin)->post(route('admin.purchase-orders.store'), $payload)->assertSessionHasNoErrors();
     $draft = PurchaseOrder::latest('id')->first();

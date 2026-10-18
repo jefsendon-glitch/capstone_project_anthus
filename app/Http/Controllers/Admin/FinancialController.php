@@ -67,7 +67,7 @@ class FinancialController extends Controller
             'expense_date' => ['required', 'date_format:Y-m-d', 'before_or_equal:today'],
             'category' => ['required', Rule::in(Expense::CATEGORIES)],
             'description' => ['required', 'string', 'max:255'],
-            'amount' => ['required', 'numeric', 'decimal:0,2', 'min:0.01', 'max:9999999999.99'],
+            'amount' => ['required', 'integer', 'min:1', 'max:9999999999'],
             'reference' => ['nullable', 'string', 'max:100'],
             'notes' => ['nullable', 'string', 'max:1000'],
         ]);

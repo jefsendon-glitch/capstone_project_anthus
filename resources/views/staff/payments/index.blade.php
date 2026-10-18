@@ -35,7 +35,7 @@
                                     @if($customer->credit_balance > 0)
                                     <form method="POST" action="{{ route('payments.store', $customer) }}" class="flex items-center justify-end gap-2">
                                         @csrf
-                                        <input type="number" step="0.01" min="0.01" max="{{ $customer->credit_balance }}" aria-label="Payment amount for {{ $customer->name }}" name="amount" placeholder="Amount" required class="w-32 rounded-xl border-0 py-2 text-sm text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-inset focus:ring-primary-600 dark:bg-slate-800 dark:text-white dark:ring-white/10">
+                                        <input type="number" step="1" min="1" max="{{ $customer->credit_balance }}" aria-label="Payment amount for {{ $customer->name }}" name="amount" placeholder="Amount" required class="w-32 rounded-xl border-0 py-2 text-sm text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-inset focus:ring-primary-600 dark:bg-slate-800 dark:text-white dark:ring-white/10">
                                         <x-button type="submit" variant="secondary">Record</x-button>
                                     </form>
                                     @else<span class="text-sm text-slate-500">No balance due</span>@endif

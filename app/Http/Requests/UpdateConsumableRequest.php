@@ -20,7 +20,7 @@ class UpdateConsumableRequest extends FormRequest
             'unit' => ['required', 'string', 'max:50'],
             'quantity' => ['required', 'integer', 'min:0', 'max:99999999'],
             'low_stock_threshold' => ['required', 'integer', 'min:0', 'max:99999999'],
-            'unit_cost' => ['required', 'numeric', 'decimal:0,2', 'min:0', 'max:99999999.99'],
+            'unit_cost' => ['required', 'integer', 'min:0', 'max:99999999'],
             'supplier_id' => ['nullable', 'integer', Rule::exists('suppliers', 'id')->where(fn ($query) => $query->where('is_active', true)->orWhere('id', $this->route('consumable')->supplier_id))],
             'notes' => ['nullable', 'string', 'max:1000'],
         ];

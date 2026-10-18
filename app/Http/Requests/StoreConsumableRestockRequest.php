@@ -16,7 +16,7 @@ class StoreConsumableRestockRequest extends FormRequest
     {
         return [
             'quantity_added' => ['required', 'integer', 'min:1'],
-            'cost' => ['nullable', 'numeric', 'min:0'],
+            'cost' => ['nullable', 'integer', 'min:0'],
             'notes' => ['nullable', 'string', 'max:1000'],
         ];
     }

@@ -7,7 +7,7 @@
         <div><x-input-label for="expense_date" value="Expense Date" /><x-text-input id="expense_date" type="date" name="expense_date" :value="old('expense_date', now()->toDateString())" :max="now()->toDateString()" required /></div>
         <div><x-input-label for="expense_category" value="Category" /><x-select id="expense_category" name="category" required><option value="">Select category</option>@foreach($categories as $category)<option @selected(old('category') === $category)>{{ $category }}</option>@endforeach</x-select></div>
         <div><x-input-label for="description" value="Description" /><x-text-input id="description" name="description" :value="old('description')" maxlength="255" required /></div>
-        <div><x-input-label for="amount" value="Amount (PHP)" /><x-text-input id="amount" name="amount" type="number" step="0.01" min="0.01" max="9999999999.99" :value="old('amount')" required /></div>
+        <div><x-input-label for="amount" value="Amount (PHP)" /><x-text-input id="amount" name="amount" type="number" step="1" min="1" max="9999999999" :value="old('amount')" required /></div>
         <div><x-input-label for="reference" value="Receipt / Reference (optional)" /><x-text-input id="reference" name="reference" :value="old('reference')" maxlength="100" /></div>
         <div><x-input-label for="notes" value="Notes (optional)" /><x-textarea id="notes" name="notes" maxlength="1000">{{ old('notes') }}</x-textarea></div>
         <div class="sm:col-span-2"><x-button variant="success" type="submit">Save Expense</x-button></div>

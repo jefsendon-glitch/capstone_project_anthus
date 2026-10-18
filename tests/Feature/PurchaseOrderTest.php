@@ -75,7 +75,7 @@ test('purchase order expenses follow draft publication and cancellation without 
     $payload = [
         'supplier_id' => $this->supplier->id, 'status' => 'draft',
         'ordered_at' => today()->toDateString(),
-        'items' => [['itemable_type' => 'product', 'itemable_id' => $this->product->id, 'quantity_ordered' => 2, 'unit_cost' => 12.50]],
+        'items' => [['itemable_type' => 'product', 'itemable_id' => $this->product->id, 'quantity_ordered' => 2, 'unit_cost' => 12]],
     ];
     $this->actingAs($this->admin)->post(route('admin.purchase-orders.store'), $payload)->assertSessionHasNoErrors();
     $order = PurchaseOrder::latest('id')->firstOrFail();
@@ -86,9 +86,9 @@ test('purchase order expenses follow draft publication and cancellation without 
     $this->put(route('admin.purchase-orders.update', $order), $payload)->assertSessionHasNoErrors();
     app(\App\Services\PurchaseOrderExpenseService::class)->sync($order->fresh());
     $this->assertDatabaseCount('expenses', 1);
-    $this->assertDatabaseHas('expenses', ['purchase_order_id' => $order->id, 'amount' => 37.50]);
+    $this->assertDatabaseHas('expenses', ['purchase_order_id' => $order->id, 'amount' => 36.0]);
     $summary = app(\App\Services\FinancialSummaryService::class)->summarize(today()->toDateString(), today()->toDateString());
-    expect($summary['Recorded Expenses'])->toBe(37.50);
+    expect($summary['Recorded Expenses'])->toBe(36.0);
     $this->get(route('admin.financial.section', ['section' => 'expenses']))->assertOk()->assertSee($order->po_number);
 
     $this->post(route('admin.purchase-orders.cancel', $order))->assertSessionHasNoErrors();
