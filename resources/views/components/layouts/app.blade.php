@@ -243,6 +243,8 @@
 
                 @if(auth()->user()->isAdmin() && request()->routeIs('admin.products*', 'admin.inventory.*', 'admin.water-production*', 'admin.stock-movements*'))
                     @include('admin.inventory.nav')
+                @elseif(auth()->user()->isStaff() && request()->routeIs('staff.inventory', 'staff.gallons.*', 'admin.products*', 'admin.water-production*', 'admin.maintenance*', 'admin.stock-movements*'))
+                    @include('admin.inventory.nav')
                 @endif
 
                 @if(auth()->user()->isAdmin() && request()->routeIs('admin.suppliers*', 'admin.consumables*', 'admin.purchase-orders*', 'admin.procurement.*'))
