@@ -52,7 +52,7 @@ $categories = [
                         <button type="button" x-on:click="category = '{{ $key }}'" x-bind:aria-pressed="category === '{{ $key }}'" x-bind:class="category === '{{ $key }}' ? 'bg-primary-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700'" class="rounded-lg px-3 py-2 text-sm font-medium">{{ $label }}</button>
                     @endforeach
                 </div></div>
-                <div class="mt-3 border-t border-slate-100 pt-3 dark:border-white/10"><x-input-label for="pos-container-type" value="Container Type for Water" /><x-select id="pos-container-type" x-model="containerType"><option value="round">Round Gallon</option><option value="slim">Slim Gallon</option></x-select><p class="mt-1 text-xs text-slate-500">Select a container, then add a water product. Both choices use the same price and stock.</p></div>
+                <div class="mt-3 border-t border-slate-100 pt-3 dark:border-white/10"><x-input-label for="pos-container-type" value="Container Type for Water" /><x-select id="pos-container-type" x-model="containerType"><option value="round">Round Gallon</option><option value="slim">Slim Gallon</option></x-select><p class="mt-1 text-xs text-slate-500">Select a container, then add a water product. The price is the same; stock is tracked separately for Round and Slim.</p></div>
                 <p class="mt-3 text-xs text-slate-500 dark:text-slate-400" aria-live="polite" x-text="filteredProducts.length + ' products available. Select a product to add it to the order.'"></p>
             </x-card>
 
@@ -61,7 +61,7 @@ $categories = [
                     <button
                         type="button"
                         x-on:click="addToCart(product)"
-                        x-bind:disabled="product.stock_quantity <= cartQuantity(product.id)"
+                        x-bind:disabled="stockFor(product) <= cartQuantity(product.id, product.requires_container_choice ? containerType : null)"
                         class="min-w-0 rounded-xl bg-white p-3 text-left shadow-sm ring-1 ring-slate-900/5 transition hover:ring-primary-300 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-slate-900 dark:ring-white/10"
                     >
                         <div class="mb-2 overflow-hidden rounded-lg bg-slate-100 dark:bg-slate-800">
@@ -85,7 +85,7 @@ $categories = [
                             <span
                                 class="font-medium"
                                 x-bind:class="product.is_low_stock ? 'text-danger-600' : 'text-success-600'"
-                                x-text="product.stock_quantity + ' ' + product.stock_unit_label + ' left'"
+                                x-text="stockFor(product) + ' ' + (product.requires_container_choice ? containerLabel(containerType) : product.stock_unit_label) + ' left'"
                             ></span>
                             <span x-show="product.is_low_stock" x-cloak class="flex items-center gap-1 font-semibold text-warning-600">
                                 <x-icon name="alert-triangle" class="size-3.5" /> Low
@@ -263,13 +263,13 @@ $categories = [
                 },
 
                 containerLabel(type) { return type === 'slim' ? 'Slim Gallon' : 'Round Gallon'; },
-                cartQuantity(id) { return this.cart.filter(item => item.product_id === id).reduce((sum, item) => sum + item.quantity, 0); },
+                stockFor(product, type = this.containerType) { return Number(product.requires_container_choice ? product[type + '_stock'] || 0 : product.stock_quantity); }, cartQuantity(id, type) { return this.cart.filter(item => item.product_id === id && (item.container_type || null) === (type || null)).reduce((sum, item) => sum + item.quantity, 0); },
                 addToCart(product) {
-                    if (this.cartQuantity(product.id) >= product.stock_quantity) return;
+                    if (this.cartQuantity(product.id, product.requires_container_choice ? this.containerType : null) >= this.stockFor(product)) return;
                     const container = product.requires_container_choice ? this.containerType : null;
                     const existing = this.cart.find(item => item.product_id === product.id && item.container_type === container);
                     if (existing) existing.quantity++;
-                    else this.cart.push({ product_id: product.id, name: product.name, size: product.size, unit_price: product.unit_price, image_url: product.image_url, stock_quantity: product.stock_quantity, container_type: container, quantity: 1 });
+                    else this.cart.push({ ...product, product_id: product.id, name: product.name, size: product.size, unit_price: product.unit_price, image_url: product.image_url, stock_quantity: product.stock_quantity, container_type: container, quantity: 1 });
                 },
 
                 removeFromCart(index) {
@@ -278,7 +278,7 @@ $categories = [
 
                 incrementQty(index) {
                     const item = this.cart[index];
-                    if (this.cartQuantity(item.product_id) < item.stock_quantity) {
+                    if (this.cartQuantity(item.product_id, item.container_type) < this.stockFor(item, item.container_type)) {
                         item.quantity++;
                     }
                 },

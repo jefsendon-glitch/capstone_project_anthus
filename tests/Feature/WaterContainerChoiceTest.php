@@ -15,7 +15,7 @@ beforeEach(function () {
     $this->customer = User::factory()->create(['credit_status' => 'eligible', 'credit_balance' => 0]);
     $this->customer->assignRole('customer');
     $this->water = Product::factory()->create(['name' => 'Purified Water', 'category' => 'purified',
-        'size' => '5 Gallon', 'unit_price' => 25, 'stock_quantity' => 10, 'is_active' => true, 'requires_container_choice' => true]);
+        'size' => '5 Gallon', 'unit_price' => 25, 'stock_quantity' => 10, 'round_stock' => 5, 'slim_stock' => 5, 'is_active' => true, 'requires_container_choice' => true]);
 });
 
 test('admin registers water once without container names and duplicate products are rejected', function () {
@@ -29,7 +29,7 @@ test('admin registers water once without container names and duplicate products 
     $this->get(route('admin.products.edit', $this->water))->assertOk();
 });
 
-test('pos round and slim lines share the same price and deduct one combined stock balance', function () {
+test('pos round and slim lines share the same price and deduct their respective container balances', function () {
     $items = [['product_id' => $this->water->id, 'quantity' => 2, 'container_type' => 'round'],
         ['product_id' => $this->water->id, 'quantity' => 3, 'container_type' => 'slim']];
     $response = $this->actingAs($this->staff)->post(route('pos.store'), [
@@ -90,7 +90,7 @@ test('fulfillment checks combined container quantities and rolls back if shared 
 });
 
 test('historical orders without a container choice remain fulfillable after upgrading products', function () {
-    $this->water->update(['requires_container_choice' => false]);
+    $this->water->update(['requires_container_choice' => false, 'round_stock' => 0, 'slim_stock' => 0]);
     $service = app(DeliveryService::class);
     $order = $service->placeOrder(['product_id' => $this->water->id, 'quantity' => 2, 'customer_address' => 'Address'], $this->customer);
     $this->water->update(['requires_container_choice' => true]);

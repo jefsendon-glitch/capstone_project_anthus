@@ -89,7 +89,23 @@ class ProductController extends Controller
             $data['image_path'] = $request->file('image')->store('products', config('filesystems.product_image_disk'));
         }
 
-        $product->update($data);
+        DB::transaction(function () use ($product, $data, $request) {
+            $product = Product::lockForUpdate()->findOrFail($product->id);
+            $before = (int) $product->stock_quantity;
+            $roundBefore = (int) $product->round_stock;
+            $slimBefore = (int) $product->slim_stock;
+            if (($data['requires_container_choice'] ?? false)
+                && $data['stock_quantity'] < ($data['round_stock'] ?? $roundBefore) + ($data['slim_stock'] ?? $slimBefore)) {
+                throw \Illuminate\Validation\ValidationException::withMessages(['stock_quantity' => 'Total stock cannot be less than Round and Slim stock.']);
+            }
+            $product->update($data);
+            $delta = $product->stock_quantity - $before;
+            if ($delta !== 0 || $roundBefore !== (int) $product->round_stock || $slimBefore !== (int) $product->slim_stock) {
+                StockMovement::record($product, $delta < 0 ? 'adjustment_decrease' : 'adjustment_increase', $delta,
+                    $before, $product->stock_quantity, $request->user()->id,
+                    'Product stock updated. Round: '.$roundBefore.' → '.$product->round_stock.'; Slim: '.$slimBefore.' → '.$product->slim_stock.'.');
+            }
+        });
 
         return redirect()->route('admin.products.index')->with('success', 'Product updated successfully.');
     }

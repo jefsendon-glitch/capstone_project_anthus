@@ -63,7 +63,11 @@
                                 <td class="px-6 py-3 text-sm text-slate-600 dark:text-slate-300">{{ $product->size }}</td>
                                 <td class="px-6 py-3 font-mono text-sm text-slate-900 dark:text-white">₱{{ number_format($product->unit_price, 2) }}</td>
                                 <td class="px-6 py-3">
-                                    @if(! $archived)
+                                    @if($product->requires_container_choice)
+                                        <p class="text-sm font-semibold">Total: {{ $product->stock_quantity }}</p>
+                                        <p class="text-xs text-slate-500">Round: {{ $product->round_stock }} · Slim: {{ $product->slim_stock }}</p>
+                                        @if($product->availableStock(null) > 0)<p class="text-xs text-amber-600">Unassigned: {{ $product->availableStock(null) }} — allocate in Edit Product</p>@endif
+                                    @elseif(! $archived)
                                         @can('update', $product)
                                             <x-stock-action-modal
                                                 :action-url="route('admin.products.stock.adjust', $product)"

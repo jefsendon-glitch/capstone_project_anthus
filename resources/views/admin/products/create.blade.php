@@ -31,7 +31,7 @@
             </div>
 
             <div class="grid grid-cols-2 gap-5">
-                <p class="text-sm text-slate-500 dark:text-slate-400" x-text="productKind === 'water' ? 'Round or Slim is selected when ordering. Both containers use this product\'s price and water stock.' : 'Other products use their own stock and do not require a Round or Slim container.'"></p>
+                <p class="text-sm text-slate-500 dark:text-slate-400" x-text="productKind === 'water' ? 'Round and Slim use the same price, with separate stock balances.' : 'Other products use their own stock and do not require a Round or Slim container.'"></p>
 
                 <div>
                     <x-input-label for="size" value="Size / Unit" />
@@ -47,9 +47,9 @@
                     <x-input-error :messages="$errors->get('unit_price')" />
                 </div>
 
-                <div>
+                <div x-show="productKind === 'other'" x-cloak>
                     <x-input-label for="stock_quantity" value="Opening Stock" />
-                    <x-text-input id="stock_quantity" type="number" min="0" name="stock_quantity" :value="old('stock_quantity', 0)" required />
+                    <x-text-input id="stock_quantity" type="number" min="0" name="stock_quantity" :value="old('stock_quantity', 0)" x-bind:disabled="productKind === 'water'" x-bind:required="productKind === 'other'" />
                     <x-input-error :messages="$errors->get('stock_quantity')" />
                     <p class="mt-1 text-xs text-slate-500" x-text="productKind === 'water' ? 'Enter existing filled stock only. Future fills add stock through Gallon Tracking.' : 'Enter the quantity available for sale.'"></p>
                 </div>
@@ -59,6 +59,12 @@
                     <x-text-input id="low_stock_threshold" type="number" min="0" name="low_stock_threshold" :value="old('low_stock_threshold', 10)" required />
                     <x-input-error :messages="$errors->get('low_stock_threshold')" />
                 </div>
+            </div>
+
+            <div x-show="productKind === 'water'" class="grid grid-cols-2 gap-3">
+                <div><x-input-label for="round-stock" value="Opening Round Stock" /><x-text-input id="round-stock" name="round_stock" type="number" min="0" :value="old('round_stock', 0)" x-bind:disabled="productKind !== 'water'" x-bind:required="productKind === 'water'" /><x-input-error :messages="$errors->get('round_stock')" /></div>
+                <div><x-input-label for="slim-stock" value="Opening Slim Stock" /><x-text-input id="slim-stock" name="slim_stock" type="number" min="0" :value="old('slim_stock', 0)" x-bind:disabled="productKind !== 'water'" x-bind:required="productKind === 'water'" /><x-input-error :messages="$errors->get('slim_stock')" /></div>
+                <p class="text-xs text-slate-500 sm:col-span-2">Enter existing filled stock only. Future fills add to the matching Round or Slim balance.</p>
             </div>
 
             <label class="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300">

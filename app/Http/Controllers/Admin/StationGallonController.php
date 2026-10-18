@@ -279,6 +279,18 @@ class StationGallonController extends Controller
                     throw ValidationException::withMessages(['product_id' => 'Select an active water product to receive the filled stock.']);
                 }
                 $before = (float) $product->stock_quantity;
+                $container = match (strtolower(trim($gallon->type))) {
+                    'round', 'round gallon' => 'round',
+                    'slim', 'slim gallon' => 'slim',
+                    default => null,
+                };
+                if (! $container) {
+                    throw ValidationException::withMessages(['gallon_id' => 'Set the container type to Round Gallon or Slim Gallon before filling.']);
+                }
+                if (! $product->requires_container_choice) {
+                    $product->update(['requires_container_choice' => true]);
+                }
+                $product->increment($container.'_stock', $quantity);
                 $product->increment('stock_quantity', $quantity);
                 StockMovement::record($product, 'production', $quantity, $before,
                     (float) $product->stock_quantity, $request->user()->id,

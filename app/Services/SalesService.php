@@ -73,9 +73,9 @@ class SalesService
                 ]));
 
                 $before = (float) $product->stock_quantity;
-                $product->decrement('stock_quantity', $line['quantity']);
+                $product->deductStock($line['quantity'], $line['container_type']);
                 StockMovement::record($product, 'sale_deduction', -$line['quantity'], $before,
-                    (float) $product->stock_quantity, $processedBy->id, $data['notes'] ?? 'POS sale', null,
+                    (float) $product->stock_quantity, $processedBy->id, ($line['container_type'] ? ucfirst($line['container_type']).' Gallon. ' : '').($data['notes'] ?? 'POS sale'), null,
                     $customer?->id, $transactions->last()->transaction_code);
             }
 

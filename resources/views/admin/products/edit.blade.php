@@ -19,7 +19,7 @@
                 <x-input-label for="name" value="Product name" />
                 @if(array_key_exists($product->category, \App\Models\Product::WATER_TYPES))
                     <x-select id="name" name="name" required>@foreach(\App\Models\Product::WATER_TYPES as $value)<option value="{{ $value }}" @selected(old('name', \App\Models\Product::WATER_TYPES[$product->category]) === $value)>{{ $value }}</option>@endforeach</x-select>
-                    <p class="mt-1 text-xs text-slate-500">Choose Round or Slim at checkout. Price and water stock are shared.</p>
+                    <p class="mt-1 text-xs text-slate-500">One price, separate Round and Slim stock.</p>
                 @else
                     <x-text-input id="name" name="name" :value="old('name', $product->name)" required autofocus />
                 @endif
@@ -55,7 +55,7 @@
 
                 <div>
                     <x-input-label for="stock_quantity" value="Stock quantity" />
-                    <x-text-input id="stock_quantity" type="number" min="0" name="stock_quantity" :value="old('stock_quantity', $product->stock_quantity)" required />
+                    <x-text-input id="stock_quantity" type="number" min="0" name="stock_quantity" :value="old('stock_quantity', $product->stock_quantity)" :disabled="$product->requires_container_choice" required />
                     <x-input-error :messages="$errors->get('stock_quantity')" />
                     @if(array_key_exists($product->category, \App\Models\Product::WATER_TYPES))
                         <p class="mt-1 text-xs text-slate-500">Filling gallons adds stock automatically. POS sales and completed deliveries deduct stock.</p>
@@ -68,6 +68,15 @@
                     <x-input-error :messages="$errors->get('low_stock_threshold')" />
                 </div>
             </div>
+
+            @if($product->requires_container_choice)
+            <div class="grid grid-cols-2 gap-3">
+                <div><x-input-label for="round-stock" value="Round Stock" /><x-text-input id="round-stock" name="round_stock" type="number" min="0" :value="old('round_stock', $product->round_stock)" required /><x-input-error :messages="$errors->get('round_stock')" /></div>
+                <div><x-input-label for="slim-stock" value="Slim Stock" /><x-text-input id="slim-stock" name="slim_stock" type="number" min="0" :value="old('slim_stock', $product->slim_stock)" required /><x-input-error :messages="$errors->get('slim_stock')" /></div>
+                <p class="text-xs text-slate-500 sm:col-span-2">Enter actual filled quantities. Total stock is calculated from Round + Slim. Future fills and sales update the matching balance.</p>
+                @if($product->availableStock(null) > 0)<p class="text-xs text-amber-600 sm:col-span-2">{{ $product->availableStock(null) }} existing gallons have no container breakdown. Include them in the actual Round/Slim counts before saving.</p>@endif
+            </div>
+            @endif
 
             <label class="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300">
                 <input type="checkbox" name="is_active" value="1" @checked(old('is_active', $product->is_active)) class="rounded border-slate-300 text-primary-600 focus:ring-primary-600">

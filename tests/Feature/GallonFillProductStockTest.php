@@ -19,7 +19,7 @@ beforeEach(function () {
     $this->fill = ['gallon_id' => $this->gallonId, 'action' => 'fill', 'quantity' => 6, 'product_id' => $this->water->id];
 });
 
-test('filling credits the selected product and a mixed container sale deducts shared stock', function () {
+test('filling credits the selected product and a sale deducts matching container stock', function () {
     $other = Product::factory()->create(['category' => 'alkaline', 'stock_quantity' => 7]);
     $this->post(route('admin.inventory.gallon-inventory.move'), $this->fill)->assertSessionHasNoErrors();
     expect($this->water->fresh()->stock_quantity)->toBe(6);
@@ -30,7 +30,7 @@ test('filling credits the selected product and a mixed container sale deducts sh
         'type' => 'production', 'quantity_before' => 0, 'quantity_after' => 6, 'quantity_delta' => 6]);
     $this->post(route('pos.store'), ['transaction_type' => 'walk-in', 'payment_method' => 'cash', 'tendered_amount' => 75, 'items' => json_encode([
         ['product_id' => $this->water->id, 'container_type' => 'round', 'quantity' => 1],
-        ['product_id' => $this->water->id, 'container_type' => 'slim', 'quantity' => 2],
+        ['product_id' => $this->water->id, 'container_type' => 'round', 'quantity' => 2],
     ])])->assertRedirect()->assertSessionHasNoErrors();
     expect($this->water->fresh()->stock_quantity)->toBe(3);
     $this->get(route('admin.water-production.index').'?search=Purified')->assertOk()->assertSee('Purified Water');

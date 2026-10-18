@@ -40,6 +40,8 @@ class OrderController extends Controller
             'requires_container_choice' => $product->requires_container_choice,
             'unit_price' => (float) $product->unit_price,
             'stock_quantity' => $product->stock_quantity,
+            'round_stock' => (int) $product->round_stock,
+            'slim_stock' => (int) $product->slim_stock,
             'stock_unit_label' => $product->stock_unit_label,
             'image_url' => $product->image_url,
         ])->values();

@@ -114,7 +114,7 @@
                                 <option value="{{ $waterProduct->id }}" @selected((string) old('product_id') === (string) $waterProduct->id)>{{ $waterProduct->name }} — {{ $waterProduct->size }} </option>
                             @endforeach
                         </x-select>
-                        <p class="mt-1 text-xs text-slate-500">Filled quantity is added to this product's stock.</p>
+                        <p class="mt-1 text-xs text-slate-500">The selected container type determines whether Round or Slim stock is added.</p>
                         @if($waterProducts->isEmpty())<p class="mt-1 text-xs text-danger-600">Create an active water product under Products before filling gallons.</p>@endif
                         <x-input-error :messages="$errors->get('product_id')" />
                     </div>

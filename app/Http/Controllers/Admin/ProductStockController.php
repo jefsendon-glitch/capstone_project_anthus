@@ -31,6 +31,7 @@ class ProductStockController extends Controller
 
     public function update(UpdateProductStockRequest $request, Product $product): RedirectResponse
     {
+        $this->ensureWholeWaterQuantity($product, 0);
         $newQuantity = (float) $request->validated('quantity');
 
         DB::transaction(function () use ($product, $newQuantity, $request) {
@@ -79,6 +80,9 @@ class ProductStockController extends Controller
 
     private function ensureWholeWaterQuantity(Product $product, float $quantity): void
     {
+        if ($product->requires_container_choice) {
+            throw ValidationException::withMessages(['quantity' => 'Use Fill Gallons to add water stock, or Edit Product to correct Round and Slim quantities.']);
+        }
         if ($product->category !== 'container' && $quantity > 0 && floor($quantity) !== $quantity) {
             throw ValidationException::withMessages(['quantity' => 'Water production must be recorded in whole gallons.']);
         }

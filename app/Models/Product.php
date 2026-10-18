@@ -15,7 +15,29 @@ class Product extends Model
 
     public const WATER_TYPES = ['purified' => 'Purified Water', 'distilled' => 'Distilled Water', 'alkaline' => 'Alkaline Water'];
 
-    protected $fillable = ['name', 'category', 'size', 'unit_price', 'stock_quantity', 'low_stock_threshold', 'is_active', 'image_path', 'requires_container_choice'];
+    protected $fillable = ['name', 'category', 'size', 'unit_price', 'stock_quantity', 'round_stock', 'slim_stock', 'low_stock_threshold', 'is_active', 'image_path', 'requires_container_choice'];
+
+    public function availableStock(?string $container): int
+    {
+        if (! $this->requires_container_choice) return (int) $this->stock_quantity;
+        return match ($container) {
+            'round' => (int) $this->round_stock,
+            'slim' => (int) $this->slim_stock,
+            default => max(0, $this->stock_quantity - $this->round_stock - $this->slim_stock),
+        };
+    }
+
+    /** Call while holding the product row lock, inside a transaction. */
+    public function deductStock(int $quantity, ?string $container): void
+    {
+        if ($quantity > $this->availableStock($container)) {
+            throw \Illuminate\Validation\ValidationException::withMessages(['items' => 'Not enough '.($container ? ucfirst($container).' Gallon' : 'unassigned').' stock for '.$this->name.'.']);
+        }
+        if ($this->requires_container_choice && in_array($container, ['round', 'slim'], true)) {
+            $this->decrement($container.'_stock', $quantity);
+        }
+        $this->decrement('stock_quantity', $quantity);
+    }
 
     protected function casts(): array
     {

@@ -157,7 +157,12 @@ class DeliveryService
             foreach ($items->groupBy('product_id')->sortKeys() as $id => $group) {
                 $product = Product::lockForUpdate()->findOrFail($id);
                 if ($group->sum('quantity') > $product->stock_quantity) {
-                    throw ValidationException::withMessages(['payment_method' => 'Not enough shared water stock for '.$product->name.'.']);
+                    throw ValidationException::withMessages(['payment_method' => 'Not enough water stock for '.$product->name.'.']);
+                }
+                foreach ($group->groupBy(fn ($item) => $item->container_type ?? '') as $container => $variant) {
+                    if ($variant->sum('quantity') > $product->availableStock($container ?: null)) {
+                        throw ValidationException::withMessages(['payment_method' => 'Not enough '.($container ? ucfirst($container).' Gallon' : 'unassigned').' stock for '.$product->name.'.']);
+                    }
                 }
                 $products[$id] = $product;
             }
@@ -182,9 +187,9 @@ class DeliveryService
                 'processed_by' => $updatedBy->id,
                 ]);
                 $before = (float) $product->stock_quantity;
-                $product->decrement('stock_quantity', $item->quantity);
+                $product->deductStock((int) $item->quantity, $item->container_type ?? null);
                 StockMovement::record($product, 'sale_deduction', -$item->quantity, $before,
-                    (float) $product->stock_quantity, $updatedBy->id, 'Delivery '.$order->order_code,
+                    (float) $product->stock_quantity, $updatedBy->id, 'Delivery '.$order->order_code.($item->container_type ? ' — '.ucfirst($item->container_type).' Gallon' : ''),
                     null, $order->customer_id, $transaction->transaction_code);
             }
 

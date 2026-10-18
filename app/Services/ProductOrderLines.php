@@ -8,7 +8,7 @@ use Illuminate\Validation\ValidationException;
 
 class ProductOrderLines
 {
-    /** Prepare item variants against one shared product price and stock balance. Call inside a transaction. */
+    /** Prepare container variants against their own balances and one price. Call inside a transaction. */
     public function prepare(array $items): Collection
     {
         $items = collect($items);
@@ -33,7 +33,12 @@ class ProductOrderLines
                 }
             }
             if ($group->sum('quantity') > $product->stock_quantity) {
-                throw ValidationException::withMessages(['items' => 'Not enough stock for '.$product->name.'. Round and Slim use the same water stock; only '.$product->stock_quantity.' available.']);
+                throw ValidationException::withMessages(['items' => 'Not enough total stock for '.$product->name.'.']);
+            }
+            foreach ($group->groupBy(fn ($item) => $item['container_type'] ?? '') as $container => $variant) {
+                if ($variant->sum('quantity') > $product->availableStock($container ?: null)) {
+                    throw ValidationException::withMessages(['items' => 'Not enough '.ucfirst($container).' Gallon stock for '.$product->name.'. Only '.$product->availableStock($container ?: null).' available.']);
+                }
             }
         }
 
