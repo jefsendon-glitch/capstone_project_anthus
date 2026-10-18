@@ -55,7 +55,8 @@ class DeliveryController extends Controller
                 });
             })
             ->orderBy('preferred_delivery_date')
-            ->paginate(15)
+            ->orderByDesc('id')
+            ->paginate(5)
             ->withQueryString();
 
         return view('staff.deliveries.index', compact('orders', 'deliveryStats'));

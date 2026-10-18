@@ -36,23 +36,23 @@
         @else
             <div class="overflow-x-auto">
                 <table class="min-w-full divide-y divide-slate-200 dark:divide-white/10">
-                    <thead class="bg-slate-50/80 dark:bg-white/[0.03]"><tr class="text-left text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400"><th class="px-6 py-3.5">Order ID</th><th class="px-6 py-3.5 text-right">Amount</th><th class="px-6 py-3.5">Customer & Address</th><th class="px-6 py-3.5">Order Items</th><th class="px-6 py-3.5">Schedule</th><th class="px-6 py-3.5">Status</th><th class="px-6 py-3.5 text-right">Open</th></tr></thead>
+                    <thead class="bg-slate-50/80 dark:bg-white/[0.03]"><tr class="text-left text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400"><th class="px-4 py-3">Order ID</th><th class="px-4 py-3 text-right">Amount</th><th class="px-4 py-3">Customer & Address</th><th class="px-4 py-3">Order Items</th><th class="px-4 py-3">Schedule</th><th class="px-4 py-3">Status</th><th class="px-4 py-3 text-right">Open</th></tr></thead>
                     <tbody class="divide-y divide-slate-100 dark:divide-white/5">
                         @foreach($orders as $order)
                             <tr class="transition hover:bg-slate-50/80 dark:hover:bg-white/[0.03]">
-                                <td class="px-6 py-4"><a href="{{ route('deliveries.show', $order) }}" class="font-mono text-sm font-bold text-primary-600 hover:text-primary-700">{{ $order->order_code }}</a></td>
-                                <td class="whitespace-nowrap px-6 py-4 text-right font-mono text-sm tabular-nums text-slate-700 dark:text-slate-300">₱{{ number_format($order->total_amount, 0) }}</td>
-                                <td class="px-6 py-4"><p class="text-sm font-semibold text-slate-900 dark:text-white">{{ $order->customer_name }}</p><p class="max-w-56 truncate text-xs text-slate-500 dark:text-slate-400">{{ $order->customer_address }}</p></td>
-                                <td class="min-w-56 px-6 py-4 text-sm text-slate-700 dark:text-slate-300"><x-delivery-order-items :order="$order" compact /></td>
-                                <td class="px-6 py-4 text-sm text-slate-600 dark:text-slate-300">{{ $order->preferred_delivery_date?->format('M d, Y') ?? 'Not scheduled' }}@if(in_array($order->status, ['pending', 'confirmed', 'out_for_delivery']) && $order->preferred_delivery_date?->lt(today()))<div class="mt-1"><x-badge color="danger">Overdue</x-badge></div>@endif</td>
-                                <td class="px-6 py-4"><x-delivery-status-badge :status="$order->status" /></td>
-                                <td class="px-6 py-4 text-right"><a href="{{ route('deliveries.show', $order) }}" class="inline-flex rounded-lg p-2 text-slate-500 transition hover:bg-primary-50 hover:text-primary-600 dark:hover:bg-primary-500/10" aria-label="View delivery order {{ $order->order_code }}"><span class="mr-1 text-sm font-semibold">View Order</span><x-icon name="chevron-right" class="size-4" /></a></td>
+                                <td class="px-4 py-3"><a href="{{ route('deliveries.show', $order) }}" class="font-mono text-sm font-bold text-primary-600 hover:text-primary-700">{{ $order->order_code }}</a></td>
+                                <td class="whitespace-nowrap px-4 py-3 text-right font-mono text-sm tabular-nums text-slate-700 dark:text-slate-300">₱{{ number_format($order->total_amount, 0) }}</td>
+                                <td class="px-4 py-3"><p class="text-sm font-semibold text-slate-900 dark:text-white">{{ $order->customer_name }}</p><p class="max-w-56 truncate text-xs text-slate-500 dark:text-slate-400">{{ $order->customer_address }}</p></td>
+                                <td class="min-w-56 px-4 py-3 text-sm text-slate-700 dark:text-slate-300"><x-delivery-order-items :order="$order" compact /></td>
+                                <td class="px-4 py-3 text-sm text-slate-600 dark:text-slate-300">{{ $order->preferred_delivery_date?->format('M d, Y') ?? 'Not scheduled' }}@if(in_array($order->status, ['pending', 'confirmed', 'out_for_delivery']) && $order->preferred_delivery_date?->lt(today()))<div class="mt-1"><x-badge color="danger">Overdue</x-badge></div>@endif</td>
+                                <td class="px-4 py-3"><x-delivery-status-badge :status="$order->status" /></td>
+                                <td class="px-4 py-3 text-right"><a href="{{ route('deliveries.show', $order) }}" class="inline-flex rounded-lg p-2 text-slate-500 transition hover:bg-primary-50 hover:text-primary-600 dark:hover:bg-primary-500/10" aria-label="View delivery order {{ $order->order_code }}"><span class="mr-1 text-sm font-semibold">View Order</span><x-icon name="chevron-right" class="size-4" /></a></td>
                             </tr>
                         @endforeach
                     </tbody>
                 </table>
             </div>
-            <div class="border-t border-slate-100 px-6 py-4 dark:border-white/5">{{ $orders->links() }}</div>
+            <div class="border-t border-slate-100 px-4 py-3 dark:border-white/5">{{ $orders->links() }}</div>
         @endif
     </x-card>
 </x-layouts.app>

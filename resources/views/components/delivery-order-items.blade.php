@@ -6,9 +6,9 @@
     ]]);
 @endphp
 @if($compact)
-    <details @if($lines->count() === 1) open @endif>
+    <details>
         <summary class="cursor-pointer text-sm font-semibold text-primary-700 dark:text-primary-300">{{ $lines->count() }} {{ $lines->count() === 1 ? 'product' : 'products' }} &middot; {{ number_format($lines->sum('quantity')) }} total units</summary>
-        <ul class="mt-2 space-y-2 text-sm">
+        <ul class="mt-2 max-h-40 space-y-2 overflow-y-auto pr-2 text-sm" tabindex="0" aria-label="Order item list">
             @foreach($lines as $line)<li class="flex items-start justify-between gap-3"><span class="min-w-0 break-words">{{ $line->product_name }}</span><span class="shrink-0 font-semibold tabular-nums">Qty {{ number_format($line->quantity) }}</span></li>@endforeach
         </ul>
     </details>

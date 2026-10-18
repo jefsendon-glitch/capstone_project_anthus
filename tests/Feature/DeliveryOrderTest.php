@@ -78,6 +78,23 @@ test('multi product deliveries show individual quantities prices and searchable 
         ->assertSee('2 products')->assertSee('Distinct delivery item');
 });
 
+test('delivery orders use five records per page with stable ordering and retained filters', function () {
+    $this->customer->update(['name' => 'Pagination customer']);
+    foreach (range(1, 7) as $i) {
+        app(\App\Services\DeliveryService::class)->placeOrder([
+            'product_id' => $this->product->id, 'quantity' => 1, 'customer_address' => 'Delivery address',
+            'preferred_delivery_date' => today()->addDay()->toDateString(),
+        ], $this->customer);
+    }
+    $filters = ['search' => 'Pagination', 'status' => 'pending', 'schedule' => 'upcoming'];
+    $first = $this->actingAs($this->staffUser)->get(route('deliveries.index', $filters));
+    $first->assertOk()->assertViewHas('orders', fn ($rows) => $rows->total() === 7 && $rows->count() === 5)
+        ->assertSee('Previous')->assertSee('Next')->assertSee('search=Pagination', false)->assertSee('schedule=upcoming', false);
+    $ids = $first->viewData('orders')->pluck('id');
+    $this->get(route('deliveries.index', $filters + ['page' => 2]))->assertOk()
+        ->assertViewHas('orders', fn ($rows) => $rows->count() === 2 && $rows->pluck('id')->intersect($ids)->isEmpty());
+});
+
 test('customer cannot place an order with a missing empty or whitespace delivery address', function () {
     $this->actingAs($this->customer);
     $order = ['product_id' => $this->product->id, 'quantity' => 2, 'payment_method' => 'cash'];
