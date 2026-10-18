@@ -14,7 +14,7 @@ use Illuminate\Validation\ValidationException;
 
 class DeliveryService
 {
-    public function __construct(private readonly SalesService $sales, private readonly CreditAccountService $creditAccounts)
+    public function __construct(private readonly SalesService $sales, private readonly CreditAccountService $creditAccounts, private readonly ProductOrderLines $orderLines)
     {
     }
 
@@ -32,21 +32,9 @@ class DeliveryService
                 $this->creditAccounts->ensureEligible($customer);
             }
 
-            $items = collect($data['items'] ?? (isset($data['product_id']) ? [[
-                'product_id' => $data['product_id'], 'quantity' => $data['quantity'],
-            ]] : []))->groupBy('product_id')->map(fn ($lines) => (int) $lines->sum('quantity'));
-            $orderItems = collect();
-
-            foreach ($items as $productId => $quantity) {
-                $product = Product::lockForUpdate()->findOrFail($productId);
-                if (! $product->is_active) {
-                    throw ValidationException::withMessages(['items' => "{$product->name} is no longer available for delivery orders."]);
-                }
-                if ($quantity > $product->stock_quantity) {
-                    throw ValidationException::withMessages(['items' => "Only {$product->stock_quantity} {$product->stock_unit_label} of {$product->name} are currently available."]);
-                }
-                $orderItems->push(['product' => $product, 'quantity' => $quantity, 'total_amount' => $product->unit_price * $quantity]);
-            }
+            $orderItems = $this->orderLines->prepare($data['items'] ?? (isset($data['product_id']) ? [[
+                'product_id' => $data['product_id'], 'quantity' => $data['quantity'], 'container_type' => $data['container_type'] ?? null,
+            ]] : []));
 
             $firstItem = $orderItems->first();
 
@@ -57,6 +45,7 @@ class DeliveryService
             'customer_address' => $data['customer_address'],
             'product_id' => $firstItem['product']->id,
             'product_name' => $orderItems->count() === 1 ? $firstItem['product']->name : 'Multiple products',
+            'container_type' => $orderItems->count() === 1 ? $firstItem['container_type'] : null,
             'quantity' => $orderItems->sum('quantity'),
             'unit_price' => $firstItem['product']->unit_price,
             'total_amount' => $orderItems->sum('total_amount'),
@@ -70,6 +59,7 @@ class DeliveryService
             $order->items()->createMany($orderItems->map(fn ($item) => [
                 'product_id' => $item['product']->id,
                 'product_name' => $item['product']->name,
+                'container_type' => $item['container_type'],
                 'quantity' => $item['quantity'],
                 'unit_price' => $item['product']->unit_price,
                 'total_amount' => $item['total_amount'],
@@ -159,17 +149,17 @@ class DeliveryService
             }
             $items = $order->items()->lockForUpdate()->get();
             if ($items->isEmpty()) {
-                $items = collect([(object) ['product_id' => $order->product_id, 'product_name' => $order->product_name, 'quantity' => $order->quantity, 'unit_price' => $order->unit_price, 'total_amount' => $order->total_amount]]);
+                $items = collect([(object) ['product_id' => $order->product_id, 'product_name' => $order->product_name, 'quantity' => $order->quantity, 'unit_price' => $order->unit_price, 'total_amount' => $order->total_amount, 'container_type' => $order->container_type]]);
             }
 
             $products = [];
             $transaction = null;
-            foreach ($items as $item) {
-                $product = Product::lockForUpdate()->findOrFail($item->product_id);
-                if ($item->quantity > $product->stock_quantity) {
-                    throw ValidationException::withMessages(['payment_method' => "Not enough stock for {$product->name}. Only {$product->stock_quantity} {$product->stock_unit_label} left."]);
+            foreach ($items->groupBy('product_id')->sortKeys() as $id => $group) {
+                $product = Product::lockForUpdate()->findOrFail($id);
+                if ($group->sum('quantity') > $product->stock_quantity) {
+                    throw ValidationException::withMessages(['payment_method' => 'Not enough shared water stock for '.$product->name.'.']);
                 }
-                $products[$item->product_id] = $product;
+                $products[$id] = $product;
             }
 
             foreach ($items as $item) {
@@ -182,6 +172,7 @@ class DeliveryService
                 'customer_name' => $order->customer_name,
                 'product_id' => $product->id,
                 'product_name' => $item->product_name,
+                'container_type' => $item->container_type ?? null,
                 'quantity' => $item->quantity,
                 'unit_price' => $item->unit_price,
                 'total_amount' => $item->total_amount,

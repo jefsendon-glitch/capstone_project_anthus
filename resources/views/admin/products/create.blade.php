@@ -10,21 +10,13 @@
             </div>
 
             <div>
-                <x-input-label for="name" value="Product name" />
-                <x-text-input id="name" name="name" :value="old('name')" required autofocus />
+                <x-input-label for="name" value="Water Type" />
+                <x-select id="name" name="name" required autofocus><option value="">Select water type</option>@foreach(\App\Models\Product::WATER_TYPES as $value)<option value="{{ $value }}" @selected(old('name') === $value)>{{ $value }}</option>@endforeach</x-select>
                 <x-input-error :messages="$errors->get('name')" />
             </div>
 
             <div class="grid grid-cols-2 gap-5">
-                <div>
-                    <x-input-label for="category" value="Category" />
-                    <x-select id="category" name="category" required>
-                        @foreach(['refill', 'alkaline', 'distilled', 'purified', 'mineral', 'container'] as $category)
-                            <option value="{{ $category }}" @selected(old('category', request('category')) === $category)>{{ ucfirst($category) }}</option>
-                        @endforeach
-                    </x-select>
-                    <x-input-error :messages="$errors->get('category')" />
-                </div>
+                <p class="text-sm text-slate-500 dark:text-slate-400">Round or Slim is selected when ordering. Both containers use this product's price and water stock.</p>
 
                 <div>
                     <x-input-label for="size" value="Size" />

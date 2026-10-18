@@ -11,7 +11,7 @@
         </div>
 
         <dl class="mt-6 space-y-3 text-sm">
-            <div class="flex justify-between"><dt class="text-slate-400">Product</dt><dd class="font-medium text-slate-900 dark:text-white">{{ $transaction->product_name }} × {{ $transaction->quantity }}</dd></div>
+            <div class="flex justify-between"><dt class="text-slate-400">Product</dt><dd class="font-medium text-slate-900 dark:text-white">{{ $transaction->product_name }}@if($transaction->container_type)<span class="ml-1 text-primary-700">({{ ucfirst($transaction->container_type) }} Gallon)</span>@endif × {{ $transaction->quantity }}</dd></div>
             <div class="flex justify-between"><dt class="text-slate-400">Unit price</dt><dd class="font-mono text-slate-900 dark:text-white">₱{{ number_format($transaction->unit_price, 2) }}</dd></div>
             <div class="flex justify-between"><dt class="text-slate-400">Recorded by</dt><dd class="font-medium text-slate-900 dark:text-white">{{ $transaction->processedBy?->name }}</dd></div>
             <div class="flex justify-between"><dt class="text-slate-400">Customer</dt><dd class="font-medium text-slate-900 dark:text-white">{{ $transaction->customer_name ?? '—' }}</dd></div>

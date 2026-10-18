@@ -18,6 +18,7 @@ class StoreOrderRequest extends FormRequest
             $this->merge(['items' => [[
                 'product_id' => $this->input('product_id'),
                 'quantity' => $this->input('quantity'),
+                'container_type' => $this->input('container_type'),
             ]]]);
         }
     }
@@ -36,8 +37,9 @@ class StoreOrderRequest extends FormRequest
     {
         return [
             'items' => ['required', 'array', 'min:1'],
-            'items.*.product_id' => ['required', 'distinct', 'exists:products,id'],
+            'items.*.product_id' => ['required', 'exists:products,id'],
             'items.*.quantity' => ['required', 'integer', 'min:1'],
+            'items.*.container_type' => ['nullable', Rule::in(['round', 'slim'])],
             'customer_address' => ['required', 'string', 'max:2000'],
             'payment_method' => ['required', Rule::in(['cash', 'loan'])],
             'preferred_delivery_date' => ['nullable', 'date', 'after_or_equal:today'],

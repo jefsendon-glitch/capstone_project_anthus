@@ -51,6 +51,7 @@ $categories = [
                         <button type="button" x-on:click="category = '{{ $key }}'" x-bind:aria-pressed="category === '{{ $key }}'" x-bind:class="category === '{{ $key }}' ? 'bg-primary-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700'" class="rounded-lg px-3 py-2 text-sm font-medium">{{ $label }}</button>
                     @endforeach
                 </div></div>
+                <div class="mt-3 border-t border-slate-100 pt-3 dark:border-white/10"><x-input-label for="pos-container-type" value="Container Type for Water" /><x-select id="pos-container-type" x-model="containerType"><option value="round">Round Gallon</option><option value="slim">Slim Gallon</option></x-select><p class="mt-1 text-xs text-slate-500">Select a container, then add a water product. Both choices use the same price and stock.</p></div>
                 <p class="mt-3 text-xs text-slate-500 dark:text-slate-400" aria-live="polite" x-text="filteredProducts.length + ' products available. Select a product to add it to the order.'"></p>
             </x-card>
 
@@ -59,7 +60,7 @@ $categories = [
                     <button
                         type="button"
                         x-on:click="addToCart(product)"
-                        x-bind:disabled="product.stock_quantity <= 0"
+                        x-bind:disabled="product.stock_quantity <= cartQuantity(product.id)"
                         class="min-w-0 rounded-xl bg-white p-3 text-left shadow-sm ring-1 ring-slate-900/5 transition hover:ring-primary-300 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-slate-900 dark:ring-white/10"
                     >
                         <div class="mb-2 overflow-hidden rounded-lg bg-slate-100 dark:bg-slate-800">
@@ -121,10 +122,10 @@ $categories = [
 
                 <div class="mt-3 space-y-3" x-show="cart.length > 0" x-cloak>
                     <div class="max-h-60 space-y-3 overflow-y-auto pr-1" tabindex="0" aria-label="Current order items">
-                    <template x-for="(item, index) in cart" x-bind:key="item.product_id">
+                    <template x-for="(item, index) in cart" x-bind:key="item.product_id + ':' + (item.container_type || '')">
                         <div class="flex items-start justify-between gap-2 border-b border-slate-100 pb-3 dark:border-white/5">
                             <div class="min-w-0">
-                                <p class="truncate text-sm font-medium text-slate-900 dark:text-white" x-text="item.name + ' (' + item.size + ')'"></p>
+                                <p class="truncate text-sm font-medium text-slate-900 dark:text-white" x-text="item.name + ' (' + item.size + ')' + (item.container_type ? ' - ' + containerLabel(item.container_type) : '')"></p>
                                 <p class="font-mono text-xs text-slate-400" x-text="formatCurrency(item.unit_price) + ' each'"></p>
                                 <div class="mt-1 flex items-center gap-2">
                                     <button type="button" x-on:click="decrementQty(index)" aria-label="Decrease quantity" class="flex size-8 items-center justify-center rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-white/10 dark:text-slate-300">–</button>
@@ -218,6 +219,7 @@ $categories = [
                 products: products,
                 search: '',
                 category: 'all',
+                containerType: 'round',
                 transactionType: 'walk-in',
                 paymentMethod: 'cash',
                 customerId: '',
@@ -239,7 +241,7 @@ $categories = [
                 },
 
                 get itemsJson() {
-                    return JSON.stringify(this.cart.map((item) => ({ product_id: item.product_id, quantity: item.quantity })));
+                    return JSON.stringify(this.cart.map((item) => ({ product_id: item.product_id, quantity: item.quantity, container_type: item.container_type })));
                 },
 
                 get tenderIsSufficient() {
@@ -259,23 +261,14 @@ $categories = [
                     return labels[category] ?? category;
                 },
 
+                containerLabel(type) { return type === 'slim' ? 'Slim Gallon' : 'Round Gallon'; },
+                cartQuantity(id) { return this.cart.filter(item => item.product_id === id).reduce((sum, item) => sum + item.quantity, 0); },
                 addToCart(product) {
-                    const existing = this.cart.find((item) => item.product_id === product.id);
-                    if (existing) {
-                        if (existing.quantity < product.stock_quantity) {
-                            existing.quantity++;
-                        }
-                    } else if (product.stock_quantity > 0) {
-                        this.cart.push({
-                            product_id: product.id,
-                            name: product.name,
-                            size: product.size,
-                            unit_price: product.unit_price,
-                            image_url: product.image_url,
-                            stock_quantity: product.stock_quantity,
-                            quantity: 1,
-                        });
-                    }
+                    if (this.cartQuantity(product.id) >= product.stock_quantity) return;
+                    const container = product.requires_container_choice ? this.containerType : null;
+                    const existing = this.cart.find(item => item.product_id === product.id && item.container_type === container);
+                    if (existing) existing.quantity++;
+                    else this.cart.push({ product_id: product.id, name: product.name, size: product.size, unit_price: product.unit_price, image_url: product.image_url, stock_quantity: product.stock_quantity, container_type: container, quantity: 1 });
                 },
 
                 removeFromCart(index) {
@@ -284,7 +277,7 @@ $categories = [
 
                 incrementQty(index) {
                     const item = this.cart[index];
-                    if (item.quantity < item.stock_quantity) {
+                    if (this.cartQuantity(item.product_id) < item.stock_quantity) {
                         item.quantity++;
                     }
                 },

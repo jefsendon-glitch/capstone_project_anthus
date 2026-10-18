@@ -15,7 +15,7 @@ class DeliveryOrder extends Model
         'order_code', 'customer_id', 'customer_name', 'customer_address',
         'product_id', 'product_name', 'quantity', 'unit_price', 'total_amount',
         'payment_method', 'status', 'preferred_delivery_date', 'delivered_at',
-        'notes', 'placed_by', 'updated_by',
+        'notes', 'placed_by', 'updated_by', 'container_type',
     ];
 
     protected function casts(): array
@@ -51,7 +51,9 @@ class DeliveryOrder extends Model
     public function getItemsSummaryAttribute(): string
     {
         if ($this->relationLoaded('items') && $this->items->isNotEmpty()) {
-            return $this->items->map(fn (DeliveryOrderItem $item) => "{$item->product_name} × {$item->quantity}")->join(', ');
+            return $this->items->map(fn (DeliveryOrderItem $item) => $item->product_name
+                .($item->container_type ? ' ('.ucfirst($item->container_type).' Gallon)' : '')
+                .' x '.$item->quantity)->join(', ');
         }
 
         return "{$this->product_name} × {$this->quantity}";

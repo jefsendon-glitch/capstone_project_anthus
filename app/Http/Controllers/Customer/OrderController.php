@@ -37,6 +37,7 @@ class OrderController extends Controller
             'id' => $product->id,
             'name' => $product->name,
             'size' => $product->size,
+            'requires_container_choice' => $product->requires_container_choice,
             'unit_price' => (float) $product->unit_price,
             'stock_quantity' => $product->stock_quantity,
             'stock_unit_label' => $product->stock_unit_label,
@@ -80,7 +81,7 @@ class OrderController extends Controller
             : $order->items()
                 ->with('product')
                 ->orderBy('id')
-                ->get(['product_id', 'product_name', 'quantity', 'unit_price', 'total_amount']);
+                ->get(['product_id', 'product_name', 'quantity', 'unit_price', 'total_amount', 'container_type']);
 
         if ($receiptLines->isEmpty()) {
             $receiptLines = collect([(object) [

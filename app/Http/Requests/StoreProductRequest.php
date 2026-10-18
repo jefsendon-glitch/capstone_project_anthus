@@ -13,10 +13,19 @@ class StoreProductRequest extends FormRequest
         return $this->user()->can('create', Product::class);
     }
 
+    protected function prepareForValidation(): void
+    {
+        $types = \App\Models\Product::WATER_TYPES;
+        $category = array_search($this->input('name'), $types, true);
+        if ($category !== false) $this->merge(['category' => $category]);
+        $this->merge(['requires_container_choice' => array_key_exists((string) $this->input('category'), $types)]);
+    }
+
     public function rules(): array
     {
         return [
-            'name' => ['required', 'string', 'max:255'],
+            'name' => ['required', 'string', 'max:255', Rule::unique('products', 'name')->where('category', $this->input('category'))->where('size', $this->input('size'))->ignore($this->route('product')?->id)],
+            'requires_container_choice' => ['boolean'],
             'category' => ['required', Rule::in(['refill', 'alkaline', 'distilled', 'purified', 'mineral', 'container'])],
             'size' => ['required', 'string', 'max:100'],
             'unit_price' => ['required', 'integer', 'min:0'],

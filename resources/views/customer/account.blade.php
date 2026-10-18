@@ -18,7 +18,7 @@
                     @forelse($purchases as $purchase)
                         <tr class="border-b border-slate-100 dark:border-white/5">
                             <td class="px-2 py-3"><p class="font-medium text-primary-700 dark:text-primary-300">{{ $purchase->transaction_code }}</p><p class="mt-1 text-slate-500">{{ $purchase->created_at->format('M d, Y') }} · {{ $purchase->transaction_type === 'delivery' ? 'Delivery' : 'Walk-in' }}</p></td>
-                            <td class="px-2 py-3">{{ $purchase->product_name }} &times; {{ $purchase->quantity }}</td>
+                            <td class="px-2 py-3">{{ $purchase->product_name }}@if($purchase->container_type)<span class="ml-1 text-xs text-primary-700">({{ ucfirst($purchase->container_type) }} Gallon)</span>@endif &times; {{ $purchase->quantity }}</td>
                             <td class="px-2 py-3"><x-badge :color="$purchase->payment_method === 'loan' ? 'warning' : 'success'">{{ $purchase->payment_method === 'loan' ? 'Credit' : 'Cash' }}</x-badge></td>
                             <td class="whitespace-nowrap px-2 py-3 tabular-nums">₱{{ number_format($purchase->total_amount, 2) }}</td>
                             <td class="whitespace-nowrap px-2 py-3 tabular-nums">₱{{ number_format($purchase->payment_method === 'loan' ? max(0, (float) $purchase->total_amount - (float) $purchase->credit_paid_amount) : 0, 2) }}</td>

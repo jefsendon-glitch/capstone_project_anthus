@@ -56,7 +56,7 @@
                                         @else
                                             <span class="flex size-9 items-center justify-center rounded-lg bg-slate-100 text-slate-400 print:hidden"><x-icon name="photo" class="size-4" /></span>
                                         @endif
-                                        <span>{{ $line->product_name }}</span>
+                                        <span>{{ $line->product_name }}@if($line->container_type ?? null)<span class="block text-xs text-slate-500">{{ ucfirst($line->container_type) }} Gallon</span>@endif</span>
                                     </div>
                                 </td>
                                 <td class="py-2 text-center text-slate-600 dark:text-slate-300">{{ $line->quantity }}</td>

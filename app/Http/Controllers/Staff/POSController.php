@@ -60,6 +60,7 @@ class POSController extends Controller
             'name' => $product->name,
             'category' => $product->category,
             'size' => $product->size,
+            'requires_container_choice' => $product->requires_container_choice,
             'unit_price' => (float) $product->unit_price,
             'stock_quantity' => $product->stock_quantity,
             'is_low_stock' => $product->is_low_stock,

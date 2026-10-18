@@ -48,7 +48,7 @@
                                     </x-badge>
                                 </td>
                                 <td class="px-4 py-3 text-sm text-slate-600 dark:text-slate-300">{{ $transaction->customer_name ?? '—' }}</td>
-                                <td class="px-4 py-3 text-sm text-slate-600 dark:text-slate-300">{{ $transaction->product_name }} × {{ $transaction->quantity }}</td>
+                                <td class="px-4 py-3 text-sm text-slate-600 dark:text-slate-300">{{ $transaction->product_name }}@if($transaction->container_type)<span class="block text-xs text-slate-500">{{ ucfirst($transaction->container_type) }} Gallon</span>@endif × {{ $transaction->quantity }}</td>
                                 <td class="px-4 py-3 font-mono text-sm font-medium text-slate-900 dark:text-white">₱{{ number_format($transaction->total_amount, 0) }}</td>
                                 <td class="px-4 py-3">
                                     <x-badge :color="$transaction->payment_method === 'loan' ? 'warning' : 'success'">

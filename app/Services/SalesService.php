@@ -12,7 +12,7 @@ use Illuminate\Validation\ValidationException;
 
 class SalesService
 {
-    public function __construct(private readonly CreditAccountService $creditAccounts)
+    public function __construct(private readonly CreditAccountService $creditAccounts, private readonly ProductOrderLines $orderLines)
     {
     }
 
@@ -29,36 +29,8 @@ class SalesService
                 $this->creditAccounts->ensureEligible($customer);
             }
 
-            $lines = collect();
-            $grandTotalCents = 0;
-
-            // Merge duplicate product_id lines first so the stock check below sees the
-            // true combined quantity being requested, not each line checked in isolation.
-            $quantitiesByProduct = collect($data['items'])
-                ->groupBy('product_id')
-                ->map(fn (Collection $items) => $items->sum('quantity'));
-
-            foreach ($quantitiesByProduct as $productId => $quantity) {
-                $product = Product::lockForUpdate()->findOrFail($productId);
-
-                if ($quantity > $product->stock_quantity) {
-                    throw ValidationException::withMessages([
-                        'items' => "Not enough stock for {$product->name} ({$product->size}). Only {$product->stock_quantity} {$product->stock_unit_label} left.",
-                    ]);
-                }
-
-                $lineTotalCents = (int) round((float) $product->unit_price * 100) * $quantity;
-                $lineTotal = $lineTotalCents / 100;
-                $grandTotalCents += $lineTotalCents;
-
-                $lines->push([
-                    'product' => $product,
-                    'quantity' => $quantity,
-                    'line_total' => $lineTotal,
-                ]);
-            }
-
-            $grandTotal = $grandTotalCents / 100;
+            $lines = $this->orderLines->prepare($data['items']);
+            $grandTotal = round((float) $lines->sum('line_total'), 2);
             $tenderedAmount = null;
             $changeAmount = null;
 
@@ -87,6 +59,7 @@ class SalesService
                     'customer_name' => $customer?->name ?? $data['customer_name'] ?? null,
                     'product_id' => $product->id,
                     'product_name' => $product->name,
+                    'container_type' => $line['container_type'],
                     'quantity' => $line['quantity'],
                     'unit_price' => $product->unit_price,
                     'total_amount' => $line['line_total'],

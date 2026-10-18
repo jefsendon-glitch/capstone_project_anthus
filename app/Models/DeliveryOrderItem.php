@@ -10,7 +10,7 @@ class DeliveryOrderItem extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['delivery_order_id', 'product_id', 'product_name', 'quantity', 'unit_price', 'total_amount'];
+    protected $fillable = ['delivery_order_id', 'product_id', 'product_name', 'quantity', 'unit_price', 'total_amount', 'container_type'];
 
     protected function casts(): array
     {

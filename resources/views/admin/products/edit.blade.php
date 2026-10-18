@@ -17,11 +17,17 @@
 
             <div>
                 <x-input-label for="name" value="Product name" />
-                <x-text-input id="name" name="name" :value="old('name', $product->name)" required autofocus />
+                @if(array_key_exists($product->category, \App\Models\Product::WATER_TYPES))
+                    <x-select id="name" name="name" required>@foreach(\App\Models\Product::WATER_TYPES as $value)<option value="{{ $value }}" @selected(old('name', \App\Models\Product::WATER_TYPES[$product->category]) === $value)>{{ $value }}</option>@endforeach</x-select>
+                    <p class="mt-1 text-xs text-slate-500">Choose Round or Slim at checkout. Price and water stock are shared.</p>
+                @else
+                    <x-text-input id="name" name="name" :value="old('name', $product->name)" required autofocus />
+                @endif
                 <x-input-error :messages="$errors->get('name')" />
             </div>
 
             <div class="grid grid-cols-2 gap-5">
+                @unless(array_key_exists($product->category, \App\Models\Product::WATER_TYPES))
                 <div>
                     <x-input-label for="category" value="Category" />
                     <x-select id="category" name="category" required>
@@ -31,6 +37,7 @@
                     </x-select>
                     <x-input-error :messages="$errors->get('category')" />
                 </div>
+                @endunless
 
                 <div>
                     <x-input-label for="size" value="Size" />
