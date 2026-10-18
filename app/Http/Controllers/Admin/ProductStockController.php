@@ -31,10 +31,29 @@ class ProductStockController extends Controller
 
     public function update(UpdateProductStockRequest $request, Product $product): RedirectResponse
     {
-        $this->ensureWholeWaterQuantity($product, 0);
+        if ($product->requires_container_choice) {
+            DB::transaction(function () use ($request, $product) {
+                $product = Product::lockForUpdate()->findOrFail($product->id);
+                $before = (int) $product->stock_quantity;
+                $roundBefore = (int) $product->round_stock;
+                $slimBefore = (int) $product->slim_stock;
+                $round = (int) $request->validated('round_stock');
+                $slim = (int) $request->validated('slim_stock');
+                $after = $round + $slim;
+                $product->update(['round_stock' => $round, 'slim_stock' => $slim, 'stock_quantity' => $after]);
+                if ($before !== $after || $roundBefore !== $round || $slimBefore !== $slim) {
+                    StockMovement::record($product, $after < $before ? 'adjustment_decrease' : 'adjustment_increase',
+                        $after - $before, $before, $after, $request->user()->id,
+                        'Stock quantity edited. Round: '.$roundBefore.' → '.$round.'; Slim: '.$slimBefore.' → '.$slim.'.');
+                }
+            });
+
+            return back()->with('success', 'Round and Slim stock quantities updated. Total stock recalculated.');
+        }
         $newQuantity = (float) $request->validated('quantity');
 
         DB::transaction(function () use ($product, $newQuantity, $request) {
+            $product = Product::lockForUpdate()->findOrFail($product->id);
             $before = (float) $product->stock_quantity;
             $delta = $newQuantity - $before;
             $this->ensureWholeWaterQuantity($product, max(0, $delta));

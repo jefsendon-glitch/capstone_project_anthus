@@ -12,6 +12,8 @@ use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', DashboardController::class)->name('dashboard');
+    Route::delete('system/transactions/reset', \App\Http\Controllers\Admin\SystemTransactionResetController::class)
+        ->middleware('throttle:5,1')->name('system.transactions.reset');
     Route::get('inventory/supplies-usage', [\App\Http\Controllers\Admin\SupplyUsageController::class, 'index'])->name('inventory.supply-usages.index');
     Route::post('inventory/supplies-usage', [\App\Http\Controllers\Admin\SupplyUsageController::class, 'store'])->name('inventory.supply-usages.store');
     Route::get('/dashboard/activities', [DashboardController::class, 'activities'])->name('dashboard.activities');

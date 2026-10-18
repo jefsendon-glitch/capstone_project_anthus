@@ -159,13 +159,29 @@ class StationGallonController extends Controller
 
     public function reset(Request $request)
     {
+        abort_unless($request->user()->isAdmin(), 403);
         $data = $request->validate([
             'reset_scope' => ['required', Rule::in(['history', 'all'])],
             'reset_confirmation' => ['required', Rule::in(['RESET'])],
         ]);
 
-        DB::transaction(function () use ($data) {
+        DB::transaction(function () use ($data, $request) {
             DB::table('station_gallons')->orderBy('id')->lockForUpdate()->get();
+            // Keep the production links available while finding the affected products.
+            $productIds = WaterProductionLog::whereNotNull('container_name')->whereNotNull('product_id')
+                ->pluck('product_id')->unique();
+            $products = Product::withTrashed()->whereIn('id', $productIds)
+                ->whereIn('category', array_keys(Product::WATER_TYPES))->orderBy('id')->lockForUpdate()->get();
+            foreach ($products as $product) {
+                $before = (int) $product->stock_quantity;
+                $roundBefore = (int) $product->round_stock;
+                $slimBefore = (int) $product->slim_stock;
+                $product->update(['stock_quantity' => 0, 'round_stock' => 0, 'slim_stock' => 0]);
+                if ($before !== 0 || $roundBefore !== 0 || $slimBefore !== 0) {
+                    StockMovement::record($product, 'adjustment_decrease', -$before, $before, 0, $request->user()->id,
+                        'Gallon records reset ('.$data['reset_scope'].'). Connected product stock cleared. Round: '.$roundBefore.' → 0; Slim: '.$slimBefore.' → 0.');
+                }
+            }
             DB::table('station_gallon_movements')->delete();
             if ($data['reset_scope'] === 'all') {
                 DB::table('station_gallon_loans')->delete();
@@ -175,8 +191,8 @@ class StationGallonController extends Controller
 
         return redirect()->route('admin.inventory.gallon-inventory')->with('success',
             $data['reset_scope'] === 'all'
-                ? 'Gallon inventory, customer loan records, and movement history reset successfully.'
-                : 'Gallon movement history cleared. Inventory quantities and customer loans preserved.');
+                ? 'Gallon inventory, customer loan records, and movement history reset. Connected water product stock, including Round and Slim balances, is now zero.'
+                : 'Gallon movement history and connected water product stock reset. Round and Slim product balances are now zero. Container quantities and customer loans preserved.');
     }
 
     public function move(Request $request)
