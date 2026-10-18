@@ -20,7 +20,7 @@ beforeEach(function () {
 });
 
 test('filling credits the selected product and a mixed container sale deducts shared stock', function () {
-    $other = Product::factory()->create(['category' => 'mineral', 'stock_quantity' => 7]);
+    $other = Product::factory()->create(['category' => 'alkaline', 'stock_quantity' => 7]);
     $this->post(route('admin.inventory.gallon-inventory.move'), $this->fill)->assertSessionHasNoErrors();
     expect($this->water->fresh()->stock_quantity)->toBe(6);
     expect($other->fresh()->stock_quantity)->toBe(7);
@@ -39,7 +39,7 @@ test('filling credits the selected product and a mixed container sale deducts sh
 test('invalid fill product or insufficient empty gallons leaves all stock and logs unchanged', function () {
     $invalidProducts = [null, 999999,
         Product::factory()->create(['category' => 'container'])->id,
-        Product::factory()->create(['category' => 'mineral', 'is_active' => false])->id];
+        Product::factory()->create(['category' => 'alkaline', 'is_active' => false])->id];
     $archived = Product::factory()->create(['category' => 'purified']);
     $archived->delete();
     $invalidProducts[] = $archived->id;

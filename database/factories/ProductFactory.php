@@ -11,7 +11,7 @@ class ProductFactory extends Factory
 {
     public function definition(): array
     {
-        $category = fake()->randomElement(['refill', 'alkaline', 'distilled', 'purified', 'mineral', 'container']);
+        $category = fake()->randomElement(['refill', 'alkaline', 'distilled', 'purified', 'container']);
         $size = fake()->randomElement(['5 Gallon', '3 Gallon', '1 Liter', '500ml']);
 
         return [

@@ -28,7 +28,7 @@
     <x-card padding="p-0">
         @if($products->isEmpty())
             <div class="p-6">
-                <x-empty-state icon="cube" :title="request()->filled('search') ? 'No matching products' : ($archived ? 'No archived products' : 'No products yet')" :description="request()->filled('search') ? 'Try another product name, category or size.' : 'Add purified, alkaline, distilled, mineral, or slim water products here.'" />
+                <x-empty-state icon="cube" :title="request()->filled('search') ? 'No matching products' : ($archived ? 'No archived products' : 'No products yet')" :description="request()->filled('search') ? 'Try another product name, category or size.' : 'Add water products, accessories, and other items for sale.'" />
             </div>
         @else
             <div class="overflow-x-auto">

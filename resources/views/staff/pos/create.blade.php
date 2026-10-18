@@ -5,8 +5,9 @@ $categories = [
     'alkaline' => 'Alkaline',
     'distilled' => 'Distilled',
     'purified' => 'Purified',
-    'mineral' => 'Mineral',
+
     'container' => 'Container',
+    'other' => 'Other Products',
 ];
 @endphp
 
@@ -257,7 +258,7 @@ $categories = [
                 },
 
                 categoryLabel(category) {
-                    const labels = { refill: 'Refill', alkaline: 'Alkaline', distilled: 'Distilled', purified: 'Purified', mineral: 'Mineral', container: 'Container' };
+                    const labels = { refill: 'Refill', alkaline: 'Alkaline', distilled: 'Distilled', purified: 'Purified', container: 'Container', other: 'Other Products' };
                     return labels[category] ?? category;
                 },
 

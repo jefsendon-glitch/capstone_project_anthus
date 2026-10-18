@@ -31,7 +31,7 @@
                 <div>
                     <x-input-label for="category" value="Category" />
                     <x-select id="category" name="category" required>
-                        @foreach(['refill', 'alkaline', 'distilled', 'purified', 'mineral', 'container'] as $category)
+                        @foreach(['refill', 'alkaline', 'distilled', 'purified', 'container', 'other'] as $category)
                             <option value="{{ $category }}" @selected(old('category', $product->category) === $category)>{{ ucfirst($category) }}</option>
                         @endforeach
                     </x-select>
@@ -40,7 +40,7 @@
                 @endunless
 
                 <div>
-                    <x-input-label for="size" value="Size" />
+                    <x-input-label for="size" value="Size / Unit" />
                     <x-text-input id="size" name="size" :value="old('size', $product->size)" required />
                     <x-input-error :messages="$errors->get('size')" />
                 </div>

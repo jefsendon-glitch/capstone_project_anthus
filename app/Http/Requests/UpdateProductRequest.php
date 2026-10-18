@@ -16,7 +16,7 @@ class UpdateProductRequest extends FormRequest
     {
         $types = \App\Models\Product::WATER_TYPES;
         $category = array_search($this->input('name'), $types, true);
-        if ($category !== false) $this->merge(['category' => $category]);
+        if ($this->input('category') !== 'other' && $category !== false) $this->merge(['category' => $category]);
         $this->merge(['requires_container_choice' => array_key_exists((string) $this->input('category'), $types)]);
     }
 
@@ -25,7 +25,7 @@ class UpdateProductRequest extends FormRequest
         return [
             'name' => ['required', 'string', 'max:255', Rule::unique('products', 'name')->where('category', $this->input('category'))->where('size', $this->input('size'))->ignore($this->route('product')?->id)],
             'requires_container_choice' => ['boolean'],
-            'category' => ['required', Rule::in(['refill', 'alkaline', 'distilled', 'purified', 'mineral', 'container'])],
+            'category' => ['required', Rule::in(['refill', 'alkaline', 'distilled', 'purified', 'container', 'other'])],
             'size' => ['required', 'string', 'max:100'],
             'unit_price' => ['required', 'integer', 'min:0'],
             'stock_quantity' => ['required', 'integer', 'min:0'],

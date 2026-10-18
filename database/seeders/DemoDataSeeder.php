@@ -37,8 +37,8 @@ class DemoDataSeeder extends Seeder
             ['name' => 'Alkaline Water', 'category' => 'alkaline', 'size' => '5 Gallon', 'unit_price' => 45, 'stock_quantity' => 34],
             ['name' => 'Distilled Water', 'category' => 'distilled', 'size' => '5 Gallon', 'unit_price' => 35, 'stock_quantity' => 7, 'low_stock_threshold' => 10],
             ['name' => 'Purified Water', 'category' => 'purified', 'size' => '5 Gallon', 'unit_price' => 28, 'stock_quantity' => 55],
-            ['name' => 'Mineral Water', 'category' => 'mineral', 'size' => '1 Liter', 'unit_price' => 12, 'stock_quantity' => 120],
-            ['name' => 'Mineral Water', 'category' => 'mineral', 'size' => '500ml', 'unit_price' => 8, 'stock_quantity' => 85],
+            ['name' => 'Alkaline Water', 'category' => 'alkaline', 'size' => '1 Liter', 'unit_price' => 12, 'stock_quantity' => 120],
+            ['name' => 'Alkaline Water', 'category' => 'alkaline', 'size' => '500ml', 'unit_price' => 8, 'stock_quantity' => 85],
             ['name' => 'Container Deposit', 'category' => 'container', 'size' => 'Standard', 'unit_price' => 150, 'stock_quantity' => 999, 'low_stock_threshold' => 50],
         ])->map(fn (array $data) => Product::create(['low_stock_threshold' => 10, 'is_active' => true, ...$data]));
 

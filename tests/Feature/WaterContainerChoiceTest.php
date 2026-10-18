@@ -25,7 +25,7 @@ test('admin registers water once without container names and duplicate products 
     $this->assertDatabaseHas('products', ['name' => 'Distilled Water', 'category' => 'distilled', 'requires_container_choice' => true]);
     $this->post(route('admin.products.store'), $data)->assertSessionHasErrors('name');
     expect(Product::where('name', 'Distilled Water')->count())->toBe(1);
-    $this->get(route('admin.products.create'))->assertOk()->assertSee('Water Type')->assertSee('Mineral Water');
+    $this->get(route('admin.products.create'))->assertOk()->assertSee('Water Type')->assertSee('Alkaline Water')->assertDontSee('Mineral Water');
     $this->get(route('admin.products.edit', $this->water))->assertOk();
 });
 

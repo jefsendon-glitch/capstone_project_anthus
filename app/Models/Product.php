@@ -13,7 +13,7 @@ class Product extends Model
 {
     use HasFactory, SoftDeletes;
 
-    public const WATER_TYPES = ['purified' => 'Purified Water', 'distilled' => 'Distilled Water', 'mineral' => 'Mineral Water'];
+    public const WATER_TYPES = ['purified' => 'Purified Water', 'distilled' => 'Distilled Water', 'alkaline' => 'Alkaline Water'];
 
     protected $fillable = ['name', 'category', 'size', 'unit_price', 'stock_quantity', 'low_stock_threshold', 'is_active', 'image_path', 'requires_container_choice'];
 
@@ -38,6 +38,7 @@ class Product extends Model
         return match ($this->category) {
             'mineral' => 'bottles',
             'container' => 'pcs',
+            'other' => 'pcs',
             default => 'containers',
         };
     }

@@ -118,7 +118,7 @@ class StationGallonController extends Controller
             $this->record($id, 'add', null, 'empty', $data['quantity'], $request->user()->id);
         });
 
-        return back()->with('success', 'Gallon registered. Opening quantity added to empty stock.');
+        return back()->with('success', 'Empty containers registered. Next, use Fill Gallons and select a water product to add filled product stock.');
     }
 
     public function update(Request $request, int $gallon)
