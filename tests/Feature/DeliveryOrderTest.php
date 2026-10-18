@@ -70,7 +70,7 @@ test('multi product deliveries show individual quantities prices and searchable 
     ], $this->customer);
     $this->actingAs($this->staffUser)->get(route('deliveries.show', $order))->assertOk()
         ->assertSee('Order Items')->assertSee($this->product->name)->assertSee('Distinct delivery item')
-        ->assertSee('5 total units')->assertSee('Order Total')->assertSee('95')->assertSee('Confirm Order');
+        ->assertSee('5 total units')->assertSee('Total Amount')->assertSee('95')->assertSee('Confirm Order');
     $this->get(route('deliveries.index', ['search' => 'Distinct delivery item']))->assertOk()
         ->assertViewHas('orders', fn ($orders) => $orders->total() === 1)
         ->assertSee($order->order_code)->assertSee('Distinct delivery item')->assertSee('Qty 3');

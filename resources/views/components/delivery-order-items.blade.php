@@ -23,5 +23,5 @@
             </li>
         @endforeach
     </ul>
-    <div class="mt-3 flex items-center justify-between rounded-lg bg-primary-50 p-3 text-sm text-primary-800 dark:bg-primary-500/10 dark:text-primary-200"><span class="font-semibold">Order Total</span><span class="text-lg font-semibold tabular-nums">₱{{ number_format($order->total_amount, 0) }}</span></div>
+    <div class="mt-3 flex items-center justify-between rounded-lg bg-primary-50 p-3 text-sm text-primary-800 dark:bg-primary-500/10 dark:text-primary-200"><span class="font-semibold">Total Amount</span><span class="text-lg font-semibold tabular-nums">₱{{ number_format($order->total_amount, 0) }}</span></div>
 @endif
