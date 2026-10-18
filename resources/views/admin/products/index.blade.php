@@ -63,15 +63,7 @@
                                 <td class="px-6 py-3 text-sm text-slate-600 dark:text-slate-300">{{ $product->size }}</td>
                                 <td class="px-6 py-3 font-mono text-sm text-slate-900 dark:text-white">₱{{ number_format($product->unit_price, 2) }}</td>
                                 <td class="px-6 py-3">
-                                    @if(!$archived)
-                                        @can('update', $product)
-                                            <x-product-stock-editor :product="$product" />
-                                        @else
-                                            <x-badge :color="$product->is_low_stock ? 'danger' : 'success'">{{ $product->stock_quantity }}</x-badge>
-                                        @endcan
-                                    @else
-                                        <x-badge :color="$product->is_low_stock ? 'danger' : 'success'">{{ $product->stock_quantity }}</x-badge>
-                                    @endif
+                                    <x-badge :color="$product->is_low_stock ? 'danger' : 'success'">{{ $product->stock_quantity }}</x-badge>
                                     @if($product->requires_container_choice)
                                         <p class="mt-1 text-xs text-slate-500">Round: {{ $product->round_stock }} · Slim: {{ $product->slim_stock }}</p>
                                         @if($product->availableStock(null) > 0)<p class="text-xs text-amber-600">Unassigned: {{ $product->availableStock(null) }}</p>@endif

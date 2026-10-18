@@ -3,11 +3,6 @@ $statusColors = ['draft' => 'slate', 'ordered' => 'primary', 'partially_received
 @endphp
 
 <x-layouts.app title="Purchase Orders" :heading="'Purchase Orders'">
-    @push('admin-reset-actions')
-    @if(auth()->user()->isAdmin())
-<x-reset-dot :action="route('admin.purchase-orders.reset')" title="Reset Purchase Orders" description="Deletes all purchase orders and their items across every status, date and filter, including pending deliveries. Purchase history, Stock Receiving and incoming reorder quantities will reset. Stock quantities, suppliers, stock movements and recorded expenses stay unchanged. A local backup is saved first. This cannot be undone from this page." />
-    @endif
-    @endpush
 
     <div class="mb-6 flex flex-wrap items-center justify-between gap-3">
         <p class="text-sm text-slate-500 dark:text-slate-400">Manage supplier orders, delivery schedules, and receiving status.</p>

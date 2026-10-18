@@ -141,7 +141,6 @@
 
                     @if(auth()->user()->isAdmin())
                         <x-admin-transaction-settings />
-                        @stack('admin-reset-actions')
                     @endif
 
                     {{-- Notification bell --}}

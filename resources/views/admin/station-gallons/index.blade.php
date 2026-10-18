@@ -5,18 +5,6 @@
 @endphp
 <x-layouts.app title="Gallon Tracking" :heading="'Gallon Tracking'">
     @unless($canManage)<p class="mb-3 text-sm text-slate-500">Record customer releases and returns. Admin manages gallon registration, filling, and stock adjustments.</p>@endunless
-    @push('admin-reset-actions')
-    @if(auth()->user()->isAdmin())
-        <x-reset-dot :action="route('admin.inventory.gallon-inventory.reset')" title="Reset Gallon Records" description="Both options set connected water product stock to zero, including Round and Slim balances. History reset keeps physical container quantities and customer loans. Entire inventory also deletes all gallon types, quantities, loans, and movements. Other products and sales records are preserved. This cannot be undone.">
-            <x-input-label for="header-reset-scope" value="Records to reset" />
-            <x-select id="header-reset-scope" name="reset_scope" required>
-                <option value="history" @selected(old('reset_scope', 'history') === 'history')>Movement history + connected product stock</option>
-                <option value="all" @selected(old('reset_scope') === 'all')>Entire gallon inventory + connected product stock</option>
-            </x-select>
-            <x-input-error :messages="$errors->get('reset_scope')" />
-        </x-reset-dot>
-    @endif
-    @endpush
 
     <div class="mb-3 flex flex-wrap items-start justify-between gap-2">
         <div>

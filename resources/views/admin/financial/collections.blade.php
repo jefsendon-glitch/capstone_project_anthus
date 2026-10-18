@@ -1,11 +1,3 @@
-    @push('admin-reset-actions')
-    @if(auth()->user()->isAdmin())
-        <x-reset-dot :action="route('admin.financial.collections.reset')" title="Reset Collections &amp; Payment History" description="Deletes payment records for the applied period across all history pages. Period Collections and payment history will reset. Customer balances and credit allocations are not reversed. Saved financial reports remain. This cannot be undone." :fields="['date_from' => $from, 'date_to' => $to]" :disabled="$payments->total() === 0">
-            <p class="text-xs font-semibold">{{ \Illuminate\Support\Carbon::parse($from)->format('M d, Y') }} – {{ \Illuminate\Support\Carbon::parse($to)->format('M d, Y') }}</p>
-            <p class="text-xs text-slate-500">{{ $payments->total() }} payment records in this period.</p>
-        </x-reset-dot>
-    @endif
-    @endpush
 <div class="mb-4 grid grid-cols-1 gap-2 sm:grid-cols-3">
     <x-stat-card compact label="Period Collections" :value="'₱'.number_format($summary['Customer Collections'], 0)" icon="dollar" color="success" />
     <x-stat-card compact label="Current Receivables" :value="'₱'.number_format($summary['Current Receivables'], 0)" icon="credit-card" color="warning" />

@@ -4,11 +4,6 @@
             @foreach($errors->all() as $error)<p>{{ $error }}</p>@endforeach
         </div>
     @endif
-    @push('admin-reset-actions')
-    @if(auth()->user()->isAdmin())
-        <x-reset-dot :action="route('admin.water-production.reset')" title="Reset Production Records" description="Deletes all production logs, including records outside the current date filter. Gallon inventory and movement history remain. This cannot be undone." />
-    @endif
-    @endpush
     <div class="mb-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
         @foreach(['batches' => 'Production Batches', 'filledContainers' => 'Gallon Containers Filled'] as $key => $label)
             <x-stat-card compact :label="$label" :value="number_format($summary[$key])" :icon="$key === 'batches' ? 'clipboard' : 'droplet'" :color="$key === 'batches' ? 'primary' : 'secondary'" />

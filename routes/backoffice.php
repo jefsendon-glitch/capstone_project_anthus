@@ -21,8 +21,6 @@ Route::middleware(['auth', 'role:admin|staff'])->group(function () {
         Route::post('products/{product}/restore', [ProductController::class, 'restore'])->name('products.restore');
         Route::delete('products/{product}/permanent', [ProductController::class, 'forceDelete'])->name('products.force-delete');
         Route::post('products/{product}/stock/add', [ProductStockController::class, 'add'])->name('products.stock.add');
-        Route::post('products/{product}/stock/update', [ProductStockController::class, 'update'])->name('products.stock.update');
-        Route::post('products/{product}/stock/adjust', [ProductStockController::class, 'adjust'])->name('products.stock.adjust');
 
         Route::get('consumables/report', [ConsumableController::class, 'report'])->name('consumables.report');
         Route::resource('consumables', ConsumableController::class)->except('show');

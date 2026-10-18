@@ -4,11 +4,6 @@
             @foreach($errors->all() as $error)<p>{{ $error }}</p>@endforeach
         </div>
     @endif
-    @push('admin-reset-actions')
-    @if(auth()->user()->isAdmin())
-        <x-reset-dot :action="route('deliveries.reset')" title="Reset Delivery Orders" description="Deletes all delivery orders and their items, including pending orders and records outside the current filters. Sales, payments and inventory remain. This cannot be undone." />
-    @endif
-    @endpush
     <div class="grid grid-cols-2 gap-3 lg:grid-cols-4">
         @foreach(['pending' => 'Pending', 'confirmed' => 'Confirmed', 'outForDelivery' => 'Out for Delivery', 'today' => 'Due Today'] as $key => $label)
             <x-stat-card variant="tinted" compact :label="$label" :value="number_format($deliveryStats[$key])" :icon="['pending' => 'clock', 'confirmed' => 'check-circle', 'outForDelivery' => 'truck', 'today' => 'calendar'][$key]" :color="['pending' => 'warning', 'confirmed' => 'success', 'outForDelivery' => 'delivery', 'today' => 'primary'][$key]" />

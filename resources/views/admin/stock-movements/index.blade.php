@@ -1,9 +1,4 @@
 <x-layouts.app title="Stock Movements" :heading="'Stock Movements'">
-    @push('admin-reset-actions')
-    @if(auth()->user()->isAdmin())
-        <x-reset-dot :action="route('admin.stock-movements.reset')" title="Reset Stock Movement History" description="Deletes all product, supply and gallon movement records across every date and filter. Stock quantities, customer loans, sales and payments stay unchanged. A local backup is saved first. This cannot be undone from this page." />
-    @endif
-    @endpush
     <p class="mb-3 text-xs text-slate-500">Products, supplies, and gallon activity recorded by the system. Only additions and removals change total containers.</p>
     @if($errors->any())
         <div role="alert" class="mb-3 rounded-lg bg-red-50 p-3 text-sm text-red-700">@foreach($errors->all() as $error)<p>{{ $error }}</p>@endforeach</div>

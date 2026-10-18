@@ -1,10 +1,5 @@
 <x-layouts.app title="Point of Sale" :heading="'Point of Sale'">
     @if($errors->any())<div role="alert" class="mb-3 rounded-lg bg-red-50 p-3 text-sm text-red-700 dark:bg-red-500/10 dark:text-red-300">@foreach($errors->all() as $error)<p>{{ $error }}</p>@endforeach</div>@endif
-    @push('admin-reset-actions')
-    @if(auth()->user()->isAdmin())
-        <x-reset-dot :action="route('pos.reset')" title="Reset Transactions" description="Deletes cash and fully paid credit sales across all dates and filters. Unpaid credit records, balances, payments, stock, delivery orders and saved reports remain. Deleted sales disappear from live sales totals. This cannot be undone." />
-    @endif
-    @endpush
     <div class="mb-4 flex flex-wrap items-center justify-between gap-2"><div><h2 class="text-base font-semibold">Sales History</h2><p class="mt-1 text-xs text-slate-500 dark:text-slate-400">Search and review recorded transactions.</p></div><x-button as="a" :href="route('pos.create')"><x-icon name="plus" class="size-4" /> Record a Sale</x-button></div>
     <x-card padding="p-4" class="mb-4">
         <form method="GET" action="{{ route('pos.index') }}" class="grid grid-cols-2 items-end gap-3 xl:grid-cols-6">

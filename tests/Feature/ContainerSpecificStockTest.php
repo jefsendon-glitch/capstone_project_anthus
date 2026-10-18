@@ -90,7 +90,7 @@ test('delivery rechecks each container balance and rolls back all lines on short
     expect($order->fresh()->status)->toBe('confirmed');
 });
 
-test('admin can allocate existing unassigned stock without guessing container quantities', function () {
+test('admin can allocate existing stock in the edit form and set opening balances at registration', function () {
     $this->water->update(['stock_quantity' => 12]);
     $this->post(route('pos.store'), ['transaction_type' => 'walk-in', 'payment_method' => 'cash', 'tendered_amount' => 100,
         'items' => json_encode([['product_id' => $this->water->id, 'quantity' => 1, 'container_type' => 'slim']])])
