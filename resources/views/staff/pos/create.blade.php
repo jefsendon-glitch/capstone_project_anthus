@@ -37,53 +37,22 @@ $categories = [
         {{-- Left: product selection --}}
         <div class="min-w-0 space-y-3">
             <x-card padding="p-4">
-                <p class="text-xs font-semibold uppercase tracking-wide text-slate-400">Transaction Type:</p>
-                <div class="mt-3 flex gap-3">
-                    <button
-                        type="button"
-                        x-on:click="transactionType = 'walk-in'"
-                        x-bind:class="transactionType === 'walk-in' ? 'border-primary-500 bg-primary-50 text-primary-700 dark:bg-primary-500/10 dark:text-primary-300' : 'border-slate-200 text-slate-500 dark:border-white/10 dark:text-slate-400'"
-                        class="flex items-center gap-2 rounded-lg border px-4 py-2 text-sm font-semibold"
-                    >
-                        <x-icon name="user-circle" class="size-4" /> Walk-In
-                    </button>
-                    <button
-                        type="button"
-                        x-on:click="transactionType = 'delivery'"
-                        x-bind:class="transactionType === 'delivery' ? 'border-primary-500 bg-primary-50 text-primary-700 dark:bg-primary-500/10 dark:text-primary-300' : 'border-slate-200 text-slate-500 dark:border-white/10 dark:text-slate-400'"
-                        class="flex items-center gap-2 rounded-lg border px-4 py-2 text-sm font-semibold"
-                    >
-                        <x-icon name="truck" class="size-4" /> Delivery
-                    </button>
+                <div class="mb-3 flex items-center justify-between gap-2"><h2 class="text-base font-semibold">Products</h2><button type="button" x-on:click="search = ''; category = 'all'" x-show="search || category !== 'all'" x-cloak class="text-sm font-semibold text-primary-700 dark:text-primary-300">Clear Filters</button></div>
+                <div class="grid items-end gap-3 xl:grid-cols-[minmax(0,1fr)_auto]">
+                    <div class="min-w-0"><x-input-label for="pos-product-search" value="Search Products" /><div class="relative"><x-icon name="search" class="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" /><x-text-input id="pos-product-search" type="search" x-model="search" placeholder="Product name..." class="!pl-9" /></div></div>
+                    <fieldset><legend class="mb-1 text-sm font-medium text-slate-700 dark:text-slate-300">Transaction Type</legend><div class="grid grid-cols-2 gap-2">
+                        @foreach(['walk-in' => ['Walk-in', 'user-circle'], 'delivery' => ['Delivery', 'truck']] as $value => [$label, $icon])
+                            <button type="button" x-on:click="transactionType = '{{ $value }}'" x-bind:aria-pressed="transactionType === '{{ $value }}'" x-bind:class="transactionType === '{{ $value }}' ? 'border-primary-600 bg-primary-50 text-primary-700 dark:bg-primary-500/10 dark:text-primary-300' : 'border-slate-200 bg-white text-slate-600 dark:border-white/10 dark:bg-slate-800 dark:text-slate-300'" class="flex min-h-10 items-center justify-center gap-2 rounded-lg border px-3 py-2 text-sm font-semibold"><x-icon :name="$icon" class="size-4" /> {{ $label }}</button>
+                        @endforeach
+                    </div></fieldset>
                 </div>
+                <div class="mt-3 border-t border-slate-100 pt-3 dark:border-white/10"><p class="mb-2 text-xs font-medium text-slate-500 dark:text-slate-400">Product Category</p><div class="flex flex-wrap gap-2" role="group" aria-label="Product categories">
+                    @foreach($categories as $key => $label)
+                        <button type="button" x-on:click="category = '{{ $key }}'" x-bind:aria-pressed="category === '{{ $key }}'" x-bind:class="category === '{{ $key }}' ? 'bg-primary-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700'" class="rounded-lg px-3 py-2 text-sm font-medium">{{ $label }}</button>
+                    @endforeach
+                </div></div>
+                <p class="mt-3 text-xs text-slate-500 dark:text-slate-400" aria-live="polite" x-text="filteredProducts.length + ' products available. Select a product to add it to the order.'"></p>
             </x-card>
-
-            <x-card padding="p-4">
-                <div class="relative">
-                    <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
-                        <x-icon name="search" class="size-4 text-slate-400" />
-                    </div>
-                    <input
-                        type="search"
-                        x-model="search"
-                        aria-label="Search products" placeholder="Search product name..."
-                        class="block w-full rounded-lg border-0 py-2.5 pl-11 pr-4 text-sm text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 placeholder:text-slate-400 focus:ring-2 focus:ring-inset focus:ring-primary-600 dark:bg-slate-800 dark:text-white dark:ring-white/10"
-                    >
-                </div>
-            </x-card>
-
-            <div class="flex gap-2 overflow-x-auto pb-1">
-                @foreach($categories as $key => $label)
-                    <button
-                        type="button"
-                        x-on:click="category = '{{ $key }}'"
-                        x-bind:class="category === '{{ $key }}' ? 'bg-primary-600 text-white' : 'bg-white text-slate-600 ring-1 ring-inset ring-slate-300 dark:bg-slate-800 dark:text-slate-300 dark:ring-white/10'"
-                        class="shrink-0 rounded-lg px-3 py-2 text-sm font-semibold"
-                    >
-                        {{ $label }}
-                    </button>
-                @endforeach
-            </div>
 
             <div class="grid max-h-[32rem] grid-cols-2 gap-3 overflow-y-auto p-1 xl:grid-cols-3" tabindex="0" aria-label="Available products">
                 <template x-for="product in filteredProducts" x-bind:key="product.id">

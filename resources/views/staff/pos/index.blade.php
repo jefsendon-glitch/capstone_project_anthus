@@ -6,25 +6,16 @@
     @endif
     @endpush
     <div class="mb-4 flex flex-wrap items-center justify-between gap-2"><div><h2 class="text-base font-semibold">Sales History</h2><p class="mt-1 text-xs text-slate-500 dark:text-slate-400">Search and review recorded transactions.</p></div><x-button as="a" :href="route('pos.create')"><x-icon name="plus" class="size-4" /> Record a Sale</x-button></div>
-    <x-card padding="p-4" class="mb-4"><div class="flex flex-col gap-3">
-        <form method="GET" action="{{ route('pos.index') }}" class="grid min-w-0 flex-1 grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:items-center">
-            <div class="relative col-span-2 min-w-0 sm:w-72">
-                <x-icon name="search" class="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
-                <x-text-input type="search" name="search" :value="request('search')" maxlength="100" placeholder="Transaction no., customer or product..." aria-label="Search POS transactions" class="!py-2 !pl-9" />
-            </div>
-            <x-select name="type" aria-label="Transaction type" class="!py-2 sm:!w-auto">
-                <option value="">All Transactions</option>
-                <option value="walk-in" @selected(request('type') === 'walk-in')>Walk-in</option>
-                <option value="delivery" @selected(request('type') === 'delivery')>Delivery</option>
-            </x-select>
-            <x-select name="scope" aria-label="Recorded by" class="!py-2 sm:!w-auto"><option value="all">All Sales</option><option value="mine" @selected(request('scope') === 'mine')>My Sales</option></x-select>
-            <label class="text-xs text-slate-500">From<x-text-input type="date" name="from" :value="request('from')" class="!py-2" /></label>
-            <label class="text-xs text-slate-500">To<x-text-input type="date" name="to" :value="request('to')" class="!py-2" /></label>
-            <x-button type="submit" variant="secondary" class="!py-2">Search</x-button>
-            <x-button as="a" href="{{ route('pos.index') }}" variant="secondary" class="!py-2">Reset</x-button>
+    <x-card padding="p-4" class="mb-4">
+        <form method="GET" action="{{ route('pos.index') }}" class="grid grid-cols-2 items-end gap-3 xl:grid-cols-6">
+            <div class="col-span-2 min-w-0"><x-input-label for="pos-history-search" value="Search Transactions" /><div class="relative"><x-icon name="search" class="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" /><x-text-input id="pos-history-search" type="search" name="search" :value="request('search')" maxlength="100" placeholder="Transaction, customer, or product..." class="!pl-9" /></div></div>
+            <div><x-input-label for="pos-history-type" value="Transaction Type" /><x-select id="pos-history-type" name="type"><option value="">All Types</option><option value="walk-in" @selected(request('type') === 'walk-in')>Walk-in</option><option value="delivery" @selected(request('type') === 'delivery')>Delivery</option></x-select></div>
+            <div><x-input-label for="pos-history-scope" value="Recorded By" /><x-select id="pos-history-scope" name="scope"><option value="all">All Sales</option><option value="mine" @selected(request('scope') === 'mine')>My Sales</option></x-select></div>
+            <div><x-input-label for="pos-history-from" value="From" /><x-text-input id="pos-history-from" type="date" name="from" :value="request('from')" /></div>
+            <div><x-input-label for="pos-history-to" value="To" /><x-text-input id="pos-history-to" type="date" name="to" :value="request('to')" /></div>
+            <div class="col-span-2 flex flex-wrap justify-end gap-2 border-t border-slate-100 pt-3 dark:border-white/10 xl:col-span-6"><x-button as="a" :href="route('pos.index')" variant="secondary">Reset Filters</x-button><x-button type="submit"><x-icon name="search" class="size-4" /> Apply Filters</x-button></div>
         </form>
-
-    </div></x-card>
+    </x-card>
 
     <x-card padding="p-0">
         @if($transactions->isEmpty())
