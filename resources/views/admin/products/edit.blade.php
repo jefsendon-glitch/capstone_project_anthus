@@ -57,6 +57,9 @@
                     <x-input-label for="stock_quantity" value="Stock quantity" />
                     <x-text-input id="stock_quantity" type="number" min="0" name="stock_quantity" :value="old('stock_quantity', $product->stock_quantity)" required />
                     <x-input-error :messages="$errors->get('stock_quantity')" />
+                    @if(array_key_exists($product->category, \App\Models\Product::WATER_TYPES))
+                        <p class="mt-1 text-xs text-slate-500">Filling gallons adds stock automatically. POS sales and completed deliveries deduct stock.</p>
+                    @endif
                 </div>
 
                 <div>

@@ -33,9 +33,10 @@
                 </div>
 
                 <div>
-                    <x-input-label for="stock_quantity" value="Stock quantity" />
+                    <x-input-label for="stock_quantity" value="Opening Stock" />
                     <x-text-input id="stock_quantity" type="number" min="0" name="stock_quantity" :value="old('stock_quantity', 0)" required />
                     <x-input-error :messages="$errors->get('stock_quantity')" />
+                    <p class="mt-1 text-xs text-slate-500">Enter existing filled stock only. Future fills add stock automatically through Gallon Tracking.</p>
                 </div>
 
                 <div>

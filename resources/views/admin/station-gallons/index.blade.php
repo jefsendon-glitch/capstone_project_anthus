@@ -99,6 +99,20 @@
                         <p class="mt-1 text-xs text-slate-500" x-text="{ add: 'Add newly purchased empty gallons to station stock.', fill: 'Fill empty gallons. Water production is recorded automatically.', release: 'Record filled gallons borrowed by a customer.', return: 'Record returned gallons and select how to handle any shortage.' }[action]"></p>
                     </div>
                     <div><x-input-label for="movement-gallon" value="Gallon" /><x-select id="movement-gallon" name="gallon_id" x-model="gallonId" required>@foreach($gallons as $gallon)<option value="{{ $gallon->id }}" @selected((string) old('gallon_id') === (string) $gallon->id)>{{ $gallon->name }} / {{ $gallon->type ?? 'Unspecified' }} — {{ $gallon->size }}</option>@endforeach</x-select></div>
+                    @if($canManage)
+                    <div x-show="action === 'fill'" x-cloak>
+                        <x-input-label for="fill-product" value="Water Product" />
+                        <x-select id="fill-product" name="product_id" x-bind:disabled="action !== 'fill'" x-bind:required="action === 'fill'">
+                            <option value="">Select water product</option>
+                            @foreach($waterProducts as $waterProduct)
+                                <option value="{{ $waterProduct->id }}" @selected((string) old('product_id') === (string) $waterProduct->id)>{{ $waterProduct->name }} — {{ $waterProduct->size }} (Stock: {{ number_format($waterProduct->stock_quantity) }})</option>
+                            @endforeach
+                        </x-select>
+                        <p class="mt-1 text-xs text-slate-500">Each filled gallon adds 1 to this product's shared Round/Slim stock. Select the matching water type and size.</p>
+                        @if($waterProducts->isEmpty())<p class="mt-1 text-xs text-danger-600">Create an active water product under Products before filling gallons.</p>@endif
+                        <x-input-error :messages="$errors->get('product_id')" />
+                    </div>
+                    @endif
                     <div class="gallon-customer-search" x-show="action === 'release' || action === 'return'" x-cloak>
                         <x-input-label for="movement-customer" value="Customer" /><x-select id="movement-customer" name="customer_id" x-model="customerId" data-tom-select placeholder="Search customer name..." x-effect="const needsCustomer = action === 'release' || action === 'return'; if ($el.tomselect) { needsCustomer ? $el.tomselect.enable() : $el.tomselect.disable(); }" x-bind:disabled="!(action === 'release' || action === 'return')" x-bind:required="action === 'release' || action === 'return'"><option value="">Select customer</option>@foreach($customers as $customer)<option value="{{ $customer->id }}" @selected((string) old('customer_id') === (string) $customer->id)>{{ $customer->name }}</option>@endforeach</x-select>
                     </div>

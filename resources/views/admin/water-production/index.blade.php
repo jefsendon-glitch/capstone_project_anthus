@@ -63,7 +63,7 @@
                         @foreach($logs as $log)
                             <tr>
                                 <td class="px-3 py-2 font-mono text-xs">PROD-{{ str_pad((string) $log->id, 5, '0', STR_PAD_LEFT) }}</td>
-                                <td class="px-3 py-2 text-sm font-medium text-slate-900 dark:text-white">{{ $log->container_name }} ({{ $log->container_size ?? '—' }})</td>
+                                <td class="px-3 py-2 text-sm font-medium text-slate-900 dark:text-white">{{ $log->container_name }} ({{ $log->container_size ?? '—' }})@if($log->product)<p class="text-xs font-normal text-slate-500">{{ $log->product->name }} — {{ $log->product->size }}</p>@endif</td>
                                 <td class="px-3 py-2 text-xs text-slate-500">
                                     Gallon Tracking · Filled
                                     @if($log->station_gallon_movement_id)

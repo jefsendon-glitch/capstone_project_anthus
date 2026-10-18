@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Models\Product;
+use App\Models\StockMovement;
 use App\Models\WaterProductionLog;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Query\Builder;
@@ -55,7 +57,9 @@ class StationGallonController extends Controller
             ->orderByDesc('m.id')->paginate(5, ['*'], 'issues_page')
             ->withQueryString()->fragment('customer-issues');
 
-        return view('admin.station-gallons.index', compact('gallons', 'customers', 'movements', 'loans', 'loanRecords', 'month', 'customerIssues'));
+        $waterProducts = Product::active()->whereIn('category', array_keys(Product::WATER_TYPES))->orderBy('name')->get();
+
+        return view('admin.station-gallons.index', compact('gallons', 'customers', 'movements', 'loans', 'loanRecords', 'month', 'customerIssues', 'waterProducts'));
     }
 
     private function searchRecords(Builder $query, ?string $search, array $columns): Builder
@@ -184,6 +188,7 @@ class StationGallonController extends Controller
         $data = $request->validate([
             'gallon_id' => ['required', 'integer', 'exists:station_gallons,id'],
             'action' => ['required', Rule::in(['add', 'fill', 'release', 'return', 'damage', 'missing'])],
+            'product_id' => ['nullable', 'required_if:action,fill', 'integer', Rule::exists('products', 'id')->whereNull('deleted_at')->where('is_active', true)->whereIn('category', array_keys(Product::WATER_TYPES))],
             'quantity' => ['required', 'integer', 'min:'.($request->input('action') === 'return' ? 0 : 1), 'max:1000000'],
             'from_status' => ['nullable', 'required_if:action,damage', Rule::in(['empty', 'filled', 'borrowed'])],
             'return_status' => ['nullable', Rule::in(['empty', 'damaged'])],
@@ -268,7 +273,18 @@ class StationGallonController extends Controller
             DB::table('station_gallons')->where('id', $gallon->id)->update($changes);
             $movementId = $this->record($gallon->id, $data['action'], $from, $to, $quantity, $request->user()->id, $customerId, $data['notes'] ?? null);
             if ($data['action'] === 'fill') {
+                $product = Product::active()->whereIn('category', array_keys(Product::WATER_TYPES))
+                    ->lockForUpdate()->find($data['product_id']);
+                if (! $product) {
+                    throw ValidationException::withMessages(['product_id' => 'Select an active water product to receive the filled stock.']);
+                }
+                $before = (float) $product->stock_quantity;
+                $product->increment('stock_quantity', $quantity);
+                StockMovement::record($product, 'production', $quantity, $before,
+                    (float) $product->stock_quantity, $request->user()->id,
+                    'Filled '.$quantity.' '.$gallon->type.' gallons ('.$gallon->size.'). Gallon movement #'.$movementId);
                 WaterProductionLog::create([
+                    'product_id' => $product->id,
                     'station_gallon_movement_id' => $movementId,
                     'container_name' => $gallon->name,
                     'container_size' => $gallon->size,
@@ -284,7 +300,9 @@ class StationGallonController extends Controller
             ? 'Customer return saved. Damaged returns and any missing shortage are recorded under the customer.'
             : ($data['action'] === 'missing' && $customerId
             ? 'Missing gallons recorded under the customer. Borrowed balance updated.'
-            : 'Gallon movement saved. Stock and history updated.'));
+            : ($data['action'] === 'fill'
+                ? 'Gallons filled. The selected water product stock and production history have been updated.'
+                : 'Gallon movement saved. Stock and history updated.')));
     }
 
     private function record(int $id, string $action, ?string $from, string $to, int $quantity, int $userId, ?int $customerId = null, ?string $notes = null): int

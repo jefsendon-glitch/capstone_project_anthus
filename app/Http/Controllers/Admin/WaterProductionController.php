@@ -25,13 +25,14 @@ class WaterProductionController extends Controller
         }
         $dateFrom = $filters['date_from'] ?? null;
         $dateTo = $filters['date_to'] ?? null;
-        $query = WaterProductionLog::with('producedBy')->whereNotNull('container_name')
+        $query = WaterProductionLog::with(['producedBy', 'product'])->whereNotNull('container_name')
             ->when($dateFrom, fn ($query) => $query->whereDate('production_date', '>=', $dateFrom))
             ->when($dateTo, fn ($query) => $query->whereDate('production_date', '<=', $dateTo))
             ->when(! empty($filters['search']), function ($query) use ($filters) {
                 $search = '%'.$filters['search'].'%';
                 $query->where(function ($query) use ($search) {
-                    $query->where('container_name', 'like', $search)->orWhere('container_size', 'like', $search);
+                    $query->where('container_name', 'like', $search)->orWhere('container_size', 'like', $search)
+                        ->orWhereHas('product', fn ($product) => $product->where('name', 'like', $search));
                 });
             });
         $summary = [

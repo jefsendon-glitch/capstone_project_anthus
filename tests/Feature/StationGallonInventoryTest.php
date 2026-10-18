@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\User;
+use App\Models\Product;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Support\Facades\DB;
 
@@ -8,6 +9,7 @@ beforeEach(function () {
     $this->seed(RoleSeeder::class);
     $this->admin = User::factory()->create();
     $this->admin->assignRole('admin');
+    $this->water = Product::factory()->create(['name' => 'Purified Water', 'category' => 'purified', 'stock_quantity' => 0, 'is_active' => true, 'requires_container_choice' => true]);
     $this->customer = User::factory()->create();
     $this->customer->assignRole('customer');
 });
@@ -26,7 +28,7 @@ test('new inventory independently tracks stock, customer loans and returns', fun
         ['action' => 'damage', 'quantity' => 1, 'from_status' => 'empty', 'notes' => 'Cracked container'],
     ] as $movement) {
         $this->post(route('admin.inventory.gallon-inventory.move'), $movement + [
-            'gallon_id' => $id, 'customer_id' => $this->customer->id,
+            'product_id' => $this->water->id, 'gallon_id' => $id, 'customer_id' => $this->customer->id,
         ])->assertSessionHasNoErrors();
     }
     $this->assertDatabaseHas('station_gallons', [
@@ -36,10 +38,11 @@ test('new inventory independently tracks stock, customer loans and returns', fun
     $this->assertDatabaseHas('station_gallon_loans', ['customer_id' => $this->customer->id, 'quantity' => 1]);
     $this->assertDatabaseCount('station_gallon_movements', 7);
     $this->assertDatabaseHas('water_production_logs', [
-        'product_id' => null, 'container_name' => 'Round', 'container_size' => '5 gallons',
+        'product_id' => $this->water->id, 'container_name' => 'Round', 'container_size' => '5 gallons',
         'gallons_produced' => 6, 'produced_by' => $this->admin->id,
     ]);
     $this->assertDatabaseCount('water_production_logs', 1);
+    expect($this->water->fresh()->stock_quantity)->toBe(6);
     $this->get(route('admin.water-production.index'))->assertOk()->assertSee('Gallon Tracking');
     $this->assertDatabaseCount('gallon_stocks', 0);
     $this->get(route('admin.inventory.gallon-inventory'))->assertOk()
@@ -52,12 +55,12 @@ test('new inventory independently tracks stock, customer loans and returns', fun
         ->assertSee(route('admin.inventory.gallon-inventory.update', $id), false)
         ->assertSee($this->customer->name)->assertSee('Lost by customer');
     $this->post(route('admin.inventory.gallon-inventory.move'), [
-        'gallon_id' => $id, 'customer_id' => $this->customer->id,
+        'product_id' => $this->water->id, 'gallon_id' => $id, 'customer_id' => $this->customer->id,
         'action' => 'return', 'settle_return' => false, 'quantity' => 2,
     ])->assertSessionHasErrors('quantity');
     $this->assertDatabaseCount('station_gallon_movements', 7);
     $this->post(route('admin.inventory.gallon-inventory.move'), [
-        'gallon_id' => $id, 'action' => 'fill', 'quantity' => 5,
+        'product_id' => $this->water->id, 'gallon_id' => $id, 'action' => 'fill', 'quantity' => 5,
     ])->assertSessionHasErrors('quantity');
     $this->assertDatabaseHas('station_gallons', ['id' => $id, 'empty' => 4, 'filled' => 2]);
     $this->assertDatabaseCount('water_production_logs', 1);
@@ -128,7 +131,7 @@ test('reset requires confirmation and admin access and supports history or entir
     $id = DB::table('station_gallons')->value('id');
     foreach (['fill', 'release'] as $action) {
         $this->post(route('admin.inventory.gallon-inventory.move'), [
-            'gallon_id' => $id, 'action' => $action, 'quantity' => 2, 'customer_id' => $this->customer->id,
+            'product_id' => $this->water->id, 'gallon_id' => $id, 'action' => $action, 'quantity' => 2, 'customer_id' => $this->customer->id,
         ])->assertSessionHasNoErrors();
     }
     $url = route('admin.inventory.gallon-inventory.reset');
@@ -211,7 +214,7 @@ test('missing reports transfer only available stock and preserve totals on rejec
     ])->assertSessionHasNoErrors();
     $id = DB::table('station_gallons')->value('id');
     $url = route('admin.inventory.gallon-inventory.move');
-    $report = ['gallon_id' => $id, 'action' => 'missing', 'quantity' => 2, 'notes' => 'Count discrepancy'];
+    $report = ['product_id' => $this->water->id, 'gallon_id' => $id, 'action' => 'missing', 'quantity' => 2, 'notes' => 'Count discrepancy'];
     $this->post($url, $report)->assertSessionHasErrors('customer_id');
     $this->post($url, $report + ['from_status' => 'empty'])->assertSessionHasNoErrors();
     $this->assertDatabaseHas('station_gallons', ['id' => $id, 'empty' => 3, 'missing' => 2, 'type' => 'Slim']);
@@ -229,11 +232,11 @@ test('unreturned customer gallons are recorded as missing against the correct bo
     $url = route('admin.inventory.gallon-inventory.move');
     foreach (['fill', 'release'] as $action) {
         $this->post($url, [
-            'gallon_id' => $id, 'action' => $action, 'quantity' => 4, 'customer_id' => $this->customer->id,
+            'product_id' => $this->water->id, 'gallon_id' => $id, 'action' => $action, 'quantity' => 4, 'customer_id' => $this->customer->id,
         ])->assertSessionHasNoErrors();
     }
     $report = [
-        'gallon_id' => $id, 'action' => 'missing', 'quantity' => 3,
+        'product_id' => $this->water->id, 'gallon_id' => $id, 'action' => 'missing', 'quantity' => 3,
         'customer_id' => $this->customer->id, 'notes' => 'Customer did not return the containers',
     ];
     $otherCustomer = User::factory()->create();
@@ -254,7 +257,7 @@ test('unreturned customer gallons are recorded as missing against the correct bo
     ]);
     $this->post($url, $report)->assertSessionHasErrors('quantity');
     $this->post($url, [
-        'gallon_id' => $id, 'action' => 'return', 'settle_return' => false, 'quantity' => 1, 'customer_id' => $this->customer->id,
+        'product_id' => $this->water->id, 'gallon_id' => $id, 'action' => 'return', 'settle_return' => false, 'quantity' => 1, 'customer_id' => $this->customer->id,
     ])->assertSessionHasNoErrors();
     $this->assertDatabaseHas('station_gallons', [
         'id' => $id, 'empty' => 7, 'borrowed' => 0, 'missing' => 3, 'returned' => 1,
@@ -272,10 +275,10 @@ test('short returns automatically record missing and damaged customer gallons at
     $id = DB::table('station_gallons')->value('id');
     $url = route('admin.inventory.gallon-inventory.move');
     foreach (['fill', 'release'] as $action) {
-        $this->post($url, ['gallon_id' => $id, 'action' => $action, 'quantity' => 10,
+        $this->post($url, ['product_id' => $this->water->id, 'gallon_id' => $id, 'action' => $action, 'quantity' => 10,
             'customer_id' => $this->customer->id])->assertSessionHasNoErrors();
     }
-    $return = ['gallon_id' => $id, 'action' => 'return', 'quantity' => 7,
+    $return = ['product_id' => $this->water->id, 'gallon_id' => $id, 'action' => 'return', 'quantity' => 7,
         'damaged_quantity' => 2, 'customer_id' => $this->customer->id];
     $this->post($url, array_replace($return, ['damaged_quantity' => 8]))->assertSessionHasErrors('damaged_quantity');
     $this->post($url, array_replace($return, ['quantity' => 11]))->assertSessionHasErrors('quantity');
@@ -305,12 +308,12 @@ test('zero returned gallons closes only the selected customer loan as missing', 
     $id = DB::table('station_gallons')->value('id');
     $url = route('admin.inventory.gallon-inventory.move');
     $other = User::factory()->create(); $other->assignRole('customer');
-    $this->post($url, ['gallon_id' => $id, 'action' => 'fill', 'quantity' => 10])->assertSessionHasNoErrors();
+    $this->post($url, ['product_id' => $this->water->id, 'gallon_id' => $id, 'action' => 'fill', 'quantity' => 10])->assertSessionHasNoErrors();
     foreach ([$this->customer, $other] as $customer) {
-        $this->post($url, ['gallon_id' => $id, 'action' => 'release', 'quantity' => 5,
+        $this->post($url, ['product_id' => $this->water->id, 'gallon_id' => $id, 'action' => 'release', 'quantity' => 5,
             'customer_id' => $customer->id])->assertSessionHasNoErrors();
     }
-    $this->post($url, ['gallon_id' => $id, 'action' => 'return', 'quantity' => 0,
+    $this->post($url, ['product_id' => $this->water->id, 'gallon_id' => $id, 'action' => 'return', 'quantity' => 0,
         'damaged_quantity' => 0, 'customer_id' => $this->customer->id])->assertSessionHasNoErrors();
     $this->assertDatabaseHas('station_gallons', ['id' => $id, 'borrowed' => 5, 'missing' => 5, 'returned' => 0]);
     $this->assertDatabaseHas('station_gallon_loans', ['station_gallon_id' => $id, 'customer_id' => $other->id, 'quantity' => 5]);

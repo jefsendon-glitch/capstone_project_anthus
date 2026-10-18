@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\User;
+use App\Models\Product;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Support\Facades\DB;
 
@@ -8,6 +9,7 @@ beforeEach(function () {
     $this->seed(RoleSeeder::class);
     $this->admin = User::factory()->create();
     $this->admin->assignRole('admin');
+    $this->water = Product::factory()->create(['name' => 'Purified Water', 'category' => 'purified', 'stock_quantity' => 0, 'is_active' => true, 'requires_container_choice' => true]);
     $this->operator = User::factory()->create();
     $this->operator->assignRole('staff');
     $this->borrower = User::factory()->create();
@@ -17,13 +19,13 @@ beforeEach(function () {
     ])->assertSessionHasNoErrors();
     $this->gallonId = DB::table('station_gallons')->value('id');
     $this->post(route('admin.inventory.gallon-inventory.move'), [
-        'gallon_id' => $this->gallonId, 'action' => 'fill', 'quantity' => 10,
+        'product_id' => $this->water->id, 'gallon_id' => $this->gallonId, 'action' => 'fill', 'quantity' => 10,
     ])->assertSessionHasNoErrors();
 });
 
 test('staff handovers update shared stock customer balances and attributed missing and damage records', function () {
     $url = route('staff.gallons.move');
-    $base = ['gallon_id' => $this->gallonId, 'customer_id' => $this->borrower->id];
+    $base = ['product_id' => $this->water->id, 'gallon_id' => $this->gallonId, 'customer_id' => $this->borrower->id];
     $this->actingAs($this->operator)->get(route('staff.gallons.index'))->assertOk()
         ->assertSee($url, false)->assertSee('Available Filled Gallons')
         ->assertDontSee('Register Gallon Type')->assertDontSee('Stock Adjustment')
@@ -46,7 +48,7 @@ test('staff handovers update shared stock customer balances and attributed missi
 
 test('staff can keep a partial return outstanding and invalid handovers leave balances intact', function () {
     $url = route('staff.gallons.move');
-    $base = ['gallon_id' => $this->gallonId, 'customer_id' => $this->borrower->id];
+    $base = ['product_id' => $this->water->id, 'gallon_id' => $this->gallonId, 'customer_id' => $this->borrower->id];
     $this->actingAs($this->operator)->post($url, $base + ['action' => 'release', 'quantity' => 11])->assertSessionHasErrors('quantity');
     $this->post($url, $base + ['action' => 'release', 'quantity' => 5])->assertSessionHasNoErrors();
     $this->post($url, $base + ['action' => 'return', 'quantity' => 6])->assertSessionHasErrors('quantity');
@@ -61,7 +63,7 @@ test('staff can keep a partial return outstanding and invalid handovers leave ba
 test('staff cannot bypass restricted actions and customers cannot access staff gallon operations', function () {
     $this->actingAs($this->operator);
     foreach (['add', 'fill', 'damage', 'missing'] as $action) {
-        $this->post(route('staff.gallons.move'), ['gallon_id' => $this->gallonId,
+        $this->post(route('staff.gallons.move'), ['product_id' => $this->water->id, 'gallon_id' => $this->gallonId,
             'action' => $action, 'quantity' => 1])->assertForbidden();
     }
     $this->post(route('admin.inventory.gallon-inventory.store'), [])->assertForbidden();
