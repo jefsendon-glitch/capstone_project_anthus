@@ -9,8 +9,11 @@ use App\Models\Product;
 use App\Models\StockMovement;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
+use League\Flysystem\FilesystemException;
 
 class ProductController extends Controller
 {
@@ -48,7 +51,7 @@ class ProductController extends Controller
         $data['is_active'] = $request->boolean('is_active', true);
 
         if ($request->hasFile('image')) {
-            $data['image_path'] = $request->file('image')->store('products', config('filesystems.product_image_disk'));
+            $data['image_path'] = $this->storeImage($request->file('image'));
         }
 
         DB::transaction(function () use ($data, $request) {
@@ -82,11 +85,9 @@ class ProductController extends Controller
         $data = $request->safe()->except('image');
         $data['is_active'] = $request->boolean('is_active');
 
+        $previousImagePath = $product->image_path;
         if ($request->hasFile('image')) {
-            if ($product->image_path) {
-                Storage::disk(config('filesystems.product_image_disk'))->delete($product->image_path);
-            }
-            $data['image_path'] = $request->file('image')->store('products', config('filesystems.product_image_disk'));
+            $data['image_path'] = $this->storeImage($request->file('image'));
         }
 
         DB::transaction(function () use ($product, $data, $request) {
@@ -107,7 +108,29 @@ class ProductController extends Controller
             }
         });
 
+        if (isset($data['image_path']) && $previousImagePath) {
+            Storage::disk(config('filesystems.product_image_disk'))->delete($previousImagePath);
+        }
+
         return redirect()->route('admin.products.index')->with('success', 'Product updated successfully.');
+    }
+
+    private function storeImage(UploadedFile $image): string
+    {
+        try {
+            $path = $image->store('products', config('filesystems.product_image_disk'));
+        } catch (FilesystemException $exception) {
+            report($exception);
+            $path = false;
+        }
+
+        if ($path === false) {
+            throw ValidationException::withMessages([
+                'image' => 'The product image could not be saved. Please try again or contact the administrator to check image storage.',
+            ]);
+        }
+
+        return $path;
     }
 
     public function destroy(Product $product): RedirectResponse

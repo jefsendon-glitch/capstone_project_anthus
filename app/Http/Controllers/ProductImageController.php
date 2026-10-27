@@ -3,13 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Models\Product;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Storage;
-use Symfony\Component\HttpFoundation\BinaryFileResponse;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class ProductImageController extends Controller
 {
-    public function show(Product $product): BinaryFileResponse|RedirectResponse
+    public function show(Product $product): StreamedResponse
     {
         abort_unless($product->image_path, 404);
 
@@ -18,10 +17,7 @@ class ProductImageController extends Controller
 
         abort_unless($disk->exists($product->image_path), 404);
 
-        if (config("filesystems.disks.{$diskName}.driver") !== 'local') {
-            return redirect()->away($disk->url($product->image_path));
-        }
-
-        return response()->file($disk->path($product->image_path));
+        // Read through the configured disk so private cloud objects work too.
+        return $disk->response($product->image_path);
     }
 }

@@ -117,6 +117,30 @@ npm run build
 
 Compiled assets are output to `public/build`. Serve the app through Apache/Nginx pointed at `public/` (rather than `php artisan serve`) for a production-like setup.
 
+## Uploaded images on Laravel Cloud
+
+Attach a persistent Object Storage bucket to the application environment and use
+the bucket's connection settings for the `s3` disk in `config/filesystems.php`.
+Set these application environment variables, then redeploy:
+
+```dotenv
+PRODUCT_IMAGE_DISK=s3
+PROFILE_IMAGE_DISK=s3
+```
+
+The S3 driver is included in Composer dependencies. Set bucket credentials securely
+in Laravel Cloud, never in Git. If the attached bucket uses a different disk name,
+use that disk name instead of `s3`. Product and profile image routes read through
+the configured disk, so the bucket can remain private; no public bucket URL or
+`storage:link` is required for these image routes.
+
+The default `public` disk stores files on the application filesystem. Do not rely
+on it to retain images across Cloud deployments or application instances. Changing
+disks does not move existing images: copy retained files to the new disk with the
+same paths, or upload them again. Files already lost from temporary storage must
+be restored from a backup or uploaded again. Uploads accept JPG, PNG, and WebP up
+to 2 MB; the hosting PHP upload and POST limits must also allow the file.
+
 ## Useful commands
 
 ```bash

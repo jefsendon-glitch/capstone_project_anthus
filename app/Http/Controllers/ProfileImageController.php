@@ -3,15 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
-use League\Flysystem\Local\LocalFilesystemAdapter;
-use Symfony\Component\HttpFoundation\BinaryFileResponse;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class ProfileImageController extends Controller
 {
-    public function show(Request $request, User $user): BinaryFileResponse|RedirectResponse
+    public function show(Request $request, User $user): StreamedResponse
     {
         abort_unless($request->user()->is($user) && $user->avatar_path, 404);
 
@@ -20,10 +18,6 @@ class ProfileImageController extends Controller
 
         abort_unless($disk->exists($user->avatar_path), 404);
 
-        if (! ($disk->getAdapter() instanceof LocalFilesystemAdapter)) {
-            return redirect()->away($disk->url($user->avatar_path));
-        }
-
-        return response()->file($disk->path($user->avatar_path));
+        return $disk->response($user->avatar_path);
     }
 }
