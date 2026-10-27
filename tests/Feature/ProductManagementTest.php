@@ -132,3 +132,86 @@ test('admin can add stock to a product with an audit trail', function () {
         'quantity_delta' => 5,
     ]);
 });
+
+test('a failed image upload does not create a product', function () {
+    $disk = Mockery::mock(\Illuminate\Filesystem\FilesystemAdapter::class);
+    $disk->shouldReceive('putFileAs')->once()->andReturn(false);
+    Storage::shouldReceive('disk')->with('public')->andReturn($disk);
+
+    $this->actingAs($this->admin)->post(route('admin.products.store'), [
+        'name' => 'Upload failure', 'category' => 'other', 'size' => '1 piece',
+        'unit_price' => 25, 'stock_quantity' => 0, 'low_stock_threshold' => 0,
+        'image' => UploadedFile::fake()->image('water.jpg'),
+    ])->assertSessionHasErrors('image');
+
+    $this->assertDatabaseMissing('products', ['name' => 'Upload failure']);
+});
+
+test('a failed replacement upload keeps the existing product image', function () {
+    $storage = Storage::fake('public');
+    $storage->put('products/original.jpg', 'original image');
+    $product = Product::factory()->create(['category' => 'other', 'image_path' => 'products/original.jpg']);
+    $disk = Mockery::mock(\Illuminate\Filesystem\FilesystemAdapter::class);
+    $disk->shouldReceive('putFileAs')->once()->andReturn(false);
+    $disk->shouldNotReceive('delete');
+    Storage::shouldReceive('disk')->with('public')->andReturn($disk);
+
+    $this->actingAs($this->admin)->put(route('admin.products.update', $product), [
+        'name' => $product->name, 'category' => 'other', 'size' => $product->size,
+        'unit_price' => 25, 'stock_quantity' => 0, 'low_stock_threshold' => 0,
+        'image' => UploadedFile::fake()->image('replacement.jpg'),
+    ])->assertSessionHasErrors('image');
+
+    expect($product->fresh()->image_path)->toBe('products/original.jpg');
+    $storage->assertExists('products/original.jpg');
+});
+
+test('replacing a product image saves and serves the new image before removing the old one', function () {
+    $storage = Storage::fake('public');
+    $storage->put('products/original.jpg', 'original image');
+    $product = Product::factory()->create(['category' => 'other', 'image_path' => 'products/original.jpg']);
+
+    $this->actingAs($this->admin)->put(route('admin.products.update', $product), [
+        'name' => $product->name, 'category' => 'other', 'size' => $product->size,
+        'unit_price' => 25, 'stock_quantity' => 0, 'low_stock_threshold' => 0,
+        'image' => UploadedFile::fake()->image('replacement.webp'),
+    ])->assertSessionHasNoErrors()->assertRedirect(route('admin.products.index'));
+
+    $product->refresh();
+    expect($product->image_path)->not->toBe('products/original.jpg');
+    $storage->assertExists($product->image_path);
+    $storage->assertMissing('products/original.jpg');
+    $this->get($product->image_url)->assertOk();
+});
+
+test('private cloud product images are streamed without a public bucket URL', function () {
+    config()->set('filesystems.product_image_disk', 'private-images');
+    config()->set('filesystems.disks.private-images.driver', 's3');
+    $product = Product::factory()->create(['image_path' => 'products/private.jpg']);
+    $disk = Mockery::mock(\Illuminate\Filesystem\FilesystemAdapter::class);
+    $disk->shouldReceive('exists')->with($product->image_path)->once()->andReturn(true);
+    $disk->shouldReceive('response')->with($product->image_path)->once()->andReturn(
+        response()->stream(fn () => print('private image bytes'), 200, ['Content-Type' => 'image/jpeg'])
+    );
+    $disk->shouldNotReceive('url');
+    Storage::shouldReceive('disk')->with('private-images')->andReturn($disk);
+
+    $this->get($product->image_url)->assertOk()->assertHeader('Content-Type', 'image/jpeg')
+        ->assertStreamedContent('private image bytes');
+});
+
+test('an image storage exception is reported as an upload error', function () {
+    $disk = Mockery::mock(\Illuminate\Filesystem\FilesystemAdapter::class);
+    $disk->shouldReceive('putFileAs')->once()->andThrow(
+        \League\Flysystem\UnableToWriteFile::atLocation('products/upload.jpg')
+    );
+    Storage::shouldReceive('disk')->with('public')->andReturn($disk);
+
+    $this->actingAs($this->admin)->post(route('admin.products.store'), [
+        'name' => 'Storage exception', 'category' => 'other', 'size' => '1 piece',
+        'unit_price' => 25, 'stock_quantity' => 0, 'low_stock_threshold' => 0,
+        'image' => UploadedFile::fake()->image('water.jpg'),
+    ])->assertSessionHasErrors('image');
+
+    $this->assertDatabaseMissing('products', ['name' => 'Storage exception']);
+});
