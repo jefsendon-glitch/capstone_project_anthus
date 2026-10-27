@@ -1,14 +1,24 @@
+@php
+    $nameWords = preg_split('/\s+/', trim($supplier->name), -1, PREG_SPLIT_NO_EMPTY) ?: [];
+    $supplierNameParts = count($nameWords) > 1
+        ? [$nameWords[0], implode(' ', array_slice($nameWords, 1, -1)), $nameWords[count($nameWords) - 1]]
+        : ['', '', $nameWords[0] ?? ''];
+@endphp
+
 <x-layouts.app title="Edit Supplier" :heading="'Edit Supplier'">
     <x-card class="mx-auto max-w-xl">
         <form method="POST" action="{{ route('admin.suppliers.update', $supplier) }}" class="space-y-5">
             @csrf
             @method('put')
 
-            <div>
-                <x-input-label for="name" value="Supplier name" />
-                <x-text-input id="name" name="name" :value="old('name', $supplier->name)" required autofocus />
-                <x-input-error :messages="$errors->get('name')" />
-            </div>
+            <fieldset>
+                <legend class="text-sm font-semibold text-slate-700 dark:text-slate-300">Supplier Name</legend>
+                <div class="mt-2 grid gap-3 sm:grid-cols-3">
+                    <div><x-input-label for="first_name" value="First Name" /><x-text-input id="first_name" name="first_name" :value="old('first_name', $supplierNameParts[0])" maxlength="100" required autofocus autocomplete="given-name" /><x-input-error :messages="$errors->get('first_name')" /></div>
+                    <div><x-input-label for="middle_name" value="Middle Name (Optional)" /><x-text-input id="middle_name" name="middle_name" :value="old('middle_name', $supplierNameParts[1])" maxlength="100" autocomplete="additional-name" /><x-input-error :messages="$errors->get('middle_name')" /></div>
+                    <div><x-input-label for="last_name" value="Last Name" /><x-text-input id="last_name" name="last_name" :value="old('last_name', $supplierNameParts[2])" maxlength="100" required autocomplete="family-name" /><x-input-error :messages="$errors->get('last_name')" /></div>
+                </div>
+            </fieldset>
 
             <div class="grid grid-cols-2 gap-5">
                 <div>

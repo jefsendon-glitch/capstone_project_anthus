@@ -25,10 +25,9 @@
 
     <div class="mb-6 flex flex-wrap items-center justify-between gap-3">
         <div class="flex items-center gap-3">
-            <x-button as="a" href="{{ route('admin.consumables.report') }}" variant="info"><x-icon name="clipboard" class="size-4" /> Stock Report</x-button>
             @can('create', \App\Models\Consumable::class)
-                    <x-button variant="success" as="a" href="{{ route('admin.consumables.create') }}"><x-icon name="plus" class="size-4" /> Add Supply</x-button>
-                @endcan
+                <x-button variant="success" as="a" href="{{ route('admin.consumables.create') }}"><x-icon name="plus" class="size-4" /> Add Supply</x-button>
+            @endcan
         </div>
     </div>
 

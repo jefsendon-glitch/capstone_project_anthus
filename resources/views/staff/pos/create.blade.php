@@ -2,11 +2,6 @@
 $categories = [
     'all' => 'All',
     'refill' => 'Refill',
-    'alkaline' => 'Alkaline',
-    'distilled' => 'Distilled',
-    'purified' => 'Purified',
-
-    'container' => 'Container',
     'other' => 'Other Products',
 ];
 @endphp
@@ -45,14 +40,21 @@ $categories = [
                         @foreach(['walk-in' => ['Walk-in', 'user-circle'], 'delivery' => ['Delivery', 'truck']] as $value => [$label, $icon])
                             <button type="button" x-on:click="transactionType = '{{ $value }}'" x-bind:aria-pressed="transactionType === '{{ $value }}'" x-bind:class="transactionType === '{{ $value }}' ? 'border-primary-600 bg-primary-50 text-primary-700 dark:bg-primary-500/10 dark:text-primary-300' : 'border-slate-200 bg-white text-slate-600 dark:border-white/10 dark:bg-slate-800 dark:text-slate-300'" class="flex min-h-10 items-center justify-center gap-2 rounded-lg border px-3 py-2 text-sm font-semibold"><x-icon :name="$icon" class="size-4" /> {{ $label }}</button>
                         @endforeach
-                    </div></fieldset>
+                    </div>
+                    <div class="mt-3">
+                        <x-input-label for="pos-container-type" value="Container Type for Water" />
+                        <x-select id="pos-container-type" x-model="containerType"><option value="round">Round Gallon</option><option value="slim">Slim Gallon</option></x-select>
+                    </div>
+                    </fieldset>
                 </div>
-                <div class="mt-3 border-t border-slate-100 pt-3 dark:border-white/10"><p class="mb-2 text-xs font-medium text-slate-500 dark:text-slate-400">Product Category</p><div class="flex flex-wrap gap-2" role="group" aria-label="Product categories">
-                    @foreach($categories as $key => $label)
-                        <button type="button" x-on:click="category = '{{ $key }}'" x-bind:aria-pressed="category === '{{ $key }}'" x-bind:class="category === '{{ $key }}' ? 'bg-primary-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700'" class="rounded-lg px-3 py-2 text-sm font-medium">{{ $label }}</button>
-                    @endforeach
-                </div></div>
-                <div class="mt-3 border-t border-slate-100 pt-3 dark:border-white/10"><x-input-label for="pos-container-type" value="Container Type for Water" /><x-select id="pos-container-type" x-model="containerType"><option value="round">Round Gallon</option><option value="slim">Slim Gallon</option></x-select><p class="mt-1 text-xs text-slate-500">Select a container, then add a water product. The price is the same; stock is tracked separately for Round and Slim.</p></div>
+                <div class="mt-3 border-t border-slate-100 pt-3 dark:border-white/10">
+                    <p class="mb-2 text-xs font-medium text-slate-500 dark:text-slate-400">Product Category</p>
+                    <div class="flex flex-wrap gap-2" role="group" aria-label="Product categories">
+                        @foreach($categories as $key => $label)
+                            <button type="button" x-on:click="category = '{{ $key }}'" x-bind:aria-pressed="category === '{{ $key }}'" x-bind:class="category === '{{ $key }}' ? 'bg-primary-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700'" class="rounded-lg px-3 py-2 text-sm font-medium">{{ $label }}</button>
+                        @endforeach
+                    </div>
+                </div>
                 <p class="mt-3 text-xs text-slate-500 dark:text-slate-400" aria-live="polite" x-text="filteredProducts.length + ' products available. Select a product to add it to the order.'"></p>
             </x-card>
 
@@ -230,8 +232,11 @@ $categories = [
 
                 get filteredProducts() {
                     const term = this.search.toLowerCase();
+                    const waterCategories = ['refill', 'alkaline', 'purified', 'distilled'];
                     return this.products.filter((p) => {
-                        const matchesCategory = this.category === 'all' || p.category === this.category;
+                        const matchesCategory = this.category === 'all'
+                            || (this.category === 'refill' && waterCategories.includes(p.category))
+                            || (this.category === 'other' && !waterCategories.includes(p.category));
                         const matchesSearch = p.name.toLowerCase().includes(term);
                         return matchesCategory && matchesSearch;
                     });
@@ -258,8 +263,7 @@ $categories = [
                 },
 
                 categoryLabel(category) {
-                    const labels = { refill: 'Refill', alkaline: 'Alkaline', distilled: 'Distilled', purified: 'Purified', container: 'Container', other: 'Other Products' };
-                    return labels[category] ?? category;
+                    return ['refill', 'alkaline', 'purified', 'distilled'].includes(category) ? 'Refill' : 'Other Products';
                 },
 
                 containerLabel(type) { return type === 'slim' ? 'Slim Gallon' : 'Round Gallon'; },

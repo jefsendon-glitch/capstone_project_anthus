@@ -30,6 +30,8 @@ class SupplierController extends Controller
     public function store(StoreSupplierRequest $request): RedirectResponse
     {
         $data = $request->validated();
+        $data['name'] = $this->fullName($data);
+        unset($data['first_name'], $data['middle_name'], $data['last_name']);
         $data['is_active'] = $request->boolean('is_active', true);
 
         Supplier::create($data);
@@ -47,6 +49,8 @@ class SupplierController extends Controller
     public function update(UpdateSupplierRequest $request, Supplier $supplier): RedirectResponse
     {
         $data = $request->validated();
+        $data['name'] = $this->fullName($data);
+        unset($data['first_name'], $data['middle_name'], $data['last_name']);
         $data['is_active'] = $request->boolean('is_active');
 
         $supplier->update($data);
@@ -65,5 +69,14 @@ class SupplierController extends Controller
         $supplier->delete();
 
         return redirect()->route('admin.suppliers.index')->with('success', 'Supplier deleted successfully.');
+    }
+
+    private function fullName(array $data): string
+    {
+        return implode(' ', array_filter([
+            trim($data['first_name']),
+            trim($data['middle_name'] ?? ''),
+            trim($data['last_name']),
+        ], fn ($part) => $part !== ''));
     }
 }

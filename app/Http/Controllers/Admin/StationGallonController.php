@@ -203,7 +203,7 @@ class StationGallonController extends Controller
 
         $data = $request->validate([
             'gallon_id' => ['required', 'integer', 'exists:station_gallons,id'],
-            'action' => ['required', Rule::in(['add', 'fill', 'release', 'return', 'damage', 'missing'])],
+            'action' => ['required', Rule::in(['fill', 'release', 'return', 'damage', 'missing'])],
             'product_id' => ['nullable', 'required_if:action,fill', 'integer', Rule::exists('products', 'id')->whereNull('deleted_at')->where('is_active', true)->whereIn('category', array_keys(Product::WATER_TYPES))],
             'quantity' => ['required', 'integer', 'min:'.($request->input('action') === 'return' ? 0 : 1), 'max:1000000'],
             'from_status' => ['nullable', 'required_if:action,damage', Rule::in(['empty', 'filled', 'borrowed'])],
@@ -214,7 +214,6 @@ class StationGallonController extends Controller
             'notes' => ['nullable', 'required_if:action,damage,missing', 'string', 'max:1000'],
         ]);
         [$from, $to] = match ($data['action']) {
-            'add' => [null, 'empty'],
             'fill' => ['empty', 'filled'],
             'release' => ['filled', 'borrowed'],
             'return' => ['borrowed', $data['return_status'] ?? 'empty'],

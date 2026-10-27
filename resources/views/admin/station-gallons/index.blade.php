@@ -47,7 +47,7 @@
                 <div><x-input-label for="gallon-size" value="Container Size" /><x-text-input id="gallon-size" name="size" :value="!old('action') && !old('edit_gallon_id') ? old('size') : ''" placeholder="e.g. 5 Gallon" maxlength="100" required /><x-input-error :messages="!old('action') && !old('edit_gallon_id') ? $errors->get('size') : []" /></div>
                 <div><x-input-label for="opening-quantity" value="Opening Empty Quantity" /><x-text-input id="opening-quantity" name="quantity" :value="!old('action') && !old('edit_gallon_id') ? old('quantity') : ''" placeholder="Number of empty containers" type="number" step="1" min="1" max="1000000" required /><x-input-error :messages="!old('action') && !old('edit_gallon_id') ? $errors->get('quantity') : []" /></div>
                 <div class="border-t border-slate-100 pt-3 dark:border-white/10 sm:col-span-2">
-                    <p class="mb-3 text-xs text-slate-500">Adds to Empty Gallons only. Use Fill Gallons to add water product stock. For more containers of an existing entry, use Add Empty Gallons.</p>
+                    <p class="mb-3 text-xs text-slate-500">Adds to Empty Gallons only. Use Fill Gallons to add water product stock. Adjust empty stock for an existing container in the table below.</p>
                     <div class="flex justify-end"><x-button variant="success" type="submit">Register Empty Gallons</x-button></div>
                 </div>
             </form>
@@ -60,7 +60,7 @@
                 <p class="text-sm text-slate-500">No gallon types are available. Admin must register and fill gallons before they can be released.</p>
             @else
                 <form method="POST" action="{{ route($movementRoute) }}" class="mt-3 grid gap-3 sm:grid-cols-2" x-data="{
-                    action: @js(in_array(old('action'), $canManage ? ['add', 'fill', 'release', 'return'] : ['release', 'return']) ? old('action') : ($canManage ? 'add' : 'release')),
+                    action: @js(in_array(old('action'), $canManage ? ['fill', 'release', 'return'] : ['release', 'return']) ? old('action') : ($canManage ? 'fill' : 'release')),
                     gallonId: @js((string) old('gallon_id', $gallons->first()->id)),
                     customerId: @js((string) old('customer_id', '')),
                     returned: @js(old('action') ? old('quantity', '') : ''),
@@ -81,7 +81,6 @@
                         <x-select id="movement-action" name="action" x-model="action">
                             @if($canManage)
                             <optgroup label="Station inventory">
-                                <option value="add">Add Empty Gallons</option>
                                 <option value="fill">Fill Gallons</option>
                             </optgroup>
                             @endif
@@ -90,7 +89,7 @@
                                 <option value="return">Return from Customer</option>
                             </optgroup>
                         </x-select>
-                        <p x-show="action !== 'fill'" class="mt-1 text-xs text-slate-500" x-text="{ add: 'Add newly purchased empty gallons to station stock.', release: 'Record filled gallons borrowed by a customer.', return: 'Record returned gallons and select how to handle any shortage.' }[action] || ''"></p>
+                        <p x-show="action === 'release' || action === 'return'" class="mt-1 text-xs text-slate-500" x-text="{ release: 'Record filled gallons borrowed by a customer.', return: 'Record returned gallons and select how to handle any shortage.' }[action] || ''"></p>
                     </div>
                     <div><x-input-label for="movement-gallon" value="Gallon Container" /><x-select id="movement-gallon" name="gallon_id" x-model="gallonId" required>@foreach($gallons as $gallon)<option value="{{ $gallon->id }}" @selected((string) old('gallon_id') === (string) $gallon->id)>{{ $gallon->name }} / {{ $gallon->type ?? 'Unspecified' }} — {{ $gallon->size }}</option>@endforeach</x-select></div>
                     @if($canManage)
