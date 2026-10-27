@@ -4,8 +4,8 @@ namespace App\Http\Controllers\Customer;
 
 use App\Http\Controllers\Controller;
 use App\Models\Setting;
+use Illuminate\Support\Carbon;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 class DashboardController extends Controller
@@ -21,6 +21,8 @@ class DashboardController extends Controller
         $totalOrders = $user->deliveryOrders()->count();
         $totalSpent = (float) $user->salesTransactions()->sum('total_amount');
         $pendingOrders = $user->deliveryOrders()->whereIn('status', ['pending', 'confirmed', 'out_for_delivery'])->count();
+        $nextDueDate = $user->salesTransactions()->where('payment_method', 'loan')
+            ->whereColumn('credit_paid_amount', '<', 'total_amount')->min('credit_due_date');
 
         return view('customer.dashboard', [
             'recentOrders' => $recentOrders,
@@ -29,7 +31,7 @@ class DashboardController extends Controller
             'totalOrders' => $totalOrders,
             'totalSpent' => $totalSpent,
             'pendingOrders' => $pendingOrders,
-            'borrowedGallons' => (int) DB::table('station_gallon_loans')->where('customer_id', $user->id)->sum('quantity'),
+            'nextDueDate' => $nextDueDate ? Carbon::parse($nextDueDate)->format('M d, Y') : null,
             'station' => Setting::current(),
         ]);
     }

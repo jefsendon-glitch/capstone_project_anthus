@@ -17,10 +17,10 @@ class ProfileUpdateRequest extends FormRequest
     {
         return [
             'first_name' => ['required', 'string', 'max:100'],
-            'middle_name' => ['nullable', 'string', 'max:100'],
+            'middle_name' => ['required', 'string', 'max:100'],
             'last_name' => ['required', 'string', 'max:100'],
             'contact_number' => ['nullable', 'string', 'max:30'],
-            'address' => ['nullable', 'string', 'max:2000'],
+            'address' => [$this->user()->isCustomer() ? 'required' : 'nullable', 'string', 'max:2000'],
             'email' => [
                 'required', 'string', 'lowercase', 'email', 'max:255',
                 Rule::unique(User::class)->ignore($this->user()->id),

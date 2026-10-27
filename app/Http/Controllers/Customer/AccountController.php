@@ -3,27 +3,12 @@
 namespace App\Http\Controllers\Customer;
 
 use App\Http\Controllers\Controller;
-use App\Models\Setting;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 class AccountController extends Controller
 {
-    public function index(Request $request): View
-    {
-        $request->validate(['search' => ['nullable', 'string', 'max:100']]);
-        $search = trim($request->input('search', ''));
-        $purchases = $request->user()->salesTransactions()->with('processedBy')
-            ->when($search !== '', fn ($query) => $query->where(fn ($query) => $query
-                ->where('transaction_code', 'like', '%'.$search.'%')->orWhere('product_name', 'like', '%'.$search.'%')))
-            ->latest()->orderByDesc('id')->paginate(5)->withQueryString();
-        $nextDueDate = $request->user()->salesTransactions()->where('payment_method', 'loan')
-            ->whereColumn('credit_paid_amount', '<', 'total_amount')->min('credit_due_date');
-
-        return view('customer.account', ['purchases' => $purchases, 'nextDueDate' => $nextDueDate, 'station' => Setting::current()]);
-    }
-
     public function gallons(Request $request): View
     {
         $request->validate(['search' => ['nullable', 'string', 'max:100']]);

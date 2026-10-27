@@ -2,7 +2,7 @@
     $links = auth()->user()->isCustomer() ? [
         ['customer.dashboard', 'Overview'], ['customer.orders.index', 'My Orders'],
         ['customer.payments.index', 'Payments'], ['customer.gallons', 'My Gallons'],
-        ['customer.account', 'My Account'], ['profile.edit', 'Profile'],
+        ['profile.edit', 'My Profile'],
     ] : (auth()->user()->isStaff() ? [
         ['staff.dashboard', 'Overview'], ['pos.index', 'Point of Sale'], ['deliveries.index', 'Deliveries'],
         ['payments.index', 'Collections'], ['staff.gallons.index', 'Gallon Tracking'], ['staff.inventory', 'Stock Overview'], ['profile.edit', 'My Profile'],

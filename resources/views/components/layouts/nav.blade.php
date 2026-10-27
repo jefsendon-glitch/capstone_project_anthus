@@ -91,9 +91,6 @@ $procurementActive = request()->routeIs('admin.suppliers*') || request()->routeI
     <a href="{{ route('customer.gallons') }}" class="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium {{ $navLink('customer.gallons') }}">
         <x-icon name="archive" class="size-5 shrink-0" /><span x-bind:class="$store.sidebar.collapsed &amp;&amp; 'lg:hidden'">My Gallons</span>
     </a>
-    <a href="{{ route('customer.account') }}" class="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium {{ $navLink('customer.account') }}">
-        <x-icon name="user-circle" class="size-5 shrink-0" /><span x-bind:class="$store.sidebar.collapsed &amp;&amp; 'lg:hidden'">My Account</span>
-    </a>
 @endif
 
 <div class="my-3 border-t border-white/10"></div>

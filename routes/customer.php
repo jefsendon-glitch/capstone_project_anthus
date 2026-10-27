@@ -7,7 +7,6 @@ use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth', 'role:customer'])->prefix('customer')->name('customer.')->group(function () {
     Route::get('/dashboard', DashboardController::class)->name('dashboard');
-    Route::get('/account', [\App\Http\Controllers\Customer\AccountController::class, 'index'])->name('account');
     Route::get('/gallons', [\App\Http\Controllers\Customer\AccountController::class, 'gallons'])->name('gallons');
 
     Route::resource('orders', OrderController::class)->only(['index', 'create', 'store', 'show']);
