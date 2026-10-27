@@ -14,7 +14,7 @@ class DashboardController extends Controller
     {
         $user = $request->user();
 
-        $recentOrders = $user->deliveryOrders()->with('items')->latest()->take(5)->get();
+        $recentOrders = $user->deliveryOrders()->with('items')->latest()->paginate(5, ['*'], 'orders_page')->withQueryString();
         $currentOrder = $user->deliveryOrders()->with('items')->whereNotIn('status', ['delivered', 'cancelled'])->latest()->first();
         $recentPayments = $user->payments()->latest('payment_date')->take(5)->get();
 

@@ -44,9 +44,9 @@
 
     <div class="mt-4 grid items-start gap-4 lg:grid-cols-2">
         <x-card padding="p-0">
-            <details class="group">
+            <details class="group" @if(request()->boolean('history_open')) open @endif>
                 <summary class="flex cursor-pointer list-none items-center justify-between gap-3 rounded-xl px-4 py-3 outline-none transition hover:bg-slate-50 focus-visible:ring-2 focus-visible:ring-primary-500 dark:hover:bg-white/5">
-                    <span><span class="block text-sm font-semibold text-slate-900 dark:text-white">Order History</span><span class="mt-0.5 block text-xs text-slate-500 dark:text-slate-400">Latest {{ $recentOrders->count() }} orders</span></span>
+                    <span><span class="block text-sm font-semibold text-slate-900 dark:text-white">Order History</span><span class="mt-0.5 block text-xs text-slate-500 dark:text-slate-400">Showing {{ $recentOrders->count() }} of {{ $recentOrders->total() }} orders</span></span>
                     <x-icon name="chevron-down" class="size-4 shrink-0 text-slate-500 transition-transform group-open:rotate-180" />
                 </summary>
                 <div class="border-t border-slate-100 dark:border-white/10">
@@ -61,6 +61,21 @@
                             <div class="p-4"><x-empty-state icon="truck" title="No orders yet" description="Place your first delivery order when you need water." /></div>
                         @endforelse
                     </div>
+                    @if($recentOrders->lastPage() > 1)
+                        <nav aria-label="Order history pages" class="flex items-center justify-between border-t border-slate-100 px-4 py-3 dark:border-white/10">
+                            @if($recentOrders->onFirstPage())
+                                <span aria-disabled="true" class="rounded-lg px-3 py-1.5 text-xs font-semibold text-slate-400">Previous</span>
+                            @else
+                                <a href="{{ request()->fullUrlWithQuery(['orders_page' => $recentOrders->currentPage() - 1, 'history_open' => 1]) }}" class="rounded-lg px-3 py-1.5 text-xs font-semibold text-primary-700 hover:bg-primary-50 dark:text-primary-300 dark:hover:bg-white/5">Previous</a>
+                            @endif
+                            <span class="text-xs text-slate-500">Page {{ $recentOrders->currentPage() }} of {{ $recentOrders->lastPage() }}</span>
+                            @if($recentOrders->hasMorePages())
+                                <a href="{{ request()->fullUrlWithQuery(['orders_page' => $recentOrders->currentPage() + 1, 'history_open' => 1]) }}" class="rounded-lg px-3 py-1.5 text-xs font-semibold text-primary-700 hover:bg-primary-50 dark:text-primary-300 dark:hover:bg-white/5">Next</a>
+                            @else
+                                <span aria-disabled="true" class="rounded-lg px-3 py-1.5 text-xs font-semibold text-slate-400">Next</span>
+                            @endif
+                        </nav>
+                    @endif
                 </div>
             </details>
         </x-card>

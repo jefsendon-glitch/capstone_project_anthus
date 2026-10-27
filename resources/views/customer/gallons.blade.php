@@ -18,17 +18,29 @@
 
     <div class="space-y-4">
         <x-card padding="p-0">
-            <div class="flex items-center justify-between gap-3 border-b border-slate-100 px-4 py-3 dark:border-white/10"><div><h2 class="text-base font-semibold">Currently Borrowed</h2><p class="mt-1 text-xs text-slate-500 dark:text-slate-400">Your remaining balance for each gallon type.</p></div><x-badge color="primary">{{ $balances->total() }} {{ $balances->total() === 1 ? 'record' : 'records' }}</x-badge></div>
+            <details class="group">
+                <summary class="flex cursor-pointer list-none items-center justify-between gap-3 rounded-xl px-4 py-3 outline-none transition hover:bg-slate-50 focus-visible:ring-2 focus-visible:ring-primary-500 dark:hover:bg-white/5">
+                    <span><span class="block text-sm font-semibold">Current Borrowed</span><span class="mt-1 block text-xs text-slate-500 dark:text-slate-400">Remaining balance for each gallon type</span></span>
+                    <span class="flex shrink-0 items-center gap-2"><x-badge color="primary">{{ $balances->total() }} {{ $balances->total() === 1 ? 'record' : 'records' }}</x-badge><x-icon name="chevron-down" class="size-4 text-slate-500 transition-transform group-open:rotate-180" /></span>
+                </summary>
+                <div class="border-t border-slate-100 dark:border-white/10">
             <ul class="divide-y divide-slate-100 dark:divide-white/10" aria-label="Currently borrowed gallons">
                 @forelse($balances as $balance)
                     <li class="flex items-center justify-between gap-3 px-4 py-3"><div class="min-w-0"><p class="break-words text-sm font-semibold text-slate-900 dark:text-white">{{ $balance->name }}</p><p class="mt-1 text-sm text-slate-500 dark:text-slate-400">{{ $balance->type ?? 'Unspecified type' }} &middot; {{ $balance->size }}</p></div><div class="shrink-0 text-right"><p class="text-lg font-semibold tabular-nums text-primary-700 dark:text-primary-300">{{ number_format($balance->quantity) }}</p><p class="text-xs text-slate-500 dark:text-slate-400">to return</p></div></li>
                 @empty<li class="p-4"><x-empty-state icon="archive" :title="request()->filled('search') ? 'No matching borrowed gallons' : 'No gallons to return'" :description="request()->filled('search') ? 'Try another gallon name or type. Condition searches apply to history.' : 'New gallon loans recorded by the station will appear here.'" /></li>@endforelse
             </ul>
             <div class="border-t border-slate-100 px-4 py-3 dark:border-white/10">{{ $balances->links() }}</div>
+                </div>
+            </details>
         </x-card>
 
         <x-card padding="p-0">
-            <div class="flex items-center justify-between gap-3 border-b border-slate-100 px-4 py-3 dark:border-white/10"><div><h2 class="text-base font-semibold">Gallon History</h2><p class="mt-1 text-xs text-slate-500 dark:text-slate-400">Borrowing, returns, missing gallons, and damaged returns.</p></div><x-badge>{{ $history->total() }} {{ $history->total() === 1 ? 'record' : 'records' }}</x-badge></div>
+            <details class="group">
+                <summary class="flex cursor-pointer list-none items-center justify-between gap-3 rounded-xl px-4 py-3 outline-none transition hover:bg-slate-50 focus-visible:ring-2 focus-visible:ring-primary-500 dark:hover:bg-white/5">
+                    <span><span class="block text-sm font-semibold">Gallon History</span><span class="mt-1 block text-xs text-slate-500 dark:text-slate-400">Borrowing, returns, missing, and damaged gallons</span></span>
+                    <span class="flex shrink-0 items-center gap-2"><x-badge>{{ $history->total() }} {{ $history->total() === 1 ? 'record' : 'records' }}</x-badge><x-icon name="chevron-down" class="size-4 text-slate-500 transition-transform group-open:rotate-180" /></span>
+                </summary>
+                <div class="border-t border-slate-100 dark:border-white/10">
             <ul class="divide-y divide-slate-100 dark:divide-white/10" aria-label="Gallon movement history">
                 @forelse($history as $record)
                     @php
@@ -43,6 +55,8 @@
                 @empty<li class="p-4"><x-empty-state icon="archive" title="No gallon history found" :description="request()->filled('search') ? 'Try a different gallon name, type, or condition.' : 'Movements recorded by the station will appear here.'" /></li>@endforelse
             </ul>
             <div class="border-t border-slate-100 px-4 py-3 dark:border-white/10">{{ $history->links() }}</div>
+                </div>
+            </details>
         </x-card>
     </div>
     <p class="mt-4 text-xs leading-relaxed text-slate-500 dark:text-slate-400">Missing gallons are not counted as returned. Records are updated by station staff or Admin and remain available while retained by the station. Contact the station if a record needs correction.</p>
