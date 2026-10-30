@@ -11,7 +11,7 @@ $categories = [
     <form
         method="POST"
         action="{{ route('pos.store') }}"
-        x-data='posForm(@json($productsForCart))'
+        x-data='posForm(@json($productsForCart), @json($deliveryFeeRate))'
         class="grid grid-cols-1 items-start gap-4 lg:grid-cols-[minmax(0,1fr)_22rem]"
     >
         @csrf
@@ -146,9 +146,10 @@ $categories = [
                     </template>
                     </div>
 
-                    <div class="flex items-center justify-between rounded-lg bg-primary-50 p-3 text-base font-bold dark:bg-primary-500/10 text-slate-900 dark:text-white">
-                        <span>Total</span>
-                        <span class="font-mono" x-text="formatCurrency(subtotal)"></span>
+                    <div class="space-y-1 rounded-lg bg-primary-50 p-3 text-sm text-slate-900 dark:bg-primary-500/10 dark:text-white">
+                        <div class="flex items-center justify-between"><span>Products subtotal</span><span class="font-mono" x-text="formatCurrency(subtotal)"></span></div>
+                        <div x-show="transactionType === 'delivery'" x-cloak class="flex items-center justify-between"><span>Delivery fee (<span x-text="gallonCount"></span> <span x-text="gallonCount === 1 ? 'gallon' : 'gallons'"></span> × <span x-text="formatCurrency(feeRate)"></span>)</span><span class="font-mono" x-text="formatCurrency(deliveryFee)"></span></div>
+                        <div class="flex items-center justify-between border-t border-primary-200 pt-1 text-base font-bold dark:border-primary-400/20"><span>Total to pay</span><span class="font-mono" x-text="formatCurrency(total)"></span></div>
                     </div>
 
                     <div class="space-y-3 pt-2">
@@ -199,7 +200,7 @@ $categories = [
                                 <span class="font-medium text-primary-800 dark:text-primary-200">Change</span>
                                 <span class="font-mono text-base font-bold text-primary-700 dark:text-primary-300" x-text="formatCurrency(changeAmount)"></span>
                             </div>
-                            <p x-show="tenderedAmount && !tenderIsSufficient" x-cloak class="mt-2 text-xs font-medium text-danger-600 dark:text-danger-400" x-text="'Add ' + formatCurrency(subtotal - tenderedAmount) + ' more to complete payment.'"></p>
+                            <p x-show="tenderedAmount && !tenderIsSufficient" x-cloak class="mt-2 text-xs font-medium text-danger-600 dark:text-danger-400" x-text="'Add ' + formatCurrency(total - tenderedAmount) + ' more to complete payment.'"></p>
                         </div>
 
                         <button
@@ -217,9 +218,10 @@ $categories = [
 
     @push('scripts')
     <script>
-        function posForm(products) {
+        function posForm(products, feeRate) {
             return {
                 products: products,
+                feeRate: Number(feeRate || 0),
                 search: '',
                 category: 'all',
                 containerType: 'round',
@@ -246,20 +248,34 @@ $categories = [
                     return this.cart.reduce((sum, item) => sum + (item.unit_price * item.quantity), 0);
                 },
 
+                get gallonCount() {
+                    return this.cart.filter((item) => item.requires_container_choice).reduce((sum, item) => sum + item.quantity, 0);
+                },
+
+                get deliveryFee() {
+                    return this.transactionType === 'delivery'
+                        ? Math.round(this.feeRate * this.gallonCount * 100) / 100
+                        : 0;
+                },
+
+                get total() {
+                    return this.subtotal + this.deliveryFee;
+                },
+
                 get itemsJson() {
                     return JSON.stringify(this.cart.map((item) => ({ product_id: item.product_id, quantity: item.quantity, container_type: item.container_type })));
                 },
 
                 get tenderIsSufficient() {
-                    return Number(this.tenderedAmount || 0) >= this.subtotal;
+                    return Number(this.tenderedAmount || 0) >= this.total;
                 },
 
                 get changeAmount() {
-                    return Math.max(0, Number(this.tenderedAmount || 0) - this.subtotal);
+                    return Math.max(0, Number(this.tenderedAmount || 0) - this.total);
                 },
 
                 formatCurrency(amount) {
-                    return new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(Number(amount || 0));
+                    return new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP', minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(Number(amount || 0));
                 },
 
                 categoryLabel(category) {

@@ -70,7 +70,9 @@ class POSController extends Controller
             'image_url' => $product->image_url,
         ])->values();
 
-        return view('staff.pos.create', compact('products', 'customers', 'productsForCart'));
+        $deliveryFeeRate = (float) Setting::current()->delivery_fee_per_gallon;
+
+        return view('staff.pos.create', compact('products', 'customers', 'productsForCart', 'deliveryFeeRate'));
     }
 
     public function reset(Request $request): RedirectResponse

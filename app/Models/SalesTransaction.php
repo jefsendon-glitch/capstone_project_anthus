@@ -17,6 +17,7 @@ class SalesTransaction extends Model
         'product_id', 'product_name', 'quantity', 'unit_price', 'total_amount',
         'tendered_amount', 'change_amount', 'payment_method', 'processed_by', 'notes',
         'credit_due_date', 'credit_paid_amount', 'credit_status', 'container_type',
+        'delivery_fee_rate', 'delivery_fee', 'delivery_gallon_count',
     ];
 
     protected function casts(): array
@@ -28,6 +29,9 @@ class SalesTransaction extends Model
             'change_amount' => 'decimal:2',
             'credit_due_date' => 'date',
             'credit_paid_amount' => 'decimal:2',
+            'delivery_fee_rate' => 'decimal:2',
+            'delivery_fee' => 'decimal:2',
+            'delivery_gallon_count' => 'integer',
         ];
     }
 

@@ -60,17 +60,21 @@
                                     </div>
                                 </td>
                                 <td class="py-2 text-center text-slate-600 dark:text-slate-300">{{ $line->quantity }}</td>
-                                <td class="py-2 text-right font-mono text-slate-600 dark:text-slate-300">₱{{ number_format($line->unit_price, 2) }}</td>
-                                <td class="py-2 text-right font-mono font-medium text-slate-900 dark:text-white">₱{{ number_format($line->total_amount, 2) }}</td>
+                                <td class="py-2 text-right font-mono text-slate-600 dark:text-slate-300">&#8369;{{ number_format($line->unit_price, 2) }}</td>
+                                <td class="py-2 text-right font-mono font-medium text-slate-900 dark:text-white">&#8369;{{ number_format((float) $line->total_amount - (float) $line->delivery_fee, 2) }}</td>
                             </tr>
                         @endforeach
                     </tbody>
+                    @php($feeLine = $transactions->first(fn ($transaction) => (float) $transaction->delivery_fee > 0))
+                    @php($productsSubtotal = $transactions->sum(fn ($transaction) => (float) $transaction->total_amount - (float) $transaction->delivery_fee))
+                    <tfoot class="border-t border-slate-200 dark:border-white/10">
+                        <tr><th colspan="3" class="pt-3 text-right text-xs font-medium text-slate-500">Products subtotal</th><td class="pt-3 text-right font-mono text-slate-900 dark:text-white">&#8369;{{ number_format($productsSubtotal, 2) }}</td></tr>
+                        @if($feeLine)
+                            <tr><th colspan="3" class="pt-2 text-right text-xs font-medium text-slate-500">Delivery fee ({{ $feeLine->delivery_gallon_count }} {{ $feeLine->delivery_gallon_count === 1 ? 'gallon' : 'gallons' }} &times; &#8369;{{ number_format($feeLine->delivery_fee_rate, 2) }})</th><td class="pt-2 text-right font-mono text-slate-900 dark:text-white">&#8369;{{ number_format($feeLine->delivery_fee, 2) }}</td></tr>
+                        @endif
+                        <tr class="border-t border-slate-200 dark:border-white/10"><th colspan="3" class="pt-2 text-right text-sm font-bold">Total to pay</th><td class="pt-2 text-right font-mono font-bold text-slate-900 dark:text-white">&#8369;{{ number_format($total, 2) }}</td></tr>
+                    </tfoot>
                 </table>
-            </div>
-
-            <div class="mt-4 flex items-center justify-between border-t border-dashed border-slate-300 pt-4 text-base font-bold text-slate-900 dark:border-white/10 dark:text-white">
-                <span>Total</span>
-                <span class="font-mono">₱{{ number_format($total, 2) }}</span>
             </div>
 
             <p class="mt-6 text-center text-xs text-slate-400">Thank you for your purchase!</p>
