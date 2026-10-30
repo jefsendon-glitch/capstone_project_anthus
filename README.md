@@ -117,6 +117,16 @@ npm run build
 
 Compiled assets are output to `public/build`. Serve the app through Apache/Nginx pointed at `public/` (rather than `php artisan serve`) for a production-like setup.
 
+## Production database migrations
+
+Run migrations against the production database on every deployment. In Laravel Cloud, set the environment's **Deploy command** to:
+
+```bash
+composer run deploy
+```
+
+This runs `php artisan migrate --force` against the production database before the new release receives traffic. The delivery fee and dispatch stock tracking depend on these migrations being applied.
+
 ## Uploaded images on Laravel Cloud
 
 Attach a persistent Object Storage bucket to the application environment and use
