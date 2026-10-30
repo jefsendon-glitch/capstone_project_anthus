@@ -16,6 +16,7 @@ class DeliveryOrder extends Model
         'product_id', 'product_name', 'quantity', 'unit_price', 'total_amount',
         'payment_method', 'status', 'preferred_delivery_date', 'delivered_at',
         'notes', 'placed_by', 'updated_by', 'container_type',
+        'delivery_fee_rate', 'delivery_fee',
     ];
 
     protected function casts(): array
@@ -23,6 +24,8 @@ class DeliveryOrder extends Model
         return [
             'unit_price' => 'decimal:2',
             'total_amount' => 'decimal:2',
+            'delivery_fee_rate' => 'decimal:2',
+            'delivery_fee' => 'decimal:2',
             'preferred_delivery_date' => 'date',
             'delivered_at' => 'datetime',
         ];

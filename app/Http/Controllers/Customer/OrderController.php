@@ -46,7 +46,11 @@ class OrderController extends Controller
             'image_url' => $product->image_url,
         ])->values();
 
-        return view('customer.orders.create', ['products' => $products, 'productsForOrder' => $productsForOrder]);
+        return view('customer.orders.create', [
+            'products' => $products,
+            'productsForOrder' => $productsForOrder,
+            'deliveryFeeRate' => (float) Setting::current()->delivery_fee_per_gallon,
+        ]);
     }
 
     public function store(StoreOrderRequest $request): RedirectResponse
@@ -76,14 +80,12 @@ class OrderController extends Controller
             ->orderBy('id')
             ->get();
 
-        // Older delivered orders may predate linked sales transactions. Their
-        // saved order items still contain the exact receipt line details.
-        $receiptLines = $transactions->isNotEmpty()
-            ? $transactions
-            : $order->items()
-                ->with('product')
-                ->orderBy('id')
-                ->get(['product_id', 'product_name', 'quantity', 'unit_price', 'total_amount', 'container_type']);
+        // Keep delivery fees separate from item sales on the receipt.
+        $orderLines = $order->items()
+            ->with('product')
+            ->orderBy('id')
+            ->get(['product_id', 'product_name', 'quantity', 'unit_price', 'total_amount', 'container_type']);
+        $receiptLines = $orderLines->isNotEmpty() ? $orderLines : $transactions;
 
         if ($receiptLines->isEmpty()) {
             $receiptLines = collect([(object) [
@@ -100,7 +102,7 @@ class OrderController extends Controller
             'order' => $order,
             'receiptLines' => $receiptLines,
             'business' => Setting::current(),
-            'total' => $receiptLines->sum('total_amount'),
+            'total' => $receiptLines->sum('total_amount') + (float) $order->delivery_fee,
         ]);
     }
 

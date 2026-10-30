@@ -23,7 +23,7 @@
                 <h1 class="font-heading text-xl font-bold text-slate-950 dark:text-white">{{ $business->business_name }}</h1>
                 @if($business->address)<p class="mt-1 text-sm text-slate-500 dark:text-slate-400">{{ $business->address }}</p>@endif
                 @if($business->contact_number || $business->contact_email)
-                    <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">{{ collect([$business->contact_number, $business->contact_email])->filter()->implode(' · ') }}</p>
+                    <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">{{ collect([$business->contact_number, $business->contact_email])->filter()->implode(' Â· ') }}</p>
                 @endif
                 <div class="mt-5 inline-flex items-center rounded-full bg-emerald-50 px-4 py-1.5 text-xs font-bold uppercase tracking-[0.14em] text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300">Delivery Receipt</div>
             </header>
@@ -37,7 +37,7 @@
                 <section class="sm:text-right">
                     <h2 class="text-xs font-bold uppercase tracking-wider text-slate-500">Order Details</h2>
                     <p class="mt-2 text-sm"><span class="text-slate-500">Receipt no.</span> <span class="ml-1 font-mono font-semibold text-slate-900 dark:text-white">{{ $order->order_code }}</span></p>
-                    <p class="mt-1 text-sm"><span class="text-slate-500">Delivered</span> <span class="ml-1 font-medium text-slate-900 dark:text-white">{{ $order->delivered_at?->format('M j, Y · g:i A') ?? '—' }}</span></p>
+                    <p class="mt-1 text-sm"><span class="text-slate-500">Delivered</span> <span class="ml-1 font-medium text-slate-900 dark:text-white">{{ $order->delivered_at?->format('M j, Y Â· g:i A') ?? 'â€”' }}</span></p>
                     <p class="mt-1 text-sm"><span class="text-slate-500">Payment method</span> <span class="ml-1 font-medium text-slate-900 dark:text-white">{{ $order->payment_method === 'loan' ? 'Credit' : ucfirst($order->payment_method) }}</span></p>
                 </section>
             </div>
@@ -55,13 +55,13 @@
                                         @if($line->container_type ?? null)<span class="mt-0.5 block text-xs font-normal text-slate-500">{{ ucfirst($line->container_type) }} gallon</span>@endif
                                     </td>
                                     <td class="px-3 py-3 text-center tabular-nums">{{ number_format($line->quantity) }}</td>
-                                    <td class="px-3 py-3 text-right font-mono tabular-nums">₱{{ number_format((float) $line->unit_price, 2) }}</td>
-                                    <td class="px-4 py-3 text-right font-mono font-semibold tabular-nums">₱{{ number_format((float) $line->total_amount, 2) }}</td>
+                                    <td class="px-3 py-3 text-right font-mono tabular-nums">â‚±{{ number_format((float) $line->unit_price, 2) }}</td>
+                                    <td class="px-4 py-3 text-right font-mono font-semibold tabular-nums">â‚±{{ number_format((float) $line->total_amount, 2) }}</td>
                                 </tr>
                             @endforeach
                         </tbody>
-                        <tfoot class="border-t-2 border-slate-200 bg-slate-50 dark:border-slate-700 dark:bg-white/5">
-                            <tr><th colspan="3" class="px-4 py-4 text-right text-sm font-bold uppercase tracking-wide">Total</th><td class="px-4 py-4 text-right font-mono text-lg font-bold tabular-nums">₱{{ number_format((float) $total, 2) }}</td></tr>
+                        <tfoot class="border-t-2 border-slate-200 bg-slate-50 dark:border-slate-700 dark:bg-white/5">@if((float) $order->delivery_fee > 0)<tr><th colspan="3" class="px-4 py-2 text-right text-sm font-medium">Delivery fee ({{ number_format($order->delivery_fee_rate, 2) }} per gallon)</th><td class="px-4 py-2 text-right font-mono tabular-nums">₱{{ number_format($order->delivery_fee, 2) }}</td></tr>@endif
+                            <tr><th colspan="3" class="px-4 py-4 text-right text-sm font-bold uppercase tracking-wide">Total</th><td class="px-4 py-4 text-right font-mono text-lg font-bold tabular-nums">â‚±{{ number_format((float) $total, 2) }}</td></tr>
                         </tfoot>
                     </table>
                 </div>

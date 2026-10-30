@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\DeliveryOrder;
 use App\Models\Product;
 use App\Models\SalesTransaction;
+use App\Models\Setting;
 use App\Models\StockMovement;
 use App\Models\User;
 use App\Notifications\NewDeliveryOrderPlaced;
@@ -37,6 +38,11 @@ class DeliveryService
             ]] : []));
 
             $firstItem = $orderItems->first();
+            $deliveryFeeRate = (int) round((float) Setting::current()->delivery_fee_per_gallon * 100);
+            $gallonQuantity = $orderItems->filter(fn ($item) => $item['product']->requires_container_choice)
+                ->sum('quantity');
+            $deliveryFee = (int) round($deliveryFeeRate * $gallonQuantity);
+            $itemsSubtotal = (int) round($orderItems->sum('total_amount') * 100);
 
             $order = DeliveryOrder::create([
             'order_code' => $this->sales->generateCode('DEL'),
@@ -48,7 +54,9 @@ class DeliveryService
             'container_type' => $orderItems->count() === 1 ? $firstItem['container_type'] : null,
             'quantity' => $orderItems->sum('quantity'),
             'unit_price' => $firstItem['product']->unit_price,
-            'total_amount' => $orderItems->sum('total_amount'),
+            'total_amount' => ($itemsSubtotal + $deliveryFee) / 100,
+            'delivery_fee_rate' => $deliveryFeeRate / 100,
+            'delivery_fee' => $deliveryFee / 100,
             'payment_method' => $paymentMethod,
             'status' => 'pending',
             'preferred_delivery_date' => $data['preferred_delivery_date'] ?? null,
@@ -167,7 +175,7 @@ class DeliveryService
                 $products[$id] = $product;
             }
 
-            foreach ($items as $item) {
+            foreach ($items as $index => $item) {
                 $product = $products[$item->product_id];
                 $transaction = SalesTransaction::create([
                 'transaction_code' => $this->sales->generateCode('TXN'),
@@ -180,7 +188,7 @@ class DeliveryService
                 'container_type' => $item->container_type ?? null,
                 'quantity' => $item->quantity,
                 'unit_price' => $item->unit_price,
-                'total_amount' => $item->total_amount,
+                'total_amount' => (float) $item->total_amount + ($index === 0 ? (float) $order->delivery_fee : 0),
                 'payment_method' => $paymentMethod,
                 'credit_due_date' => $paymentMethod === 'loan' ? now()->addDays(CreditAccountService::CREDIT_TERM_DAYS)->toDateString() : null,
                 'credit_status' => $paymentMethod === 'loan' ? 'outstanding' : 'not_applicable',
