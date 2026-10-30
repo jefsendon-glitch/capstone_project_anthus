@@ -57,6 +57,7 @@ class DeliveryService
             'total_amount' => ($itemsSubtotal + $deliveryFee) / 100,
             'delivery_fee_rate' => $deliveryFeeRate / 100,
             'delivery_fee' => $deliveryFee / 100,
+            'delivery_gallon_count' => $gallonQuantity,
             'payment_method' => $paymentMethod,
             'status' => 'pending',
             'preferred_delivery_date' => $data['preferred_delivery_date'] ?? null,
@@ -124,7 +125,26 @@ class DeliveryService
                 ]);
             }
 
-            $order->update(['status' => $status, 'updated_by' => $updatedBy->id]);
+            if ($status === 'out_for_delivery' && ! $order->stock_deducted_at) {
+                $items = $order->items()->lockForUpdate()->get();
+                if ($items->isEmpty()) {
+                    $items = collect([(object) [
+                        'product_id' => $order->product_id,
+                        'product_name' => $order->product_name,
+                        'quantity' => $order->quantity,
+                        'container_type' => $order->container_type,
+                    ]]);
+                }
+
+                $this->deductDeliveryStock($order, $items, $updatedBy);
+                $order->stock_deducted_at = now();
+            }
+
+            $order->update([
+                'status' => $status,
+                'stock_deducted_at' => $order->stock_deducted_at,
+                'updated_by' => $updatedBy->id,
+            ]);
             activity('delivery_orders')->causedBy($updatedBy)->performedOn($order)->event('updated')->log('Changed delivery status to '.str_replace('_', ' ', $status));
 
             return $order;
@@ -160,19 +180,15 @@ class DeliveryService
                 $items = collect([(object) ['product_id' => $order->product_id, 'product_name' => $order->product_name, 'quantity' => $order->quantity, 'unit_price' => $order->unit_price, 'total_amount' => $order->total_amount, 'container_type' => $order->container_type]]);
             }
 
+            if (! $order->stock_deducted_at) {
+                $this->deductDeliveryStock($order, $items, $updatedBy, 'payment_method');
+                $order->stock_deducted_at = now();
+            }
+
             $products = [];
             $transaction = null;
-            foreach ($items->groupBy('product_id')->sortKeys() as $id => $group) {
-                $product = Product::lockForUpdate()->findOrFail($id);
-                if ($group->sum('quantity') > $product->stock_quantity) {
-                    throw ValidationException::withMessages(['payment_method' => 'Not enough water stock for '.$product->name.'.']);
-                }
-                foreach ($group->groupBy(fn ($item) => $item->container_type ?? '') as $container => $variant) {
-                    if ($variant->sum('quantity') > $product->availableStock($container ?: null)) {
-                        throw ValidationException::withMessages(['payment_method' => 'Not enough '.($container ? ucfirst($container).' Gallon' : 'unassigned').' stock for '.$product->name.'.']);
-                    }
-                }
-                $products[$id] = $product;
+            foreach ($items->pluck('product_id')->unique()->sort() as $id) {
+                $products[$id] = Product::lockForUpdate()->findOrFail($id);
             }
 
             foreach ($items as $index => $item) {
@@ -194,11 +210,6 @@ class DeliveryService
                 'credit_status' => $paymentMethod === 'loan' ? 'outstanding' : 'not_applicable',
                 'processed_by' => $updatedBy->id,
                 ]);
-                $before = (float) $product->stock_quantity;
-                $product->deductStock((int) $item->quantity, $item->container_type ?? null);
-                StockMovement::record($product, 'sale_deduction', -$item->quantity, $before,
-                    (float) $product->stock_quantity, $updatedBy->id, 'Delivery '.$order->order_code.($item->container_type ? ' — '.ucfirst($item->container_type).' Gallon' : ''),
-                    null, $order->customer_id, $transaction->transaction_code);
             }
 
             if ($paymentMethod === 'loan') {
@@ -209,6 +220,7 @@ class DeliveryService
                 'status' => 'delivered',
                 'payment_method' => $paymentMethod,
                 'delivered_at' => now(),
+                'stock_deducted_at' => $order->stock_deducted_at,
                 'updated_by' => $updatedBy->id,
             ]);
 
@@ -217,5 +229,43 @@ class DeliveryService
 
             return $transaction;
         });
+    }
+
+    /** Deduct and record stock as the delivery leaves the station. */
+    private function deductDeliveryStock(DeliveryOrder $order, \Illuminate\Support\Collection $items, User $updatedBy, string $errorKey = 'status'): void
+    {
+        $products = [];
+        foreach ($items->groupBy('product_id')->sortKeys() as $id => $group) {
+            $product = Product::lockForUpdate()->findOrFail($id);
+            if ($group->sum('quantity') > $product->stock_quantity) {
+                throw ValidationException::withMessages([$errorKey => 'Not enough stock for '.$product->name.'.']);
+            }
+            foreach ($group->groupBy(fn ($item) => $item->container_type ?? '') as $container => $variant) {
+                if ($variant->sum('quantity') > $product->availableStock($container ?: null)) {
+                    throw ValidationException::withMessages([
+                        $errorKey => 'Not enough '.($container ? ucfirst($container).' Gallon' : 'available').' stock for '.$product->name.'.',
+                    ]);
+                }
+            }
+            $products[$id] = $product;
+        }
+
+        foreach ($items as $item) {
+            $product = $products[$item->product_id];
+            $before = (float) $product->stock_quantity;
+            $product->deductStock((int) $item->quantity, $item->container_type ?? null);
+            StockMovement::record(
+                $product,
+                'sale_deduction',
+                -$item->quantity,
+                $before,
+                (float) $product->stock_quantity,
+                $updatedBy->id,
+                'Delivery '.$order->order_code.' dispatched'.($item->container_type ? ' — '.ucfirst($item->container_type).' gallon' : ''),
+                null,
+                $order->customer_id,
+                $order->order_code,
+            );
+        }
     }
 }

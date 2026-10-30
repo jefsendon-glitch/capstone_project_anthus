@@ -55,13 +55,13 @@
                                         @if($line->container_type ?? null)<span class="mt-0.5 block text-xs font-normal text-slate-500">{{ ucfirst($line->container_type) }} gallon</span>@endif
                                     </td>
                                     <td class="px-3 py-3 text-center tabular-nums">{{ number_format($line->quantity) }}</td>
-                                    <td class="px-3 py-3 text-right font-mono tabular-nums">â‚±{{ number_format((float) $line->unit_price, 2) }}</td>
-                                    <td class="px-4 py-3 text-right font-mono font-semibold tabular-nums">â‚±{{ number_format((float) $line->total_amount, 2) }}</td>
+                                    <td class="px-3 py-3 text-right font-mono tabular-nums">&#8369;{{ number_format((float) $line->unit_price, 2) }}</td>
+                                    <td class="px-4 py-3 text-right font-mono font-semibold tabular-nums">&#8369;{{ number_format((float) $line->total_amount, 2) }}</td>
                                 </tr>
                             @endforeach
                         </tbody>
-                        <tfoot class="border-t-2 border-slate-200 bg-slate-50 dark:border-slate-700 dark:bg-white/5">@if((float) $order->delivery_fee > 0)<tr><th colspan="3" class="px-4 py-2 text-right text-sm font-medium">Delivery fee ({{ number_format($order->delivery_fee_rate, 2) }} per gallon)</th><td class="px-4 py-2 text-right font-mono tabular-nums">₱{{ number_format($order->delivery_fee, 2) }}</td></tr>@endif
-                            <tr><th colspan="3" class="px-4 py-4 text-right text-sm font-bold uppercase tracking-wide">Total</th><td class="px-4 py-4 text-right font-mono text-lg font-bold tabular-nums">â‚±{{ number_format((float) $total, 2) }}</td></tr>
+                        <tfoot class="border-t-2 border-slate-200 bg-slate-50 dark:border-slate-700 dark:bg-white/5">@if((float) $order->delivery_fee > 0)<tr><th colspan="3" class="px-4 py-2 text-right text-sm font-medium">Delivery fee ({{ $order->delivery_gallon_count }} gallons × &#8369;{{ number_format($order->delivery_fee_rate, 2) }})</th><td class="px-4 py-2 text-right font-mono tabular-nums">₱{{ number_format($order->delivery_fee, 2) }}</td></tr>@endif
+                            <tr><th colspan="3" class="px-4 py-4 text-right text-sm font-bold uppercase tracking-wide">Total</th><td class="px-4 py-4 text-right font-mono text-lg font-bold tabular-nums">&#8369;{{ number_format((float) $total, 2) }}</td></tr>
                         </tfoot>
                     </table>
                 </div>
