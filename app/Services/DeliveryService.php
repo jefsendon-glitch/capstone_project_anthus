@@ -11,7 +11,9 @@ use App\Models\User;
 use App\Notifications\NewDeliveryOrderPlaced;
 use App\Notifications\OrderStatusUpdated;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
+use Throwable;
 
 class DeliveryService
 {
@@ -24,7 +26,7 @@ class DeliveryService
      */
     public function placeOrder(array $data, User $customer): DeliveryOrder
     {
-        return DB::transaction(function () use ($data, $customer) {
+        $order = DB::transaction(function () use ($data, $customer) {
             // HTTP order submissions must choose a method. This default protects
             // service callers created before payment selection was introduced.
             $paymentMethod = $data['payment_method'] ?? 'cash';
@@ -76,10 +78,21 @@ class DeliveryService
 
             activity('delivery_orders')->causedBy($customer)->performedOn($order)->event('created')->log('Placed a delivery order');
 
-            User::role(['admin', 'staff'])->get()->each->notify(new NewDeliveryOrderPlaced($order));
-
             return $order;
         });
+
+        // A notification failure must not turn a successfully placed order into
+        // a checkout error after the order transaction has already committed.
+        try {
+            User::role(['admin', 'staff'])->get()->each->notify(new NewDeliveryOrderPlaced($order));
+        } catch (Throwable $exception) {
+            Log::error('Unable to notify staff about a newly placed delivery order.', [
+                'delivery_order_id' => $order->id,
+                'exception' => $exception,
+            ]);
+        }
+
+        return $order;
     }
 
     public function cancel(DeliveryOrder $order, User $cancelledBy): DeliveryOrder
